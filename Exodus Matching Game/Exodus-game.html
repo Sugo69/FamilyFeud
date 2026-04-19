@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exodus Chronicles</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load React, ReactDOM, and Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Load QR Code Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body class="bg-slate-950 text-white overflow-hidden">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- LOCAL VIDEO PATHS ---
+        const videoAssets = {
+          dailyBread: [
+            "./daily-bread-pattern-eng-1080p.mp4", 
+            "./daily-bread-experience-eng-1080p.mp4",
+            "./daily-bread-change-eng-1080p.mp4"
+          ],
+          restoration: "./daily-restoration.mp4"
+        };
+
+        // --- LOCAL AUDIO PATHS ---
+        const audioAssets = {
+          flip: "./flip.mp3",
+          match: "./match.mp3",
+          mismatch: "./mismatch.mp3",
+          win: "./win.mp3",
+          klaxon: "./klaxon.mp3",       // For Divine Intervention!
+          sabotage: "./sabotage.mp3"    // For the Sabotage button!
+        };
+
+        // Audio helper function
+        const playSound = (soundName) => {
+          try {
+            const audio = new Audio(audioAssets[soundName]);
+            audio.play().catch(e => console.warn("Audio play prevented:", e));
+          } catch (e) {
+            console.error("Failed to play sound", e);
+          }
+        };
+
+        // --- GAME DATA (Full Scripture Blocks & URLs) ---
+        const board1Data = [
+          { id: 'b1-1', scene: "The Shores of the Red Sea", title: "Stand Still & See", ref: "Exodus 14:13-14", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/14?lang=eng&id=13-14#p13", text: "And Moses said unto the people, Fear ye not, stand still, and see the salvation of the Lord, which he will shew to you to day: for the Egyptians whom ye have seen to day, ye shall see them again no more for ever. The Lord shall fight for you, and ye shall hold your peace.", question: "What does it mean to 'stand still' when you are facing a massive trial?", prize: "Win a Prize", isDailyDouble: false, icon: "🌊", iconLabel: "Red Sea" },
+          { id: 'b1-2', scene: "The Shores of the Red Sea", title: "Pillar of Fire", ref: "Exodus 14:19-20", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/14?lang=eng&id=19-20#p19", text: "And the angel of God... removed and went behind them; and the pillar of the cloud went from before their face, and stood behind them: And it came between the camp of the Egyptians and the camp of Israel; and it was a cloud and darkness to them, but it gave light by night to these...", question: "How does the Holy Ghost act as a pillar of fire in your life today?", prize: "Win a Prize", isDailyDouble: false, icon: "🔥", iconLabel: "Pillar of Fire" },
+          { id: 'b1-3', scene: "The Shores of the Red Sea", title: "Parting the Sea", ref: "Exodus 14:21-22", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/14?lang=eng&id=21-22#p21", text: "And Moses stretched out his hand over the sea; and the Lord caused the sea to go back by a strong east wind all that night, and made the sea dry land, and the waters were divided. And the children of Israel went into the midst of the sea upon the dry ground...", question: "God used a wind all night to prepare the way. How does God prepare ways for us over time?", prize: "Win a Prize", isDailyDouble: false, icon: "💨", iconLabel: "East Wind" },
+          { id: 'b1-4', scene: "The Wilderness of Shur", title: "Song of Moses", ref: "Exodus 15:1-2", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/15?lang=eng&id=1-2#p1", text: "Then sang Moses and the children of Israel this song unto the Lord... The Lord is my strength and song, and he is become my salvation: he is my God, and I will prepare him an habitation; my father's God, and I will exalt him.", question: "Why is it important to praise God AFTER He helps us through a trial?", prize: "Win a Prize", isDailyDouble: false, icon: "🎶", iconLabel: "Praise" },
+          { id: 'b1-5', scene: "The Waters of Marah", title: "Bitter to Sweet", ref: "Exodus 15:23-25", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/15?lang=eng&id=23-25#p23", text: "And when they came to Marah, they could not drink of the waters of Marah, for they were bitter... And the people murmured against Moses... And he cried unto the Lord; and the Lord shewed him a tree, which when he had cast into the waters, the waters were made sweet.", question: "Moses healed the bitter waters. How can the Savior make our bitter experiences sweet?", prize: "Win a Prize", isDailyDouble: false, icon: "💧", iconLabel: "Bitter Water" },
+          { id: 'b1-6', scene: "The Wilderness of Sin", title: "Manna From Heaven", ref: "Exodus 16:4-5", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/16?lang=eng&id=4-5#p4", text: "Then said the Lord unto Moses, Behold, I will rain bread from heaven for you; and the people shall go out and gather a certain rate every day, that I may prove them, whether they will walk in my law, or no.", question: "How is reading your scriptures every day just like gathering Manna?", prize: "Bonus Prize", isDailyDouble: true, icon: "🍞", videoType: "dailyBread", iconLabel: "Manna" },
+          { id: 'b1-7', scene: "Encampment at Rephidim", title: "Water from the Rock", ref: "Exodus 17:5-6", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/17?lang=eng&id=5-6#p5", text: "And the Lord said unto Moses... Behold, I will stand before thee there upon the rock in Horeb; and thou shalt smite the rock, and there shall come water out of it, that the people may drink. And Moses did so in the sight of the elders of Israel.", question: "Christ is the 'Rock'. What living water does He provide us when we feel spiritually thirsty?", prize: "Bonus Prize", isDailyDouble: true, icon: "🪨", iconLabel: "The Rock" },
+          { id: 'b1-8', scene: "Battle with Amalek", title: "Sustaining the Prophet", ref: "Exodus 17:11-12", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/17?lang=eng&id=11-12#p11", text: "And it came to pass, when Moses held up his hand, that Israel prevailed... But Moses' hands were heavy; and they took a stone, and put it under him, and he sat thereon; and Aaron and Hur stayed up his hands, the one on the one side, and the other on the other side.", question: "How can we 'stay up the hands' of our modern prophets and leaders?", prize: "Win a Prize", isDailyDouble: false, icon: "🙌", iconLabel: "Sustain" },
+          { id: 'b1-9', scene: "Mount Sinai Basecamp", title: "Jethro's Counsel", ref: "Exodus 18:17-18", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/18?lang=eng&id=17-18#p17", text: "And Moses' father in law said unto him, The thing that thou doest is not good. Thou wilt surely wear away, both thou, and this people that is with thee: for this thing is too heavy for thee; thou art not able to perform it thyself alone.", question: "Why is it dangerous to try and handle all your burdens completely by yourself?", prize: "Win a Prize", isDailyDouble: false, icon: "🤝", iconLabel: "Counsel" },
+          { id: 'b1-10', scene: "Book of Mormon Connection", title: "Nephi's Motivation", ref: "1 Nephi 17:26-27", url: "https://www.churchofjesuschrist.org/study/scriptures/bofm/1-ne/17?lang=eng&id=26-27#p26", text: "Now ye know that Moses was commanded of the Lord to do that great work; and ye know that by his word the waters of the Red Sea were divided hither and thither, and they passed through on dry ground. But ye know that the Egyptians were drowned...", question: "Nephi used this story to motivate his brothers. How can Old Testament stories give US courage?", prize: "Win a Prize", isDailyDouble: false, icon: "📖", iconLabel: "Scriptures" },
+          { id: 'b1-11', scene: "Book of Mormon Connection", title: "The Liahona", ref: "Alma 37:38, 40", url: "https://www.churchofjesuschrist.org/study/scriptures/bofm/alma/37?lang=eng&id=38,40#p38", text: "And now, my son, I have somewhat to say concerning the thing which our fathers call a ball, or director... And it did work for them according to their faith in God; therefore, if they had faith to believe that God could cause that those spindles should point the way they should go, behold, it was done.", question: "Just like the Pillar of Fire, the Liahona guided them. What is your personal Liahona?", prize: "Win a Prize", isDailyDouble: false, icon: "🧭", iconLabel: "Liahona" },
+          { id: 'b1-12', scene: "Modern Day Application", title: "Daily Restoration", ref: "Elder Uchtdorf", url: "https://www.churchofjesuschrist.org/study/general-conference/2021/10/41uchtdorf?lang=eng", text: "Like gathering Manna, our spiritual survival depends on daily renewal. We cannot rely on yesterday's spiritual nourishment for today's needs. We must seek a daily restoration.", question: "What is one simple way you can seek a 'Daily Restoration' this week?", prize: "Bonus Prize", isDailyDouble: true, icon: "⚔️", videoType: "restoration", iconLabel: "Restoration" },
+        ];
+
+        const board2Data = [
+          { id: 'b2-1', scene: "Mount Sinai", title: "The Burning Bush", ref: "Exodus 3:2-3", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/3?lang=eng&id=2-3#p2", text: "And the angel of the Lord appeared unto him in a flame of fire out of the midst of a bush: and he looked, and, behold, the bush burned with fire, and the bush was not consumed. And Moses said, I will now turn aside, and see this great sight...", question: "What is something 'holy' in your life you need to pay more attention to?", prize: "Win a Prize", isDailyDouble: false, icon: "🌳", iconLabel: "Burning Bush" },
+          { id: 'b2-2', scene: "Mount Sinai", title: "The 10 Commandments", ref: "Exodus 20:2-4", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/20?lang=eng&id=2-17#p2", text: "I am the Lord thy God, which have brought thee out of the land of Egypt... Thou shalt have no other gods before me. Thou shalt not make unto thee any graven image, or any likeness of any thing that is in heaven above...", question: "Which commandment do you feel protects teenagers the most today?", prize: "Win a Prize", isDailyDouble: false, icon: "📜", iconLabel: "Commandments" },
+          { id: 'b2-3', scene: "Egypt", title: "The Passover", ref: "Exodus 12:13", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/12?lang=eng&id=13#p13", text: "And the blood shall be to you for a token upon the houses where ye are: and when I see the blood, I will pass over you, and the plague shall not be upon you to destroy you, when I smite the land of Egypt.", question: "How does the blood of the lamb represent the Atonement of Jesus Christ?", prize: "Win a Prize", isDailyDouble: false, icon: "🩸", iconLabel: "Passover" },
+          { id: 'b2-4', scene: "Base of Mount Sinai", title: "The Golden Calf", ref: "Exodus 32:4, 7", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/32?lang=eng&id=4,7#p4", text: "...and they said, These be thy gods, O Israel, which brought thee up out of the land of Egypt. And the Lord said unto Moses, Go, get thee down; for thy people, which thou broughtest out of the land of Egypt, have corrupted themselves:", question: "How quickly they forgot! What are 'golden calves' (distractions) we worship today?", prize: "Bonus Prize", isDailyDouble: true, icon: "🐄", iconLabel: "Golden Calf" },
+          { id: 'b2-5', scene: "The Wilderness", title: "The Tabernacle", ref: "Exodus 25:8-9", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/25?lang=eng&id=8-9#p8", text: "And let them make me a sanctuary; that I may dwell among them. According to all that I shew thee, after the pattern of the tabernacle, and the pattern of all the instruments thereof, even so shall ye make it.", question: "Why do we build temples today? How do you feel when you enter the temple grounds?", prize: "Bonus Prize", isDailyDouble: true, icon: "⛺", videoType: "dailyBread", iconLabel: "Tabernacle" },
+          { id: 'b2-6', scene: "The Wilderness", title: "The Brazen Serpent", ref: "Numbers 21:8-9", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/num/21?lang=eng&id=8-9#p8", text: "And the Lord said unto Moses, Make thee a fiery serpent, and set it upon a pole: and it shall come to pass, that every one that is bitten, when he looketh upon it, shall live.", question: "All they had to do was look. Why is it sometimes hard to just 'look to Christ' and live?", prize: "Win a Prize", isDailyDouble: false, icon: "🐍", iconLabel: "Serpent" },
+          { id: 'b2-7', scene: "Wilderness of Paran", title: "Quail in the Camp", ref: "Numbers 11:31", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/num/11?lang=eng&id=31#p31", text: "And there went forth a wind from the Lord, and brought quails from the sea, and let them fall by the camp, as it were a day's journey on this side, and as it were a day's journey on the other side...", question: "The Israelites complained about the Manna. Why is it dangerous to complain about our blessings?", prize: "Bonus Prize", isDailyDouble: true, icon: "🐦", videoType: "dailyBread", iconLabel: "Quail" },
+          { id: 'b2-8', scene: "Holy of Holies", title: "Ark of the Covenant", ref: "Exodus 25:22", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/25?lang=eng&id=22#p22", text: "And there I will meet with thee, and I will commune with thee from above the mercy seat, from between the two cherubims which are upon the ark of the testimony, of all things which I will give thee in commandment...", question: "The Ark represented God's presence. How do you invite God's presence into your room or home?", prize: "Win a Prize", isDailyDouble: false, icon: "⚱️", iconLabel: "The Ark" },
+          { id: 'b2-9', scene: "Borders of Canaan", title: "Spies in Canaan", ref: "Numbers 13:30", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/num/13?lang=eng&id=30#p30", text: "And Caleb stilled the people before Moses, and said, Let us go up at once, and possess it; for we are well able to overcome it.", question: "Ten spies saw giants; two saw miracles. How can we choose to see through eyes of faith?", prize: "Win a Prize", isDailyDouble: false, icon: "🍇", iconLabel: "The Spies" },
+          { id: 'b2-10', scene: "The Wilderness", title: "Korah's Rebellion", ref: "Numbers 16:3", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/num/16?lang=eng&id=3#p3", text: "And they gathered themselves together against Moses and against Aaron, and said unto them, Ye take too much upon you, seeing all the congregation are holy, every one of them, and the Lord is among them...", question: "Korah challenged the prophet's authority. Why is sustaining chosen leaders still critical today?", prize: "Win a Prize", isDailyDouble: false, icon: "⚡", iconLabel: "Rebellion" },
+          { id: 'b2-11', scene: "Plains of Moab", title: "Balaam's Donkey", ref: "Numbers 22:28", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/num/22?lang=eng&id=28#p28", text: "And the Lord opened the mouth of the ass, and she said unto Balaam, What have I done unto thee, that thou hast smitten me these three times?", question: "Sometimes God uses unexpected ways to warn us. Have you ever felt a sudden 'stop' warning from the Spirit?", prize: "Win a Prize", isDailyDouble: false, icon: "🐴", iconLabel: "Talking Donkey" },
+          { id: 'b2-12', scene: "Mount Sinai", title: "Moses' Shining Face", ref: "Exodus 34:29", url: "https://www.churchofjesuschrist.org/study/scriptures/ot/ex/34?lang=eng&id=29#p29", text: "And it came to pass, when Moses came down from mount Sinai with the two tables of testimony in Moses' hand... that Moses wist not that the skin of his face shone while he talked with him.", question: "Spending time with God changed Moses physically. How does spending time with God change us?", prize: "Win a Prize", isDailyDouble: false, icon: "🌟", iconLabel: "Shining Face" }
+        ];
+
+        function App() {
+          // --- STATE ---
+          const [gameState, setGameState] = useState('start'); 
+          const [currentLevel, setCurrentLevel] = useState(1);
+          const [cards, setCards] = useState([]);
+          const [flippedIndices, setFlippedIndices] = useState([]);
+          const [matchedIds, setMatchedIds] = useState([]);
+          const [isChecking, setIsChecking] = useState(false);
+          const [mismatchIndices, setMismatchIndices] = useState([]);
+          
+          const [activeCard, setActiveCard] = useState(null);
+          const [isSabotaging, setIsSabotaging] = useState(false);
+          
+          const [showAdmin, setShowAdmin] = useState(false);
+          const [scale, setScale] = useState(100);
+          const [history, setHistory] = useState([]);
+          const [sabotageFrequency, setSabotageFrequency] = useState(2); 
+          const [dailyBreadIdx, setDailyBreadIdx] = useState(0); 
+
+          // Generate QR Code when a card is opened
+          useEffect(() => {
+            if (activeCard && activeCard.url && activeCard.videoType !== 'dailyBread') {
+              setTimeout(() => {
+                const qrCanvas = document.getElementById('qr-canvas');
+                if (qrCanvas && window.QRious) {
+                  new window.QRious({
+                    element: qrCanvas,
+                    value: activeCard.url,
+                    size: 150,
+                    background: 'white',
+                    foreground: 'black'
+                  });
+                }
+              }, 50);
+            }
+          }, [activeCard]);
+
+          // --- INITIALIZATION ---
+          const initializeGame = (level) => {
+            const sourceData = level === 1 ? board1Data : board2Data;
+            let gameCards = [];
+            sourceData.forEach(item => {
+              gameCards.push({ ...item, uniqueId: `${item.id}-A`, pairId: item.id });
+              gameCards.push({ ...item, uniqueId: `${item.id}-B`, pairId: item.id });
+            });
+            gameCards = gameCards.sort(() => Math.random() - 0.5);
+            setCards(gameCards);
+            setFlippedIndices([]);
+            setMatchedIds([]);
+            setHistory([]);
+            setActiveCard(null);
+            setCurrentLevel(level);
+            
+            // Only reset the Daily Bread video sequence if we are starting a fresh game on level 1
+            if (level === 1) {
+              setDailyBreadIdx(0); 
+              setGameState('rules'); 
+            } else {
+              setGameState('playing'); 
+            }
+          };
+
+          const acceptRules = () => setGameState('playing');
+
+          // --- LOGIC ---
+          const handleCardClick = (index) => {
+            if (isChecking || flippedIndices.includes(index) || matchedIds.includes(cards[index].pairId)) return;
+            
+            // Only play the basic flip sound if it's the very first card of the pair
+            if (flippedIndices.length === 0) {
+              playSound('flip');
+            }
+            
+            const newFlipped = [...flippedIndices, index];
+            setFlippedIndices(newFlipped);
+
+            if (newFlipped.length === 2) {
+              setIsChecking(true);
+              const card1 = cards[newFlipped[0]];
+              const card2 = cards[newFlipped[1]];
+
+              if (card1.pairId === card2.pairId) {
+                // Determine which success sound to play
+                const isFinalMatch = matchedIds.length + 1 === cards.length / 2;
+                if (isFinalMatch) {
+                  playSound('win');
+                } else if (card1.isDailyDouble) {
+                  playSound('klaxon');
+                } else {
+                  playSound('match');
+                }
+
+                let matchedCardPayload = { ...card1 };
+                if (card1.videoType === 'dailyBread') {
+                  matchedCardPayload.videoSrc = videoAssets.dailyBread[dailyBreadIdx];
+                  setDailyBreadIdx(prev => Math.min(prev + 1, 2)); 
+                } else if (card1.videoType === 'restoration') {
+                  matchedCardPayload.videoSrc = videoAssets.restoration;
+                }
+                setTimeout(() => {
+                  setMatchedIds(prev => [...prev, card1.pairId]);
+                  setFlippedIndices([]);
+                  setIsChecking(false);
+                  setActiveCard(matchedCardPayload);
+                  setHistory(prev => [matchedCardPayload, ...prev]);
+                }, 600); 
+              } else {
+                playSound('mismatch');
+                setTimeout(() => {
+                  setMismatchIndices(newFlipped); 
+                  setTimeout(() => {
+                    setFlippedIndices([]);
+                    setMismatchIndices([]);
+                    setIsChecking(false);
+                  }, 600); 
+                }, 800); 
+              }
+            }
+          };
+
+          useEffect(() => {
+            if (cards.length > 0 && matchedIds.length === cards.length / 2 && !activeCard) {
+              setGameState('won');
+            }
+          }, [matchedIds, cards.length, activeCard]);
+
+          // --- SABOTAGE ---
+          const handleSabotage = () => {
+            playSound('sabotage');
+            setIsSabotaging(true);
+            setActiveCard(null);
+            setTimeout(() => {
+              const newCards = [...cards].sort(() => Math.random() - 0.5);
+              setCards(newCards);
+              setIsSabotaging(false);
+            }, 1500); 
+          };
+
+          const isFinalMatch = cards.length > 0 && matchedIds.length === cards.length / 2;
+          const canSabotage = activeCard && (matchedIds.length > 0) && (matchedIds.length % sabotageFrequency === 0) && !isFinalMatch;
+
+          // --- CSS STYLES ---
+          const cssStyles = `
+            .perspective-1000 { perspective: 1000px; }
+            .transform-style-3d { transform-style: preserve-3d; }
+            .backface-hidden { backface-visibility: hidden; }
+            .rotate-y-180 { transform: rotateY(180deg); }
+            @keyframes shake {
+              0%, 100% { transform: translateX(0); }
+              10%, 30%, 50%, 70%, 90% { transform: translateX(-5px) rotate(-3deg); }
+              20%, 40%, 60%, 80% { transform: translateX(5px) rotate(3deg); }
+            }
+            .animate-error-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+            @keyframes float {
+              0% { transform: translateY(0px); }
+              50% { transform: translateY(-15px); }
+              100% { transform: translateY(0px); }
+            }
+            .animate-float { animation: float 4s ease-in-out infinite; }
+            .bg-grid-pattern {
+              background-image: linear-gradient(to right, rgba(249, 115, 22, 0.05) 1px, transparent 1px),
+                                linear-gradient(to bottom, rgba(249, 115, 22, 0.05) 1px, transparent 1px);
+              background-size: 40px 40px;
+            }
+          `;
+
+          return (
+            <>
+              <style>{cssStyles}</style>
+              <div className="fixed inset-0 bg-slate-950 bg-grid-pattern overflow-hidden flex items-center justify-center">
+                
+                <div 
+                  className={`w-screen h-screen flex flex-col transform-origin-center transition-transform duration-300 ${isSabotaging ? 'animate-error-shake' : ''}`}
+                  style={{ transform: `scale(${scale / 100})` }}
+                >
+                  {gameState !== 'start' && (
+                    <header className="p-4 flex justify-between items-center bg-slate-900 border-b border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)] z-10">
+                      <div className="flex-1 text-slate-500 font-bold tracking-widest text-sm md:text-base">
+                        LEVEL {currentLevel} <span className="text-orange-500 ml-2">{matchedIds.length} / {cards.length / 2} MATCHED</span>
+                      </div>
+                      <h1 className="text-2xl md:text-4xl font-black italic tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600 drop-shadow-md text-center flex-1 whitespace-nowrap">
+                        EXODUS: CHRONICLES
+                      </h1>
+                      <div className="flex-1 flex justify-end">
+                        <button 
+                          onClick={() => setShowAdmin(true)}
+                          className="p-2 text-slate-600 hover:text-slate-300 transition-colors opacity-50 hover:opacity-100 text-2xl"
+                        >
+                          ⚙️
+                        </button>
+                      </div>
+                    </header>
+                  )}
+
+                  {gameState === 'start' && (
+                    <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-t from-orange-900/20 to-slate-950 z-0"></div>
+                      <div className="z-10 text-center animate-float space-y-8">
+                        <h1 className="text-6xl md:text-8xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-orange-400 via-red-500 to-purple-600 drop-shadow-[0_0_30px_rgba(249,115,22,0.8)]">
+                          EXODUS
+                        </h1>
+                        <h2 className="text-3xl md:text-5xl font-bold tracking-[0.5em] text-slate-300 uppercase">
+                          Chronicles
+                        </h2>
+                      </div>
+                      <button 
+                        onClick={() => initializeGame(1)}
+                        className="mt-16 z-10 group relative px-12 py-5 bg-transparent border-2 border-orange-500 text-orange-400 font-black text-2xl tracking-widest uppercase rounded-sm overflow-hidden transition-all hover:bg-orange-500 hover:text-white hover:scale-110 hover:shadow-[0_0_40px_rgba(249,115,22,0.6)]"
+                      >
+                        <div className="absolute inset-0 w-full h-full bg-white/20 -translate-x-full group-hover:animate-[shimmer_1s_infinite]"></div>
+                        Start Mission
+                      </button>
+                    </div>
+                  )}
+
+                  {gameState === 'rules' && (
+                    <div className="flex-1 flex flex-col items-center justify-center relative z-10 p-4 md:p-8 animate-in fade-in zoom-in duration-500">
+                      <div className="max-w-6xl w-full bg-slate-900/90 backdrop-blur-md border border-orange-500/50 rounded-2xl shadow-[0_0_50px_rgba(249,115,22,0.15)] p-8 md:p-12 text-center">
+                        <h2 className="text-4xl md:text-5xl font-black italic tracking-[0.2em] text-orange-500 mb-10 drop-shadow-md border-b border-orange-500/30 pb-6">
+                          MISSION BRIEFING
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 text-left">
+                          <div className="bg-slate-950/50 p-6 rounded-xl border border-slate-800 flex gap-4 items-start group hover:border-orange-500/50 transition-colors">
+                            <div className="bg-orange-500/20 p-3 rounded-lg text-orange-400 group-hover:scale-110 transition-transform text-3xl">🎯</div>
+                            <div>
+                              <h3 className="text-xl font-bold text-slate-200 uppercase tracking-widest mb-2">Seek & Match</h3>
+                              <p className="text-slate-400 text-sm md:text-base leading-relaxed">Find matching tiles to trigger a class discussion. Answer the question, lead the charge, and earn your prize.</p>
+                            </div>
+                          </div>
+                          <div className="bg-slate-950/50 p-6 rounded-xl border border-slate-800 flex gap-4 items-start group hover:border-yellow-500/50 transition-colors">
+                            <div className="bg-yellow-500/20 p-3 rounded-lg text-yellow-400 group-hover:scale-110 transition-transform text-3xl">⚡</div>
+                            <div>
+                              <h3 className="text-xl font-bold text-slate-200 uppercase tracking-widest mb-2">Divine Intervention</h3>
+                              <p className="text-slate-400 text-sm md:text-base leading-relaxed">Certain matches hide special events, video drops, or Bonus Prizes. Stay alert.</p>
+                            </div>
+                          </div>
+                          <div className="bg-slate-950/50 p-6 rounded-xl border border-slate-800 flex gap-4 items-start group hover:border-red-500/50 transition-colors">
+                            <div className="bg-red-500/20 p-3 rounded-lg text-red-500 group-hover:scale-110 transition-transform text-3xl">🛡️</div>
+                            <div>
+                              <h3 className="text-xl font-bold text-slate-200 uppercase tracking-widest mb-2">The Choice: Sabotage</h3>
+                              <p className="text-slate-400 text-sm md:text-base leading-relaxed">Every {sabotageFrequency} matches, you get a choice: Take another turn to find a pair you know, OR unleash Sabotage to scramble ALL tiles and ruin the next player's memory of the board!</p>
+                            </div>
+                          </div>
+                          <div className="bg-slate-950/50 p-6 rounded-xl border border-slate-800 flex gap-4 items-start group hover:border-purple-500/50 transition-colors">
+                            <div className="bg-purple-500/20 p-3 rounded-lg text-purple-400 group-hover:scale-110 transition-transform text-3xl">🎁</div>
+                            <div>
+                              <h3 className="text-xl font-bold text-slate-200 uppercase tracking-widest mb-2">The Ultimate Swap</h3>
+                              <p className="text-slate-400 text-sm md:text-base leading-relaxed">Find the final match on the board to unlock the Ultimate Swap. You can steal ANY prize in the room from anyone else!</p>
+                            </div>
+                          </div>
+                        </div>
+                        <button onClick={acceptRules} className="group relative px-10 py-4 bg-orange-600 hover:bg-orange-500 text-white font-black text-xl md:text-2xl tracking-[0.2em] uppercase rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(249,115,22,0.5)]">
+                          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]"></div>
+                          <span>Acknowledge & Deploy</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {gameState === 'playing' && (
+                    <main className="flex-1 p-4 md:p-6 w-full max-w-[95vw] mx-auto min-h-0 flex items-center justify-center relative z-0">
+                      <div className={`grid grid-cols-4 md:grid-cols-6 grid-rows-6 md:grid-rows-4 gap-3 md:gap-4 w-full h-full max-h-[85vh] ${isSabotaging ? 'scale-95 transition-all duration-100 blur-sm' : 'transition-all duration-500'}`}>
+                        {cards.map((card, index) => {
+                          const isFlipped = flippedIndices.includes(index);
+                          const isMatched = matchedIds.includes(card.pairId);
+                          const isMismatch = mismatchIndices.includes(index);
+                          return (
+                            <div key={card.uniqueId} className={`relative perspective-1000 cursor-pointer w-full h-full ${isMismatch ? 'animate-error-shake' : ''}`} onClick={() => handleCardClick(index)}>
+                              <div className={`w-full h-full relative transform-style-3d transition-transform duration-500 ${isFlipped || isMatched ? 'rotate-y-180' : ''}`}>
+                                <div className={`absolute inset-0 backface-hidden rounded-xl border-2 shadow-lg flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 ${isMismatch ? 'border-red-500 shadow-[0_0_20px_rgba(239,68,68,0.6)]' : 'border-orange-500/50 hover:border-orange-400 group hover:shadow-[0_0_20px_rgba(249,115,22,0.4)]'}`}>
+                                   <span className="text-5xl md:text-7xl font-bold text-orange-500/20 group-hover:text-orange-500/60 transition-colors">?</span>
+                                </div>
+                                <div className={`absolute inset-0 backface-hidden rotate-y-180 rounded-xl flex flex-col items-center justify-center p-2 text-center border-2 ${isMatched ? 'bg-slate-900 border-slate-700 opacity-30' : 'bg-slate-800 border-orange-400 shadow-[0_0_30px_rgba(249,115,22,0.4)]'}`}>
+                                  <span className="text-6xl md:text-8xl mb-2 drop-shadow-md">{card.icon}</span>
+                                  <span className="text-sm md:text-base font-black text-orange-200 tracking-widest uppercase drop-shadow leading-tight">{card.iconLabel}</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </main>
+                  )}
+
+                  {gameState === 'won' && (
+                    <div className="flex-1 flex flex-col items-center justify-center relative animate-in fade-in zoom-in duration-500">
+                      <h2 className="text-6xl md:text-8xl font-black italic tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 drop-shadow-[0_0_40px_rgba(234,179,8,0.6)] mb-8">
+                        ARC CLEARED!
+                      </h2>
+                      {currentLevel === 1 ? (
+                        <button onClick={() => initializeGame(2)} className="px-10 py-5 bg-orange-600 hover:bg-orange-500 text-white font-bold text-2xl tracking-widest uppercase rounded-lg transition-all hover:scale-105 flex items-center gap-3">
+                          Proceed to Arc 2: Sinai <span className="text-3xl">⏭️</span>
+                        </button>
+                      ) : (
+                        <p className="text-3xl text-slate-400 font-bold uppercase tracking-widest">All Modules Completed.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {activeCard && (
+                    <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-lg flex items-center justify-center p-4 md:p-8 animate-in fade-in zoom-in duration-300">
+                      <div className="max-w-[95vw] w-full h-full max-h-[95vh] bg-slate-900 border-2 border-orange-500 rounded-2xl shadow-[0_0_80px_rgba(249,115,22,0.4)] overflow-hidden flex flex-col relative">
+                        {activeCard.isDailyDouble && (
+                          <div className="absolute top-0 left-0 w-full bg-yellow-500 text-slate-900 py-3 font-black tracking-[0.3em] text-center text-lg md:text-xl animate-pulse flex items-center justify-center gap-3 z-10 shadow-lg">
+                            <span className="text-2xl">⚠️</span> DIVINE INTERVENTION TRIGGERED <span className="text-2xl">⚠️</span>
+                          </div>
+                        )}
+                        <div className={`flex justify-between items-center p-6 border-b border-slate-800 bg-slate-950 ${activeCard.isDailyDouble ? 'mt-12' : ''}`}>
+                          <h2 className="text-3xl md:text-5xl font-black text-orange-400 tracking-wider">{activeCard.title}</h2>
+                          <div className="flex items-center gap-6">
+                            <div className="bg-slate-800 border border-slate-600 px-6 py-2 rounded-full text-lg font-bold text-slate-300">
+                              Prize: <span className="text-emerald-400">{activeCard.prize}</span>
+                            </div>
+                            <button onClick={() => setActiveCard(null)} className="text-slate-400 hover:text-white bg-slate-800 p-3 rounded-full transition-colors hover:bg-slate-700 text-2xl">
+                              ✖️
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 flex flex-col md:flex-row p-8 md:p-10 gap-10 overflow-y-auto">
+                          
+                          <div className="md:w-5/12 min-h-[400px] bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-center relative overflow-hidden group shadow-inner">
+                            {activeCard.videoSrc ? (
+                              <>
+                                <video 
+                                  key={activeCard.videoSrc}
+                                  src={activeCard.videoSrc}
+                                  controls 
+                                  autoPlay
+                                  className="w-full h-full object-cover z-20 bg-black relative"
+                                >
+                                  Your browser does not support the video tag.
+                                </video>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-700 z-10 p-4 text-center">
+                                  <span className="text-6xl opacity-30 mb-4">🎬</span>
+                                  <p className="text-sm uppercase font-bold tracking-widest">Video Placeholder</p>
+                                  <p className="text-xs mt-2">Expected Path: <br/>{activeCard.videoSrc}</p>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="absolute inset-0 bg-gradient-to-t from-orange-900/40 to-transparent z-10"></div>
+                                <span className="text-[200px] md:text-[250px] z-20 drop-shadow-[0_0_50px_rgba(249,115,22,0.5)] transition-transform duration-500 group-hover:scale-110">
+                                  {activeCard.icon}
+                                </span>
+                              </>
+                            )}
+                          </div>
+
+                          <div className="md:w-7/12 flex flex-col justify-center space-y-8">
+                            <div className="flex flex-col xl:flex-row gap-6 items-start">
+                              <div className="flex-1">
+                                <div className="inline-block bg-orange-900/40 text-orange-400 border border-orange-500/30 px-4 py-2 rounded text-sm font-black uppercase tracking-widest mb-4">
+                                  Scene: {activeCard.scene}
+                                </div>
+                                <h3 className="text-2xl text-slate-400 font-bold mb-3 tracking-widest uppercase">{activeCard.ref}</h3>
+                                <p className="text-xl md:text-2xl font-serif leading-relaxed italic border-l-4 border-orange-500 pl-6 bg-slate-800/40 py-5 pr-4 rounded-r-xl shadow-sm text-slate-200">
+                                  "{activeCard.text}"
+                                </p>
+                              </div>
+                              
+                              {/* Dynamic QR Code Block */}
+                              {activeCard.url && activeCard.videoType !== 'dailyBread' && (
+                                <div className="flex flex-col items-center bg-white p-3 rounded-xl shadow-lg border-4 border-slate-800 shrink-0 mt-4 xl:mt-0 transform rotate-2 hover:rotate-0 transition-transform duration-300">
+                                    <canvas id="qr-canvas"></canvas>
+                                    <p className="text-slate-900 text-[10px] md:text-xs font-black uppercase tracking-widest mt-2 text-center">Scan to<br/>Read Along</p>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="bg-cyan-950/40 border border-cyan-800 p-8 rounded-xl relative overflow-hidden shadow-lg">
+                              <div className="absolute top-0 left-0 w-2 h-full bg-cyan-500"></div>
+                              <h4 className="text-cyan-400 font-black uppercase tracking-widest mb-4 text-lg flex items-center gap-3">
+                                <span className="text-2xl">⚔️</span> Class Discussion
+                              </h4>
+                              <p className="text-2xl md:text-3xl text-cyan-50 font-medium leading-snug">{activeCard.question}</p>
+                            </div>
+                          </div>
+
+                        </div>
+
+                        <div className="p-6 bg-slate-950 border-t border-slate-800 flex justify-center items-center min-h-[120px]">
+                          {isFinalMatch ? (
+                            <div className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 text-white p-6 rounded-xl border-2 border-yellow-400 animate-pulse text-center shadow-[0_0_40px_rgba(234,179,8,0.5)]">
+                              <h4 className="text-3xl md:text-4xl font-black tracking-[0.2em] uppercase mb-2 drop-shadow-md">👑 The Ultimate Swap! 👑</h4>
+                              <p className="font-bold text-lg md:text-xl text-yellow-50 drop-shadow">You found the final match! You may swap your prize with ANYONE in the room. The person you steal from gets to pick a new prize from the basket!</p>
+                            </div>
+                          ) : canSabotage ? (
+                            <div className="flex flex-col md:flex-row items-center gap-6 animate-in slide-in-from-bottom-4">
+                              <p className="text-slate-400 text-lg font-bold uppercase tracking-widest text-center">
+                                <span className="text-orange-500">Choice:</span> Close (✖️) to take another turn... OR
+                              </p>
+                              <button onClick={handleSabotage} className="group relative px-10 py-5 bg-red-700 hover:bg-red-600 text-white font-black text-2xl tracking-[0.2em] uppercase rounded-xl overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(220,38,38,0.7)] flex items-center gap-4 border-2 border-red-500">
+                                <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_infinite]"></div>
+                                <span className="text-3xl">⚔️</span>
+                                <span>Execute Sabotage!</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <p className="text-slate-600 text-lg font-black tracking-widest uppercase flex items-center">
+                               Match to build Sabotage Meter...
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {showAdmin && (
+                  <div className="fixed inset-0 z-[60] bg-black/60 flex items-start justify-end p-4 backdrop-blur-sm">
+                    <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl w-96 p-6 animate-in slide-in-from-right-8 text-left">
+                      <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+                        <h3 className="text-xl font-bold flex items-center gap-2 text-white">⚙️ Game Controls</h3>
+                        <button onClick={() => setShowAdmin(false)} className="text-slate-400 hover:text-white text-xl">✖️</button>
+                      </div>
+                      <div className="mb-6 bg-red-950/30 p-4 rounded-lg border border-red-900/50">
+                        <label className="block text-sm text-red-400 font-bold mb-2 uppercase tracking-wider flex justify-between">
+                          <span>Sabotage Target</span>
+                          <span>Every {sabotageFrequency}</span>
+                        </label>
+                        <input type="range" min="1" max="6" value={sabotageFrequency} onChange={(e) => setSabotageFrequency(Number(e.target.value))} className="w-full accent-red-500" />
+                        <p className="text-xs text-slate-500 mt-2">Sets how many matches are required before the Sabotage button appears.</p>
+                      </div>
+                      <div className="mb-8">
+                        <label className="block text-sm text-slate-400 font-bold mb-2 uppercase tracking-wider flex justify-between">
+                          <span>Projector Zoom</span>
+                          <span>{scale}%</span>
+                        </label>
+                        <input type="range" min="50" max="150" step="10" value={scale} onChange={(e) => setScale(e.target.value)} className="w-full accent-orange-500" />
+                      </div>
+                      <div className="mb-8 space-y-3">
+                         <button onClick={() => { initializeGame(1); setShowAdmin(false); }} className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded border border-slate-700 text-sm font-bold uppercase tracking-wider">
+                          Restart Board 1
+                        </button>
+                        <button onClick={() => { initializeGame(2); setShowAdmin(false); }} className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded border border-slate-700 text-sm font-bold uppercase tracking-wider">
+                          Force Start Board 2
+                        </button>
+                      </div>
+                      <div>
+                        <label className="block text-sm text-slate-400 font-bold mb-3 uppercase tracking-wider flex items-center gap-2">
+                          🔄 Rewind History
+                        </label>
+                        <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
+                          {history.length === 0 && <p className="text-slate-600 text-sm italic">No matches yet...</p>}
+                          {history.map((hist, idx) => (
+                            <button key={idx} onClick={() => { setActiveCard(hist); setShowAdmin(false); }} className="w-full text-left p-3 rounded bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-orange-500 transition-colors flex justify-between items-center group">
+                              <div>
+                                <div className="font-bold text-sm text-white">{hist.title}</div>
+                                <div className="text-xs text-slate-400">{hist.ref}</div>
+                              </div>
+                              <span className="text-slate-500 group-hover:text-orange-500">▶️</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
