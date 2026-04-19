@@ -99,10 +99,11 @@
             box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
         }
 
-        .admin-only, .contestant-only { display: none; }
+        .admin-only, .contestant-only, .backlog-only { display: none; }
         body.mode-admin .admin-only { display: block; width: 100%; max-width: 850px; margin: 0 auto; padding-bottom: 140px; padding-top: 20px; box-sizing: border-box; }
         body.mode-contestant .contestant-only { display: flex; flex-direction: column; align-items: center; width: 100%; }
         body.mode-contestant .bottom-hud { display: flex; }
+        body.mode-backlog .backlog-only { display: block; width: 100%; max-width: 900px; margin: 0 auto; padding: 20px; padding-bottom: 60px; box-sizing: border-box; }
 
         .container { max-width: 1400px; width: 95%; text-align: center; padding: 1em; box-sizing: border-box; margin-top: 1em; }
 
@@ -173,6 +174,38 @@
 
         .steal-label { color: var(--warning-gold); font-family: 'Orbitron', sans-serif; font-size: 1.1rem; padding: 10px; text-align: center; }
 
+        /* Backlog */
+        .bl-form { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+        .bl-form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .bl-form select { background: black; color: white; border: 2px solid var(--neon-purple); padding: 14px; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; border-radius: 8px; flex: 1; min-width: 160px; cursor: pointer; }
+        .bl-form textarea { background: black; color: white; border: 2px solid var(--neon-purple); padding: 14px; font-family: 'Rajdhani', sans-serif; font-size: 1rem; border-radius: 8px; resize: vertical; min-height: 80px; box-sizing: border-box; }
+        .bl-add-btn { background: var(--neon-cyan); color: black; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: bold; border: none; padding: 14px 24px; border-radius: 8px; cursor: pointer; text-transform: uppercase; align-self: flex-start; }
+
+        .bl-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+        .bl-filter-btn { font-family: 'Orbitron', sans-serif; background: transparent; border: 2px solid #444; color: #888; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; }
+        .bl-filter-btn.active { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+        .bl-filter-btn.p0 { border-color: #ff4444; color: #ff4444; } .bl-filter-btn.p0.active { background: #ff4444; color: white; }
+        .bl-filter-btn.p1 { border-color: var(--warning-gold); color: var(--warning-gold); } .bl-filter-btn.p1.active { background: var(--warning-gold); color: black; }
+        .bl-filter-btn.p2 { border-color: var(--neon-cyan); color: var(--neon-cyan); } .bl-filter-btn.p2.active { background: var(--neon-cyan); color: black; }
+        .bl-filter-btn.p3 { border-color: var(--neon-purple); color: var(--neon-purple); } .bl-filter-btn.p3.active { background: var(--neon-purple); color: white; }
+
+        .bl-item { background: #0a0a1a; padding: 16px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: flex-start; gap: 12px; border-left: 6px solid #444; }
+        .bl-item.p0 { border-left-color: #ff4444; } .bl-item.p1 { border-left-color: var(--warning-gold); }
+        .bl-item.p2 { border-left-color: var(--neon-cyan); } .bl-item.p3 { border-left-color: var(--neon-purple); }
+        .bl-seq { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: #555; white-space: nowrap; padding-top: 3px; min-width: 52px; }
+        .bl-badge { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; font-weight: bold; padding: 4px 10px; border-radius: 4px; white-space: nowrap; align-self: flex-start; }
+        .bl-badge.p0 { background: #ff4444; color: white; } .bl-badge.p1 { background: var(--warning-gold); color: black; }
+        .bl-badge.p2 { background: var(--neon-cyan); color: black; } .bl-badge.p3 { background: var(--neon-purple); color: white; }
+        .bl-body { flex: 1; min-width: 0; }
+        .bl-desc-text { color: white; font-size: 1rem; line-height: 1.4; margin-bottom: 8px; word-break: break-word; }
+        .bl-batch-tag { display: inline-block; background: rgba(157, 0, 255, 0.2); border: 1px solid var(--neon-purple); color: var(--neon-purple); padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-family: 'Orbitron', sans-serif; margin-right: 5px; margin-top: 3px; }
+        .bl-no-batch { color: #444; font-size: 0.8rem; font-style: italic; }
+        .bl-actions { display: flex; flex-direction: column; gap: 6px; }
+        .bl-del-btn { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; padding: 6px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase; background: transparent; border: 1px solid #ff4444; color: #ff4444; white-space: nowrap; }
+        .bl-del-btn:hover { background: #ff4444; color: white; }
+        .bl-empty { text-align: center; color: #444; font-family: 'Orbitron', sans-serif; padding: 50px 20px; font-size: 0.9rem; }
+        .bl-count { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: #555; margin-left: auto; padding: 4px 0; }
+
         @media (max-width: 800px) {
             .admin-ans-card { flex-direction: column; align-items: stretch; gap: 12px; }
             .admin-ans-card button { width: 100%; height: 50px; font-size: 1rem; }
@@ -193,6 +226,7 @@
     <div class="view-switcher" id="main-switcher">
         <button class="view-btn active" id="btn-con" onclick="setView('contestant')">Monitor View (TV)</button>
         <button class="view-btn" id="btn-adm" onclick="setView('admin')">Admin mode</button>
+        <button class="view-btn" id="btn-bl" onclick="setView('backlog')">📋 Backlog</button>
 
         <div class="settings-label">Monitor Zoom / Scale</div>
         <div class="slider-container">
@@ -220,6 +254,40 @@
                 </div>
                 <div class="question-box tv-q" id="q-txt">Connecting to Temple...</div>
                 <div class="board tv-board" id="game-board"></div>
+            </div>
+
+            <!-- BACKLOG VIEW -->
+            <div class="backlog-only">
+                <div class="admin-box">
+                    <h3 style="color:var(--neon-cyan); margin:0 0 4px 0;">Add Backlog Item</h3>
+                    <div class="bl-form">
+                        <div class="bl-form-row">
+                            <select id="bl-priority">
+                                <option value="P0">P0 — Critical</option>
+                                <option value="P1" selected>P1 — High</option>
+                                <option value="P2">P2 — Medium</option>
+                                <option value="P3">P3 — Low</option>
+                            </select>
+                            <input type="text" id="bl-batch" placeholder="Batch ID(s) — comma separated (e.g. B1, Sprint-2)" style="flex:2; min-width:200px;">
+                        </div>
+                        <textarea id="bl-desc" placeholder="Description of the feature or backlog item..."></textarea>
+                        <button class="bl-add-btn" onclick="window.addBacklogItem()">+ Add Item</button>
+                    </div>
+                </div>
+
+                <div class="admin-box">
+                    <div class="bl-filters">
+                        <button class="bl-filter-btn active" id="bf-all" onclick="window.setBacklogFilter('all')">All</button>
+                        <button class="bl-filter-btn p0" id="bf-P0" onclick="window.setBacklogFilter('P0')">P0</button>
+                        <button class="bl-filter-btn p1" id="bf-P1" onclick="window.setBacklogFilter('P1')">P1</button>
+                        <button class="bl-filter-btn p2" id="bf-P2" onclick="window.setBacklogFilter('P2')">P2</button>
+                        <button class="bl-filter-btn p3" id="bf-P3" onclick="window.setBacklogFilter('P3')">P3</button>
+                        <input type="text" id="bl-batch-filter" placeholder="Filter by Batch ID..." style="flex:1; min-width:160px; padding:8px 14px; font-size:0.85rem;" oninput="window.renderBacklog()">
+                        <span class="bl-count" id="bl-count"></span>
+                    </div>
+                </div>
+
+                <div id="backlog-list"></div>
             </div>
 
             <!-- ADMIN VIEW -->
@@ -303,7 +371,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, collection, addDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -463,7 +531,14 @@
         };
 
         window.toggleSwitcher = () => document.getElementById('main-switcher').classList.toggle('visible');
-        window.setView = (m) => { document.body.className = `mode-${m}`; document.getElementById('btn-con').classList.toggle('active', m === 'contestant'); document.getElementById('btn-adm').classList.toggle('active', m === 'admin'); toggleSwitcher(); };
+        window.setView = (m) => {
+            document.body.className = `mode-${m}`;
+            document.getElementById('btn-con').classList.toggle('active', m === 'contestant');
+            document.getElementById('btn-adm').classList.toggle('active', m === 'admin');
+            document.getElementById('btn-bl').classList.toggle('active', m === 'backlog');
+            if (m === 'backlog') initBacklog();
+            toggleSwitcher();
+        };
         window.handleResetClick = () => { const b = document.getElementById('reset-button'); if (!resetConfirming) { resetConfirming = true; b.innerText = "TAP TO CONFIRM"; b.classList.add('reset-confirming'); setTimeout(() => { resetConfirming = false; b.innerText = "⚠️ Full Game Reset"; b.classList.remove('reset-confirming'); }, 4000); } else { window.resetGame(); resetConfirming = false; b.innerText = "⚠️ Full Game Reset"; b.classList.remove('reset-confirming'); toggleSwitcher(); } };
         window.resetGame = () => { if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout); setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'feudSession', 'state'), { currentRound: 0, t1Score: 0, t2Score: 0, strikes: 0, revealed: [], strikeTime: 0, winTime: 0, winningTeamId: 0, activeTeam: 0, originalTeamId: 0, t1Name: "LIGHT SQUAD", t2Name: "STAR SQUAD", gameOverTime: 0, prevState: null, consecutiveWins: 0, lastWinnerId: 0, switchPlayTime: 0, lastWinWasFaceOff: false, monitorScale: 1.0 }); lastStrike = lastWin = lastGameOver = lastRevCount = lastSwitch = 0; };
 
@@ -472,6 +547,74 @@
         function playHappyReveal() { if (!audioCtx) return; const now = audioCtx.currentTime; const notes = [880, 1108, 1318]; notes.forEach((f, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(f, now + (i * 0.08)); g.gain.setValueAtTime(0, now + (i * 0.08)); g.gain.linearRampToValueAtTime(0.2, now + (i * 0.08) + 0.02); g.gain.linearRampToValueAtTime(0, now + (i * 0.08) + 0.15); o.connect(g); g.connect(audioCtx.destination); o.start(now + (i * 0.08)); o.stop(now + (i * 0.08) + 0.15); }); }
         function playBuzzer() { if (!audioCtx) return; const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(110, audioCtx.currentTime); o.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.5); g.gain.setValueAtTime(0.5, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.5); }
         function playWinSfx() { if (!audioCtx) return; [523, 659, 784, 1046, 1318].forEach((f, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.1); g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + i * 0.1 + 0.05); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + i * 0.1 + 0.3); o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + i * 0.1); o.stop(audioCtx.currentTime + i * 0.1 + 0.4); }); }
+        // --- Backlog ---
+        let backlogItems = [], backlogFilter = 'all', backlogUnsubscribe = null;
+
+        function initBacklog() {
+            if (backlogUnsubscribe) return;
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'backlogItems');
+            backlogUnsubscribe = onSnapshot(query(colRef, orderBy('seqId', 'asc')), (snap) => {
+                backlogItems = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+                renderBacklog();
+            });
+        }
+
+        window.addBacklogItem = async () => {
+            const priority = document.getElementById('bl-priority').value;
+            const batchRaw = document.getElementById('bl-batch').value.trim();
+            const description = document.getElementById('bl-desc').value.trim();
+            if (!description) { document.getElementById('bl-desc').style.borderColor = '#ff4444'; return; }
+            document.getElementById('bl-desc').style.borderColor = '';
+            const batchIds = batchRaw ? batchRaw.split(',').map(b => b.trim()).filter(Boolean) : [];
+            const seqId = backlogItems.length > 0 ? Math.max(...backlogItems.map(i => i.seqId || 0)) + 1 : 1;
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'backlogItems'), {
+                seqId, priority, description, batchIds, createdAt: Date.now()
+            });
+            document.getElementById('bl-desc').value = '';
+            document.getElementById('bl-batch').value = '';
+        };
+
+        window.deleteBacklogItem = async (docId) => {
+            if (!confirm('Delete this backlog item?')) return;
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'backlogItems', docId));
+        };
+
+        window.setBacklogFilter = (f) => {
+            backlogFilter = f;
+            document.querySelectorAll('.bl-filter-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(f === 'all' ? 'bf-all' : `bf-${f}`)?.classList.add('active');
+            renderBacklog();
+        };
+
+        window.renderBacklog = () => {
+            const batchVal = (document.getElementById('bl-batch-filter')?.value || '').trim().toLowerCase();
+            let items = [...backlogItems];
+            if (backlogFilter !== 'all') items = items.filter(i => i.priority === backlogFilter);
+            if (batchVal) items = items.filter(i => (i.batchIds || []).some(b => b.toLowerCase().includes(batchVal)));
+            const list = document.getElementById('backlog-list');
+            const count = document.getElementById('bl-count');
+            if (!list) return;
+            if (count) count.textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
+            if (items.length === 0) { list.innerHTML = '<div class="bl-empty">No items found</div>'; return; }
+            list.innerHTML = items.map(item => {
+                const p = (item.priority || 'P3').toLowerCase();
+                const tags = (item.batchIds || []).length > 0
+                    ? item.batchIds.map(b => `<span class="bl-batch-tag">${b}</span>`).join('')
+                    : '<span class="bl-no-batch">No batch assigned</span>';
+                return `<div class="bl-item ${p}">
+                    <div class="bl-seq">BL-${String(item.seqId).padStart(3, '0')}</div>
+                    <div class="bl-badge ${p}">${item.priority}</div>
+                    <div class="bl-body">
+                        <div class="bl-desc-text">${item.description}</div>
+                        <div>${tags}</div>
+                    </div>
+                    <div class="bl-actions">
+                        <button class="bl-del-btn" onclick="window.deleteBacklogItem('${item._docId}')">Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        };
+
         window.onload = init;
     </script>
 </body>
