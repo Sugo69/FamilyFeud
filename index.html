@@ -412,6 +412,7 @@
                 <div class="ai-output-actions">
                     <button class="bl-add-btn" style="padding:10px 18px; font-size:0.8rem;" onclick="window.downloadStories()">⬇️ Download .md</button>
                     <button class="admin-btn" style="padding:10px 18px; font-size:0.8rem;" onclick="window.copyStories(this)">📋 Copy</button>
+                    <span id="ai-save-indicator" style="display:none; color:#00c853; font-family:'Orbitron',sans-serif; font-size:0.7rem; align-self:center;">✓ Saved</span>
                     <button class="ai-close-btn" onclick="window.closeAiModal()">Close</button>
                 </div>
             </div>
@@ -608,13 +609,19 @@
         function playBuzzer() { if (!audioCtx) return; const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(110, audioCtx.currentTime); o.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.5); g.gain.setValueAtTime(0.5, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.5); }
         function playWinSfx() { if (!audioCtx) return; [523, 659, 784, 1046, 1318].forEach((f, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.1); g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + i * 0.1 + 0.05); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + i * 0.1 + 0.3); o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + i * 0.1); o.stop(audioCtx.currentTime + i * 0.1 + 0.4); }); }
         // --- Backlog ---
-        let backlogItems = [], backlogFilter = 'all', backlogUnsubscribe = null, editingDocId = null;
+        let backlogItems = [], backlogFilter = 'all', backlogUnsubscribe = null, editingDocId = null, savedGuides = {};
 
         function initBacklog() {
             if (backlogUnsubscribe) return;
             const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'backlogItems');
             backlogUnsubscribe = onSnapshot(query(colRef, orderBy('seqId', 'asc')), (snap) => {
                 backlogItems = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+                renderBacklog();
+            });
+            // Listen for saved guides
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'blGuides'), (snap) => {
+                savedGuides = {};
+                snap.docs.forEach(d => { savedGuides[d.id] = d.data(); });
                 renderBacklog();
             });
         }
@@ -728,7 +735,10 @@
                     </div>
                     <div class="bl-actions">
                         <button class="bl-edit-btn" onclick="window.editBacklogItem('${item._docId}')">Edit</button>
-                        <button class="bl-edit-btn" style="border-color:var(--neon-purple);color:var(--neon-purple);" onclick="window.openAiModal('${item._docId}')">🤖 Story</button>
+                        ${savedGuides[item._docId]
+                            ? `<button class="bl-edit-btn" style="border-color:#00c853;color:#00c853;" onclick="window.viewSavedGuide('${item._docId}')">📄 Guide</button>`
+                            : `<button class="bl-edit-btn" style="border-color:var(--neon-purple);color:var(--neon-purple);" onclick="window.openAiModal('${item._docId}')">🤖 Story</button>`
+                        }
                         <button class="bl-del-btn" onclick="window.deleteBacklogItem('${item._docId}')">Delete</button>
                     </div>
                 </div>`;
@@ -756,6 +766,8 @@
             document.getElementById('ai-output-section').style.display = 'none';
             document.getElementById('ai-status').style.display = 'none';
             document.getElementById('ai-idle-close').style.display = 'block';
+            const ind = document.getElementById('ai-save-indicator');
+            if (ind) ind.style.display = 'none';
 
             if (singleDocId) {
                 // Single-item mode: hide batch selector, show item directly
@@ -830,6 +842,15 @@
                 document.getElementById('ai-output-content').textContent = aiContent;
                 status.style.display = 'none';
                 document.getElementById('ai-output-section').style.display = 'block';
+                // Auto-save to Firestore
+                const guideId = singleDocId || `batch-${batchId}`;
+                setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'blGuides', guideId), {
+                    blDocId: singleDocId || null, batchId, content: aiContent,
+                    generatedAt: Date.now(), itemSeqIds: items.map(i => i.seqId)
+                }).then(() => {
+                    const ind = document.getElementById('ai-save-indicator');
+                    if (ind) ind.style.display = 'inline';
+                }).catch(e => console.warn('Guide save failed:', e));
             } catch (err) {
                 status.textContent = `Error: ${err.message}`;
                 document.getElementById('ai-idle-close').style.display = 'block';
@@ -842,6 +863,27 @@
             const blob = new Blob([aiContent], { type: 'text/markdown' });
             const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${aiCurrentBatch}-implementation-guide.md` });
             a.click(); URL.revokeObjectURL(a.href);
+        };
+
+        window.viewSavedGuide = (guideId) => {
+            const guide = savedGuides[guideId];
+            if (!guide) return;
+            aiContent = guide.content;
+            aiCurrentBatch = guide.batchId || guideId;
+            const modal = document.getElementById('ai-modal');
+            modal.dataset.singleDocId = guide.blDocId || '';
+            document.getElementById('ai-batch-row').style.display = 'none';
+            document.getElementById('ai-status').style.display = 'none';
+            document.getElementById('ai-idle-close').style.display = 'none';
+            document.getElementById('ai-items-preview').innerHTML =
+                `<div style="font-family:'Orbitron',sans-serif;font-size:0.65rem;color:#555;margin-bottom:8px;">
+                    Saved guide — ${new Date(guide.generatedAt).toLocaleDateString()}
+                </div>`;
+            document.getElementById('ai-output-content').textContent = aiContent;
+            document.getElementById('ai-output-section').style.display = 'block';
+            const ind = document.getElementById('ai-save-indicator');
+            if (ind) ind.style.display = 'inline';
+            modal.style.display = 'block';
         };
 
         window.copyStories = (btn) => {
