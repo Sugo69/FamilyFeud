@@ -99,11 +99,12 @@
             box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
         }
 
-        .admin-only, .contestant-only, .backlog-only { display: none; }
+        .admin-only, .contestant-only, .backlog-only, .teacher-only { display: none; }
         body.mode-admin .admin-only { display: block; width: 100%; max-width: 850px; margin: 0 auto; padding-bottom: 140px; padding-top: 20px; box-sizing: border-box; }
         body.mode-contestant .contestant-only { display: flex; flex-direction: column; align-items: center; width: 100%; }
         body.mode-contestant .bottom-hud { display: flex; }
         body.mode-backlog .backlog-only { display: block; width: 100%; max-width: 900px; margin: 0 auto; padding: 20px; padding-bottom: 60px; box-sizing: border-box; }
+        body.mode-teacher .teacher-only { display: block; width: 100%; max-width: 900px; margin: 0 auto; padding: 20px; padding-bottom: 80px; box-sizing: border-box; }
 
         .container { max-width: 1400px; width: 95%; text-align: center; padding: 1em; box-sizing: border-box; margin-top: 1em; }
 
@@ -212,6 +213,9 @@
         .bl-edit-actions { display: flex; gap: 8px; }
         .bl-empty { text-align: center; color: #444; font-family: 'Orbitron', sans-serif; padding: 50px 20px; font-size: 0.9rem; }
         .bl-count { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: #555; margin-left: auto; padding: 4px 0; }
+        .bl-notes { margin-top: 8px; padding: 8px 10px; background: rgba(0,242,255,0.04); border-left: 3px solid rgba(0,242,255,0.2); border-radius: 4px; }
+        .bl-notes-label { font-family: 'Orbitron', sans-serif; font-size: 0.6rem; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .bl-notes-text { color: #999; font-family: 'Rajdhani', sans-serif; font-size: 0.88rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
 
         /* AI Story Generator Modal */
         #ai-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 9500; overflow-y: auto; padding: 20px; box-sizing: border-box; }
@@ -228,6 +232,40 @@
         .ai-output-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         .ai-close-btn { background: transparent; border: 1px solid #444; color: #777; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; padding: 10px 20px; border-radius: 8px; cursor: pointer; text-transform: uppercase; margin-left: auto; }
         .ai-close-btn:hover { border-color: #888; color: #aaa; }
+
+        /* Teacher Portal */
+        .tp-topbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 0; }
+        .tp-game-card { background: #0a0a1a; padding: 16px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: flex-start; gap: 12px; border-left: 6px solid var(--neon-cyan); }
+        .tp-game-name-display { flex: 1; color: white; font-size: 1rem; font-weight: bold; line-height: 1.4; }
+        .tp-game-meta { color: #555; font-family: 'Orbitron', sans-serif; font-size: 0.65rem; margin-top: 4px; }
+        .tp-active-badge { background: var(--neon-cyan); color: black; font-family: 'Orbitron', sans-serif; font-size: 0.6rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
+        .tp-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+        .tp-url-input { width: 100%; background: black; color: white; border: 2px solid var(--neon-purple); padding: 14px; font-size: 1rem; border-radius: 8px; box-sizing: border-box; font-family: 'Rajdhani', sans-serif; margin-bottom: 12px; }
+        .tp-url-input:focus { outline: none; border-color: var(--neon-cyan); }
+        .tp-status { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; letter-spacing: 0.5px; }
+        .tp-status.info { background: rgba(0,242,255,0.08); color: var(--neon-cyan); border: 1px solid rgba(0,242,255,0.3); }
+        .tp-status.error { background: rgba(255,68,68,0.1); color: #ff6666; border: 1px solid #ff4444; }
+        .tp-status.loading { background: rgba(157,0,255,0.1); color: var(--neon-purple); border: 1px solid var(--neon-purple); }
+        .question-card { background: #0e0e28; border: 2px solid #2a2a4a; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .question-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .round-num-label { font-family: 'Orbitron', sans-serif; font-size: 0.65rem; color: #555; flex: 1; }
+        .q-drag-handle { cursor: grab; color: #444; padding: 4px 6px; font-size: 1.1rem; user-select: none; line-height: 1; }
+        .q-drag-handle:hover { color: #777; }
+        .question-text-input { width: 100%; background: #050510; color: white; border: 2px solid #2a2a4a; padding: 10px 14px; border-radius: 8px; font-family: 'Rajdhani', sans-serif; font-size: 1rem; box-sizing: border-box; margin-bottom: 10px; }
+        .question-text-input:focus { outline: none; border-color: var(--neon-cyan); }
+        .answer-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .a-drag-handle { cursor: grab; color: #333; padding: 4px 5px; user-select: none; font-size: 1rem; line-height: 1; flex-shrink: 0; }
+        .a-drag-handle:hover { color: #666; }
+        .answer-text-input { flex: 1; background: #050510; color: white; border: 1px solid #2a2a4a; padding: 8px 12px; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; min-width: 0; }
+        .answer-text-input:focus { outline: none; border-color: var(--neon-purple); }
+        .answer-points-input { width: 60px; background: #050510; color: var(--neon-pink); border: 1px solid #2a2a4a; padding: 8px 4px; border-radius: 6px; text-align: center; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; flex-shrink: 0; }
+        .btn-icon-del { background: transparent; border: 1px solid #ff4444; color: #ff4444; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
+        .btn-icon-del:hover { background: #ff4444; color: white; }
+        .btn-add-answer { background: transparent; border: 1px dashed #2a2a4a; color: #444; font-family: 'Orbitron', sans-serif; font-size: 0.6rem; padding: 8px; border-radius: 6px; cursor: pointer; width: 100%; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+        .btn-add-answer:hover { border-color: #555; color: #777; }
+        .tp-game-name-input { flex: 1; min-width: 0; background: #050510; color: white; border: 2px solid var(--neon-purple); padding: 10px 14px; border-radius: 8px; font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; }
+        .tp-game-name-input:focus { outline: none; border-color: var(--neon-cyan); }
+        .answers-container { min-height: 10px; }
 
         @media (max-width: 800px) {
             .admin-ans-card { flex-direction: column; align-items: stretch; gap: 12px; }
@@ -250,6 +288,7 @@
         <button class="view-btn active" id="btn-con" onclick="setView('contestant')">Monitor View (TV)</button>
         <button class="view-btn" id="btn-adm" onclick="setView('admin')">Admin mode</button>
         <button class="view-btn" id="btn-bl" onclick="setView('backlog')">📋 Backlog</button>
+        <button class="view-btn" id="btn-teacher" onclick="setView('teacher')">🎓 Teacher Portal</button>
 
         <div class="settings-label">Monitor Zoom / Scale</div>
         <div class="slider-container">
@@ -313,6 +352,46 @@
 
                 <div id="backlog-list"></div>
 
+            </div>
+
+            <!-- TEACHER PORTAL VIEW -->
+            <div class="teacher-only">
+                <!-- Library sub-view -->
+                <div id="tp-library-view">
+                    <div class="admin-box">
+                        <div class="tp-topbar">
+                            <h3 style="color:var(--neon-cyan); margin:0; flex:1; font-size:1rem;">🎓 Teacher Portal — Games</h3>
+                            <button class="admin-btn" style="white-space:nowrap; min-width:auto; padding:10px 16px; font-size:0.75rem;" onclick="window.openEditor('url')">⚡ From URL</button>
+                            <button class="admin-btn" style="white-space:nowrap; min-width:auto; padding:10px 16px; font-size:0.75rem;" onclick="window.openEditor('manual')">✏️ Manual</button>
+                        </div>
+                        <p style="color:#555; font-family:'Rajdhani',sans-serif; font-size:0.9rem; margin:10px 0 0 0;">Paste a lesson URL to auto-generate questions, or build one manually. Set a game active to replace the default Exodus game on the monitor.</p>
+                    </div>
+                    <div id="tp-game-list"></div>
+                </div>
+
+                <!-- Editor sub-view -->
+                <div id="tp-editor-view" style="display:none">
+                    <div class="admin-box">
+                        <div class="tp-topbar" style="margin-bottom:12px;">
+                            <button class="admin-btn" style="min-width:auto; padding:10px 16px; font-size:0.75rem;" onclick="window.closeEditor()">← Back</button>
+                            <input type="text" class="tp-game-name-input" id="tp-game-name" placeholder="Game name / lesson topic" oninput="if(window.editorGame) window.editorGame.name = this.value">
+                            <button class="bl-add-btn" style="padding:10px 18px; font-size:0.8rem; white-space:nowrap;" onclick="window.saveCurrentGame()">💾 Save</button>
+                            <button class="admin-btn" id="tp-set-active-btn" style="min-width:auto; padding:10px 16px; font-size:0.75rem; border-color:var(--neon-cyan); color:var(--neon-cyan); white-space:nowrap;" onclick="window.setGameAsActive()">▶ Set Active</button>
+                        </div>
+                        <div id="tp-url-section">
+                            <input type="url" id="tp-url-input" class="tp-url-input" placeholder="Paste lesson URL (e.g. https://www.churchofjesuschrist.org/study/...)">
+                            <select id="tp-q-type" class="ai-select" style="margin-bottom:12px;">
+                                <option value="scripture_based">📖 Scripture-Based — quote the verse, ask a factual question (4 answers)</option>
+                                <option value="scripture_application">✨ Scripture Application — quote the verse, ask how it applies today (4 answers)</option>
+                                <option value="family_feud">🎮 Classic Family Feud — survey style (6 answers)</option>
+                            </select>
+                            <button class="ai-generate-btn" id="tp-gen-btn" onclick="window.generateFromUrl()" style="margin:0;">⚡ Generate Questions from URL</button>
+                        </div>
+                    </div>
+                    <div id="tp-status" class="tp-status" style="display:none;"></div>
+                    <div id="tp-questions-list"></div>
+                    <button class="admin-btn" style="width:100%; margin-top:4px; padding:14px;" onclick="window.addBlankRound()">+ Add Round</button>
+                </div>
             </div>
 
             <!-- ADMIN VIEW -->
@@ -429,6 +508,7 @@
     <div id="alert-switch">SWITCH PLAY!</div>
     <div id="game-over-pop">GAME OVER</div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -463,6 +543,8 @@
 
         let sharedState = { currentRound: 0, t1Score: 0, t2Score: 0, strikes: 0, revealed: [], strikeTime: 0, winTime: 0, winningTeamId: 0, activeTeam: 0, originalTeamId: 0, t1Name: "LIGHT SQUAD", t2Name: "STAR SQUAD", gameOverTime: 0, consecutiveWins: 0, lastWinnerId: 0, switchPlayTime: 0, lastWinWasFaceOff: false, monitorScale: 1.0, prevState: null };
         let lastStrike = 0, lastWin = 0, lastRevCount = 0, lastGameOver = 0, lastSwitch = 0, autoAdvanceTimeout = null, user = null, resetConfirming = false;
+        let currentGameRounds = null, currentActiveGameId = null;
+        function getGameRounds() { return currentGameRounds || gameData; }
 
         async function init() {
             await signInAnonymously(auth);
@@ -474,6 +556,12 @@
                     if (snap.exists()) { sharedState = snap.data(); syncUI(); }
                     else { setDoc(docRef, sharedState); }
                 }, (error) => console.error("Firestore sync error:", error));
+                const activeGameRef = doc(db, 'artifacts', appId, 'public', 'data', 'activeGame', 'current');
+                onSnapshot(activeGameRef, (snap) => {
+                    if (snap.exists()) { const d = snap.data(); currentGameRounds = d.rounds?.length ? d.rounds : null; currentActiveGameId = d.gameId || null; }
+                    else { currentGameRounds = null; currentActiveGameId = null; }
+                    syncUI();
+                });
             });
         }
 
@@ -488,7 +576,7 @@
         };
 
         function syncUI() {
-            const data = gameData[sharedState.currentRound]; if (!data) return;
+            const data = getGameRounds()[sharedState.currentRound]; if (!data) return;
             const isMon = document.body.classList.contains('mode-contestant');
 
             document.documentElement.style.setProperty('--monitor-scale', sharedState.monitorScale || 1.0);
@@ -499,7 +587,7 @@
             if (sharedState.strikeTime === 0) { document.getElementById('strike-pop').style.display = 'none'; lastStrike = 0; }
 
             document.getElementById('q-txt').innerText = data.question;
-            document.getElementById('round-label').innerText = data.level;
+            document.getElementById('round-label').innerText = data.level || `Round ${(sharedState.currentRound || 0) + 1}`;
             document.getElementById('s1-txt').innerText = sharedState.t1Score || 0;
             document.getElementById('s2-txt').innerText = sharedState.t2Score || 0;
             document.getElementById('n1-txt').innerText = sharedState.t1Name;
@@ -550,10 +638,10 @@
 
         window.revealIdx = (idx) => {
             const revList = sharedState.revealed || []; if (revList.includes(idx)) return;
-            const pts = gameData[sharedState.currentRound].answers[idx].points;
+            const pts = getGameRounds()[sharedState.currentRound].answers[idx].points;
             let up = { revealed: [...revList, idx] }; const team = sharedState.activeTeam;
             if (team !== 0) {
-                if (sharedState.strikes >= 3 || up.revealed.length === gameData[sharedState.currentRound].answers.length) {
+                if (sharedState.strikes >= 3 || up.revealed.length === getGameRounds()[sharedState.currentRound].answers.length) {
                     up.winTime = Date.now(); up.winningTeamId = team; up.strikes = 0; up.lastWinWasFaceOff = false;
                     if (team === 1) up.t1Score = (sharedState.t1Score || 0) + pts; else up.t2Score = (sharedState.t2Score || 0) + pts;
                     if (document.body.classList.contains('mode-admin')) scheduleAutoAdvance();
@@ -584,7 +672,7 @@
 
         window.changeRound = (dir) => {
             if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);
-            const next = Math.max(0, Math.min(gameData.length - 1, (sharedState.currentRound || 0) + dir));
+            const next = Math.max(0, Math.min(getGameRounds().length - 1, (sharedState.currentRound || 0) + dir));
             const winner = sharedState.winningTeamId; let nextActive = winner || 0; let streak = sharedState.consecutiveWins || 0; let lastId = sharedState.lastWinnerId || 0; let sw = false;
             if (winner !== 0 && !sharedState.lastWinWasFaceOff) { if (winner === lastId) streak++; else { streak = 1; lastId = winner; } if (streak >= 2) { sw = true; nextActive = (winner === 1) ? 2 : 1; streak = 0; lastId = 0; } }
             else if (winner !== 0) nextActive = winner;
@@ -597,7 +685,9 @@
             document.getElementById('btn-con').classList.toggle('active', m === 'contestant');
             document.getElementById('btn-adm').classList.toggle('active', m === 'admin');
             document.getElementById('btn-bl').classList.toggle('active', m === 'backlog');
+            document.getElementById('btn-teacher').classList.toggle('active', m === 'teacher');
             if (m === 'backlog') initBacklog();
+            if (m === 'teacher') window.initTeacherPortal();
             toggleSwitcher();
         };
         window.handleResetClick = () => { const b = document.getElementById('reset-button'); if (!resetConfirming) { resetConfirming = true; b.innerText = "TAP TO CONFIRM"; b.classList.add('reset-confirming'); setTimeout(() => { resetConfirming = false; b.innerText = "⚠️ Full Game Reset"; b.classList.remove('reset-confirming'); }, 4000); } else { window.resetGame(); resetConfirming = false; b.innerText = "⚠️ Full Game Reset"; b.classList.remove('reset-confirming'); toggleSwitcher(); } };
@@ -716,6 +806,7 @@
                             <select id="edit-p-${item._docId}">${opts}</select>
                             <input type="text" id="edit-b-${item._docId}" value="${(item.batchIds||[]).join(', ')}" placeholder="Batch IDs — comma separated">
                             <textarea id="edit-d-${item._docId}">${item.description}</textarea>
+                            <textarea id="edit-n-${item._docId}" placeholder="📝 Implementation notes / spec updates / changelog…" style="min-height:70px; border-color:rgba(0,242,255,0.3);">${item.notes || ''}</textarea>
                             <div class="bl-edit-actions">
                                 <button class="bl-add-btn" style="padding:10px 20px;font-size:0.8rem;" onclick="window.saveBacklogEdit('${item._docId}')">Save</button>
                                 <button class="admin-btn" style="padding:10px 20px;font-size:0.8rem;" onclick="window.cancelBacklogEdit()">Cancel</button>
@@ -726,12 +817,14 @@
                 const tags = (item.batchIds || []).length > 0
                     ? item.batchIds.map(b => `<span class="bl-batch-tag">${b}</span>`).join('')
                     : '<span class="bl-no-batch">No batch assigned</span>';
+                const notesHtml = item.notes ? `<div class="bl-notes"><div class="bl-notes-label">📝 Notes</div><div class="bl-notes-text">${item.notes.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></div>` : '';
                 return `<div class="bl-item ${p}">
                     <div class="bl-seq">BL-${String(item.seqId).padStart(3,'0')}</div>
                     <div class="bl-badge ${p}">${item.priority}</div>
                     <div class="bl-body">
                         <div class="bl-desc-text">${item.description}</div>
                         <div>${tags}</div>
+                        ${notesHtml}
                     </div>
                     <div class="bl-actions">
                         <button class="bl-edit-btn" onclick="window.editBacklogItem('${item._docId}')">Edit</button>
@@ -751,9 +844,10 @@
             const priority = document.getElementById(`edit-p-${docId}`)?.value;
             const batchRaw = document.getElementById(`edit-b-${docId}`)?.value || '';
             const description = document.getElementById(`edit-d-${docId}`)?.value.trim();
+            const notes = document.getElementById(`edit-n-${docId}`)?.value.trim() || '';
             if (!description) return;
             const batchIds = batchRaw.split(',').map(b => b.trim()).filter(Boolean);
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'backlogItems', docId), { priority, description, batchIds });
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'backlogItems', docId), { priority, description, batchIds, notes });
             editingDocId = null;
         };
 
@@ -892,6 +986,339 @@
                 setTimeout(() => btn.textContent = orig, 2000);
             });
         };
+
+        // ==================== TEACHER PORTAL ====================
+        let teacherGames = [], teacherGamesUnsub = null;
+        window.editorGame = null;
+        let editorMode = 'url';
+
+        window.initTeacherPortal = function() {
+            if (teacherGamesUnsub) { renderGameLibrary(); return; }
+            teacherGamesUnsub = onSnapshot(
+                query(collection(db, 'artifacts', appId, 'public', 'data', 'games'), orderBy('updatedAt', 'desc')),
+                (snap) => { teacherGames = snap.docs.map(d => ({ _docId: d.id, ...d.data() })); renderGameLibrary(); }
+            );
+        };
+
+        function renderGameLibrary() {
+            const list = document.getElementById('tp-game-list');
+            if (!list) return;
+            if (!teacherGames.length) {
+                list.innerHTML = '<div class="bl-empty">No games yet. Create one above!</div>';
+                return;
+            }
+            list.innerHTML = teacherGames.map(g => {
+                const isActive = currentActiveGameId === g._docId;
+                const rc = (g.rounds || []).length;
+                const date = g.updatedAt ? new Date(g.updatedAt).toLocaleDateString() : '';
+                const srcSnip = g.sourceUrl ? `<div class="tp-game-meta" style="color:#3a3a5a; word-break:break-all; margin-top:2px;">${g.sourceUrl.slice(0, 55)}${g.sourceUrl.length > 55 ? '…' : ''}</div>` : '';
+                return `<div class="tp-game-card">
+                    <div style="flex:1; min-width:0;">
+                        <div class="tp-game-name-display">${isActive ? '<span class="tp-active-badge">ACTIVE</span>' : ''}${escHtml(g.name || 'Unnamed Game')}</div>
+                        <div class="tp-game-meta">${rc} round${rc !== 1 ? 's' : ''} · ${g.generatedBy ? 'AI' : 'Manual'} · ${date}</div>
+                        ${srcSnip}
+                    </div>
+                    <div class="tp-actions">
+                        <button class="bl-edit-btn" onclick="window.loadGameToEditor('${g._docId}')">Edit</button>
+                        ${isActive
+                            ? `<button class="bl-edit-btn" style="border-color:#555;color:#555;" onclick="window.deactivateGame()">⏹ Deactivate</button>`
+                            : `<button class="bl-edit-btn" style="border-color:var(--neon-cyan);color:var(--neon-cyan);" onclick="window.setGameActiveById('${g._docId}')">▶ Activate</button>`
+                        }
+                        <button class="bl-del-btn" onclick="window.deleteTeacherGame('${g._docId}', \`${(g.name || '').replace(/`/g, '')}\`)">Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.openEditor = function(mode) {
+            editorMode = mode;
+            window.editorGame = {
+                name: '', rounds: mode === 'manual' ? [blankRound()] : [],
+                sourceUrl: null, generatedBy: null, _docId: null
+            };
+            showEditorView();
+            document.getElementById('tp-game-name').value = '';
+            document.getElementById('tp-url-section').style.display = mode === 'url' ? 'block' : 'none';
+            const ui = document.getElementById('tp-url-input'); if (ui) ui.value = '';
+            hideTpStatus();
+            renderEditorRounds();
+        };
+
+        window.loadGameToEditor = function(docId) {
+            const g = teacherGames.find(x => x._docId === docId);
+            if (!g) return;
+            window.editorGame = JSON.parse(JSON.stringify(g));
+            editorMode = g.sourceUrl ? 'url' : 'manual';
+            showEditorView();
+            document.getElementById('tp-game-name').value = g.name || '';
+            document.getElementById('tp-url-section').style.display = editorMode === 'url' ? 'block' : 'none';
+            const ui = document.getElementById('tp-url-input'); if (ui && g.sourceUrl) ui.value = g.sourceUrl;
+            hideTpStatus();
+            renderEditorRounds();
+        };
+
+        window.closeEditor = function() {
+            window.editorGame = null;
+            document.getElementById('tp-editor-view').style.display = 'none';
+            document.getElementById('tp-library-view').style.display = 'block';
+            renderGameLibrary();
+        };
+
+        function showEditorView() {
+            document.getElementById('tp-library-view').style.display = 'none';
+            document.getElementById('tp-editor-view').style.display = 'block';
+        }
+
+        window.generateFromUrl = async function() {
+            const url = document.getElementById('tp-url-input')?.value?.trim();
+            if (!url) { showTpStatus('Please enter a URL first.', 'error'); return; }
+            const btn = document.getElementById('tp-gen-btn');
+            btn.disabled = true;
+            showTpStatus('Fetching page content…', 'loading');
+            try {
+                const cr = await fetch('/api/fetch-content', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+                const cd = await cr.json();
+                if (!cr.ok) throw new Error(cd.error || 'Failed to fetch page');
+                if (!cd.text || cd.text.length < 80) throw new Error('Page had too little readable text — try a different URL.');
+                showTpStatus('Generating questions with Claude… (15–20 seconds)', 'loading');
+                const questionType = document.getElementById('tp-q-type')?.value || 'scripture_based';
+                const qr = await fetch('/api/generate-questions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: cd.text, sourceUrl: url, questionType }) });
+                const qd = await qr.json();
+                if (!qr.ok) throw new Error(qd.error || 'AI generation failed');
+                window.editorGame.rounds = qd.rounds || [];
+                window.editorGame.sourceUrl = url;
+                window.editorGame.generatedBy = 'claude-sonnet-4-6';
+                window.editorGame.questionType = qd.questionType || questionType;
+                const nameEl = document.getElementById('tp-game-name');
+                if (!nameEl.value.trim() && qd.topic) { nameEl.value = qd.topic; window.editorGame.name = qd.topic; }
+                showTpStatus(`✓ Generated ${window.editorGame.rounds.length} rounds. Review below, then Save.`, 'info');
+                renderEditorRounds();
+            } catch (err) {
+                showTpStatus(`Error: ${err.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        function showTpStatus(msg, type) {
+            const el = document.getElementById('tp-status');
+            if (!el) return;
+            el.textContent = msg;
+            el.className = `tp-status ${type}`;
+            el.style.display = 'block';
+        }
+        function hideTpStatus() { const el = document.getElementById('tp-status'); if (el) el.style.display = 'none'; }
+
+        function blankRound() {
+            return { question: '', answers: [
+                { text: '', points: 38 }, { text: '', points: 22 }, { text: '', points: 14 },
+                { text: '', points: 10 }, { text: '', points: 9 }, { text: '', points: 7 }
+            ]};
+        }
+
+        function renderEditorRounds() {
+            const list = document.getElementById('tp-questions-list');
+            if (!list) return;
+            list.innerHTML = '';
+            (window.editorGame?.rounds || []).forEach((round, ri) => list.appendChild(makeQCard(round, ri)));
+            if (window.Sortable && (window.editorGame?.rounds?.length || 0) > 1) {
+                Sortable.create(list, {
+                    handle: '.q-drag-handle', animation: 200,
+                    onEnd: (e) => {
+                        const m = window.editorGame.rounds.splice(e.oldIndex, 1)[0];
+                        window.editorGame.rounds.splice(e.newIndex, 0, m);
+                        renderEditorRounds();
+                    }
+                });
+            }
+        }
+
+        function makeQCard(round, ri) {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+
+            const hdr = document.createElement('div');
+            hdr.className = 'question-card-header';
+
+            const handle = document.createElement('span');
+            handle.className = 'q-drag-handle';
+            handle.title = 'Drag to reorder';
+            handle.innerHTML = '&#8286;';
+
+            const lbl = document.createElement('span');
+            lbl.className = 'round-num-label';
+            lbl.textContent = `Round ${ri + 1}`;
+
+            const del = document.createElement('button');
+            del.className = 'btn-icon-del';
+            del.title = 'Delete round';
+            del.textContent = '✕';
+            del.onclick = () => {
+                if (window.editorGame.rounds.length <= 1) return;
+                if (confirm(`Delete Round ${ri + 1}?`)) { window.editorGame.rounds.splice(ri, 1); renderEditorRounds(); }
+            };
+
+            hdr.appendChild(handle); hdr.appendChild(lbl); hdr.appendChild(del);
+
+            const qi = document.createElement('input');
+            qi.type = 'text';
+            qi.className = 'question-text-input';
+            qi.value = round.question || '';
+            qi.placeholder = 'Name something students might know about this lesson…';
+            qi.maxLength = 200;
+            qi.oninput = () => { window.editorGame.rounds[ri].question = qi.value; };
+
+            const ansDiv = document.createElement('div');
+            ansDiv.className = 'answers-container';
+            (round.answers || []).forEach((ans, ai) => ansDiv.appendChild(makeAnsRow(ans, ri, ai)));
+            if (window.Sortable && (round.answers?.length || 0) > 1) {
+                Sortable.create(ansDiv, {
+                    handle: '.a-drag-handle', animation: 150,
+                    onEnd: (e) => {
+                        const m = window.editorGame.rounds[ri].answers.splice(e.oldIndex, 1)[0];
+                        window.editorGame.rounds[ri].answers.splice(e.newIndex, 0, m);
+                        renderEditorRounds();
+                    }
+                });
+            }
+
+            const addBtn = document.createElement('button');
+            addBtn.className = 'btn-add-answer';
+            addBtn.textContent = '+ Add Answer';
+            addBtn.onclick = () => { window.editorGame.rounds[ri].answers.push({ text: '', points: 5 }); renderEditorRounds(); };
+
+            card.appendChild(hdr); card.appendChild(qi); card.appendChild(ansDiv); card.appendChild(addBtn);
+            return card;
+        }
+
+        function makeAnsRow(answer, ri, ai) {
+            const row = document.createElement('div');
+            row.className = 'answer-row';
+
+            const handle = document.createElement('span');
+            handle.className = 'a-drag-handle';
+            handle.title = 'Drag to reorder';
+            handle.innerHTML = '&#8286;';
+
+            const ti = document.createElement('input');
+            ti.type = 'text';
+            ti.className = 'answer-text-input';
+            ti.value = answer.text || '';
+            ti.placeholder = 'Answer text';
+            ti.maxLength = 80;
+            ti.oninput = () => { window.editorGame.rounds[ri].answers[ai].text = ti.value; };
+
+            const pi = document.createElement('input');
+            pi.type = 'number';
+            pi.className = 'answer-points-input';
+            pi.value = answer.points ?? 10;
+            pi.min = 1; pi.max = 100;
+            pi.title = 'Points';
+            pi.oninput = () => { const v = parseInt(pi.value, 10); if (!isNaN(v)) window.editorGame.rounds[ri].answers[ai].points = v; };
+
+            const del = document.createElement('button');
+            del.className = 'btn-icon-del';
+            del.textContent = '✕';
+            del.title = 'Delete answer';
+            del.onclick = () => {
+                if (window.editorGame.rounds[ri].answers.length <= 2) return;
+                window.editorGame.rounds[ri].answers.splice(ai, 1);
+                renderEditorRounds();
+            };
+
+            row.appendChild(handle); row.appendChild(ti); row.appendChild(pi); row.appendChild(del);
+            return row;
+        }
+
+        window.addBlankRound = function() {
+            if (!window.editorGame) return;
+            window.editorGame.rounds.push(blankRound());
+            renderEditorRounds();
+            document.getElementById('tp-questions-list').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
+        };
+
+        window.saveCurrentGame = async function() {
+            if (!window.editorGame) return false;
+            const name = document.getElementById('tp-game-name')?.value?.trim();
+            window.editorGame.name = name;
+            if (!name) { showTpStatus('Please enter a game name.', 'error'); return false; }
+            if (!window.editorGame.rounds.length) { showTpStatus('Add at least one round.', 'error'); return false; }
+            const hasEmpty = window.editorGame.rounds.some(r => !r.question.trim() || r.answers.some(a => !a.text.trim()));
+            if (hasEmpty) { showTpStatus('Fill in all question and answer fields before saving.', 'error'); return false; }
+            const payload = {
+                name: window.editorGame.name,
+                rounds: window.editorGame.rounds,
+                sourceUrl: window.editorGame.sourceUrl || null,
+                generatedBy: window.editorGame.generatedBy || null,
+                updatedAt: Date.now(),
+            };
+            try {
+                if (window.editorGame._docId) {
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'games', window.editorGame._docId), payload);
+                } else {
+                    payload.createdAt = Date.now();
+                    const ref = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'games'), payload);
+                    window.editorGame._docId = ref.id;
+                }
+                showTpStatus('✓ Game saved!', 'info');
+                return true;
+            } catch (err) {
+                showTpStatus(`Save failed: ${err.message}`, 'error');
+                return false;
+            }
+        };
+
+        window.setGameActiveById = async function(docId) {
+            const g = teacherGames.find(x => x._docId === docId);
+            if (g) await activateGame(g);
+        };
+
+        window.setGameAsActive = async function() {
+            if (!window.editorGame) return;
+            const saved = await window.saveCurrentGame();
+            if (!saved || !window.editorGame._docId) return;
+            const g = teacherGames.find(x => x._docId === window.editorGame._docId) || window.editorGame;
+            await activateGame(g);
+        };
+
+        async function activateGame(g) {
+            const rounds = g.rounds || [];
+            const activeRef = doc(db, 'artifacts', appId, 'public', 'data', 'activeGame', 'current');
+            const stateRef = doc(db, 'artifacts', appId, 'public', 'data', 'feudSession', 'state');
+            await setDoc(activeRef, { gameId: g._docId, name: g.name, rounds });
+            await updateDoc(stateRef, {
+                currentRound: 0, revealed: [], strikes: 0, activeTeam: 0, originalTeamId: 0,
+                winTime: 0, strikeTime: 0, gameOverTime: 0, switchPlayTime: 0,
+                winningTeamId: 0, lastWinnerId: 0, consecutiveWins: 0, lastWinWasFaceOff: false,
+                activeGameId: g._docId
+            });
+            currentActiveGameId = g._docId;
+            renderGameLibrary();
+            showTpStatus(`✓ "${g.name}" is now active! Switch to Monitor or Admin to play.`, 'info');
+        }
+
+        window.deactivateGame = async function() {
+            if (!confirm('Stop using this custom game? The default Exodus game will be used.')) return;
+            const activeRef = doc(db, 'artifacts', appId, 'public', 'data', 'activeGame', 'current');
+            await deleteDoc(activeRef);
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'feudSession', 'state'), {
+                currentRound: 0, revealed: [], strikes: 0, activeGameId: null, winTime: 0, strikeTime: 0, gameOverTime: 0
+            });
+            currentActiveGameId = null;
+            renderGameLibrary();
+        };
+
+        window.deleteTeacherGame = async function(docId, name) {
+            if (!confirm(`Delete "${name}"?`)) return;
+            if (currentActiveGameId === docId) {
+                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activeGame', 'current'));
+                currentActiveGameId = null;
+            }
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'games', docId));
+        };
+
+        function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        // ==================== END TEACHER PORTAL ====================
 
         window.onload = init;
     </script>

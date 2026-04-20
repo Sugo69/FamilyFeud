@@ -57,6 +57,96 @@ A ready-to-paste prompt the developer can drop into Claude Code to implement thi
             {
                 name: 'api-dev-middleware',
                 configureServer(server) {
+                    server.middlewares.use('/api/fetch-content', (req, res) => {
+                        if (req.method !== 'POST') {
+                            res.statusCode = 405
+                            res.setHeader('Content-Type', 'application/json')
+                            res.end(JSON.stringify({ error: 'Method not allowed' }))
+                            return
+                        }
+                        let body = ''
+                        req.on('data', chunk => body += chunk)
+                        req.on('end', async () => {
+                            res.setHeader('Content-Type', 'application/json')
+                            try {
+                                const { url } = JSON.parse(body)
+                                if (!url) { res.statusCode = 400; res.end(JSON.stringify({ error: 'Missing URL' })); return }
+                                let parsedUrl
+                                try { parsedUrl = new URL(url) } catch { res.statusCode = 400; res.end(JSON.stringify({ error: 'Invalid URL' })); return }
+                                if (!['http:', 'https:'].includes(parsedUrl.protocol)) { res.statusCode = 400; res.end(JSON.stringify({ error: 'HTTP/HTTPS only' })); return }
+                                const response = await fetch(url, {
+                                    headers: { 'User-Agent': 'Mozilla/5.0 (FamilyFeudApp/1.0)' },
+                                    signal: AbortSignal.timeout(10000),
+                                })
+                                if (!response.ok) { res.statusCode = 502; res.end(JSON.stringify({ error: `Remote ${response.status}` })); return }
+                                const html = await response.text()
+                                const text = html
+                                    .replace(/<script[\s\S]*?<\/script>/gi, '')
+                                    .replace(/<style[\s\S]*?<\/style>/gi, '')
+                                    .replace(/<nav[\s\S]*?<\/nav>/gi, '')
+                                    .replace(/<footer[\s\S]*?<\/footer>/gi, '')
+                                    .replace(/<header[\s\S]*?<\/header>/gi, '')
+                                    .replace(/<[^>]+>/g, ' ')
+                                    .replace(/&nbsp;/g, ' ')
+                                    .replace(/&amp;/g, '&')
+                                    .replace(/\s{2,}/g, ' ')
+                                    .trim()
+                                    .slice(0, 8000)
+                                res.end(JSON.stringify({ text, sourceUrl: url }))
+                            } catch (err) {
+                                res.statusCode = 500
+                                res.end(JSON.stringify({ error: err.message }))
+                            }
+                        })
+                    })
+
+                    server.middlewares.use('/api/generate-questions', (req, res) => {
+                        if (req.method !== 'POST') {
+                            res.statusCode = 405
+                            res.setHeader('Content-Type', 'application/json')
+                            res.end(JSON.stringify({ error: 'Method not allowed' }))
+                            return
+                        }
+                        let body = ''
+                        req.on('data', chunk => body += chunk)
+                        req.on('end', async () => {
+                            res.setHeader('Content-Type', 'application/json')
+                            try {
+                                const { text, sourceUrl, questionType = 'scripture_based' } = JSON.parse(body)
+                                if (!text) { res.statusCode = 400; res.end(JSON.stringify({ error: 'Missing text' })); return }
+                                const apiKey = env.ANTHROPIC_API_KEY
+                                if (!apiKey) { res.statusCode = 500; res.end(JSON.stringify({ error: 'ANTHROPIC_API_KEY not set' })); return }
+                                const prompts = {
+                                    scripture_based: `You are writing scripture-based quiz rounds for an LDS youth Sunday School class (ages 14–16).\n\nSource: ${sourceUrl || 'unknown'}\n\nLesson content:\n---\n${text}\n---\n\nGenerate exactly 4 rounds. For each round:\n- Choose a specific verse or short passage from the lesson text\n- "question" = the scripture quote + a factual question about that passage. Format: "[Scripture text] (Reference). [Factual question]?"\n- Exactly 4 answers that are facts directly from that scripture. Points: 40, 30, 20, 10\n\nCRITICAL: ONLY valid JSON, no markdown.\n{"topic":"lesson topic","questionType":"scripture_based","rounds":[{"question":"[scripture quote (ref)]. [factual question]?","type":"scripture_based","answers":[{"text":"answer","points":40},{"text":"answer","points":30},{"text":"answer","points":20},{"text":"answer","points":10}]}]}`,
+                                    scripture_application: `You are writing application-based scripture rounds for an LDS youth Sunday School class (ages 14–16).\n\nSource: ${sourceUrl || 'unknown'}\n\nLesson content:\n---\n${text}\n---\n\nGenerate exactly 4 rounds. For each round:\n- Choose a specific verse or principle from the lesson\n- "question" = short scripture quote + application question. Format: "[Quote] (Reference). Name a way LDS youth today [application]."\n- 4 practical application answers. Points: 40, 30, 20, 10\n\nCRITICAL: ONLY valid JSON, no markdown.\n{"topic":"lesson topic","questionType":"scripture_application","rounds":[{"question":"[scripture quote (ref)]. [application question]?","type":"scripture_application","answers":[{"text":"answer","points":40},{"text":"answer","points":30},{"text":"answer","points":20},{"text":"answer","points":10}]}]}`,
+                                    family_feud: `You are a Family Feud question writer for an LDS youth Sunday School class (ages 14-16).\n\nSource: ${sourceUrl || 'unknown'}\n\nContent:\n---\n${text}\n---\n\nGenerate exactly 4 rounds with 6 answers each in classic survey style.\n\nCRITICAL: ONLY valid JSON, no markdown.\n{"topic":"lesson topic","questionType":"family_feud","rounds":[{"question":"We surveyed 100 LDS youth... Name something...","type":"family_feud","answers":[{"text":"answer","points":38},{"text":"answer","points":22},{"text":"answer","points":14},{"text":"answer","points":10},{"text":"answer","points":9},{"text":"answer","points":7}]}]}`
+                                }
+                                const prompt = prompts[questionType] || prompts.scripture_based
+                                const response = await fetch('https://api.anthropic.com/v1/messages', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+                                    body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 3000, messages: [{ role: 'user', content: prompt }] })
+                                })
+                                if (!response.ok) { const t = await response.text(); res.statusCode = 500; res.end(JSON.stringify({ error: `Claude API: ${t}` })); return }
+                                const data = await response.json()
+                                const rawContent = data.content[0].text
+                                let parsed
+                                try { parsed = JSON.parse(rawContent) } catch {
+                                    const match = rawContent.match(/\{[\s\S]*\}/)
+                                    if (match) { try { parsed = JSON.parse(match[0]) } catch { res.statusCode = 502; res.end(JSON.stringify({ error: 'AI returned invalid JSON' })); return } }
+                                    else { res.statusCode = 502; res.end(JSON.stringify({ error: 'AI returned non-JSON' })); return }
+                                }
+                                if (!parsed.rounds?.length) { res.statusCode = 502; res.end(JSON.stringify({ error: 'AI response missing rounds' })); return }
+                                parsed.sourceUrl = sourceUrl
+                                parsed.generatedAt = new Date().toISOString()
+                                res.end(JSON.stringify(parsed))
+                            } catch (err) {
+                                res.statusCode = 500
+                                res.end(JSON.stringify({ error: err.message }))
+                            }
+                        })
+                    })
+
                     server.middlewares.use('/api/generate', (req, res) => {
                         if (req.method !== 'POST') {
                             res.statusCode = 405

@@ -5,3 +5,4 @@ dist/
 .DS_Store
 *.log
 *.mp4
+.claude/settings.local.json
