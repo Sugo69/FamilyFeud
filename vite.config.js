@@ -1,4 +1,5 @@
 import { defineConfig, loadEnv } from 'vite'
+import { resolve } from 'path'
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '') // load ALL .env vars, not just VITE_
@@ -52,6 +53,15 @@ A ready-to-paste prompt the developer can drop into Claude Code to implement thi
         },
         preview: {
             port: 5174,
+        },
+        build: {
+            rollupOptions: {
+                input: {
+                    main: resolve(__dirname, 'index.html'),
+                    commonGround: resolve(__dirname, 'games/common-ground.html'),
+                    memory: resolve(__dirname, 'games/memory.html'),
+                }
+            }
         },
         plugins: [
             {
@@ -144,6 +154,57 @@ A ready-to-paste prompt the developer can drop into Claude Code to implement thi
                                 res.statusCode = 500
                                 res.end(JSON.stringify({ error: err.message }))
                             }
+                        })
+                    })
+
+                    server.middlewares.use('/api/lesson-pipeline', (req, res) => {
+                        if (req.method !== 'POST') { res.statusCode = 405; res.setHeader('Content-Type','application/json'); res.end(JSON.stringify({error:'Method not allowed'})); return }
+                        let body = ''
+                        req.on('data', chunk => body += chunk)
+                        req.on('end', async () => {
+                            res.setHeader('Content-Type', 'application/json')
+                            try {
+                                const { url, gameType = 'common-ground', questionType = 'mixed' } = JSON.parse(body)
+                                if (!url) { res.statusCode = 400; res.end(JSON.stringify({error:'Missing url'})); return }
+                                const apiKey = env.ANTHROPIC_API_KEY
+                                if (!apiKey) { res.statusCode = 500; res.end(JSON.stringify({error:'ANTHROPIC_API_KEY not set'})); return }
+
+                                const pageResp = await fetch(url, { headers: {'User-Agent':'Mozilla/5.0 (KindredYouth/1.0)'}, signal: AbortSignal.timeout(15000) })
+                                if (!pageResp.ok) { res.statusCode = 502; res.end(JSON.stringify({error:`Lesson page returned ${pageResp.status}`})); return }
+                                const html = await pageResp.text()
+                                const lessonText = html
+                                    .replace(/<script[\s\S]*?<\/script>/gi,'').replace(/<style[\s\S]*?<\/style>/gi,'')
+                                    .replace(/<nav[\s\S]*?<\/nav>/gi,'').replace(/<footer[\s\S]*?<\/footer>/gi,'')
+                                    .replace(/<header[\s\S]*?<\/header>/gi,'').replace(/<aside[\s\S]*?<\/aside>/gi,'')
+                                    .replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/&amp;/g,'&')
+                                    .replace(/\s{2,}/g,' ').trim().slice(0, 10000)
+                                if (lessonText.length < 100) { res.statusCode = 422; res.end(JSON.stringify({error:'Could not extract readable text'})); return }
+
+                                const isMemory = gameType === 'memory'
+                                const typeMap = { mixed:'2 scripture_based + 2 scripture_application + 4 family_feud (8 total)', scripture_based:'6 scripture_based rounds', scripture_application:'6 scripture_application rounds', family_feud:'6 family_feud survey rounds' }
+                                const prompt = isMemory
+                                    ? `You are the Kindred Gamemaster. Generate exactly 12 matching pairs for a Scripture Scout memory game for LDS youth (13–16) based on this lesson from ${url}:\n---\n${lessonText}\n---\nEach pair: cardA = scripture ref + short title, cardB = key phrase or modern application. Include a discussion question and emoji icon per pair. Every pair connects to Jesus Christ. Return ONLY valid JSON: {"topic":"...","pairs":[{"id":"p1","cardA":"...","cardB":"...","question":"...","christConnection":"...","icon":"emoji","iconLabel":"label"}]}`
+                                    : `You are the Kindred Gamemaster. Generate ${typeMap[questionType]||typeMap.mixed} for a Common Ground (survey) game for LDS youth (13–16) based on this lesson from ${url}:\n---\n${lessonText}\n---\nRules: every question connects to Jesus Christ; answerable by any youth regardless of testimony; scripture_based quotes a verse + factual question (4 answers 40/30/20/10); scripture_application quotes a verse + how it applies today (4 answers); family_feud = "We surveyed 100 LDS youth… Name something…" (6 answers 38/22/14/10/9/7, include realistic youth responses). Return ONLY valid JSON: {"topic":"...","rounds":[{"question":"...","type":"scripture_based|scripture_application|family_feud","christConnection":"...","answers":[{"text":"...","points":40}]}]}`
+
+                                const claudeOpts = { method:'POST', headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'}, body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:6000, messages:[{role:'user',content:prompt}] }) }
+                                let claude = await fetch('https://api.anthropic.com/v1/messages', claudeOpts)
+                                if (!claude.ok) {
+                                    const t=await claude.text()
+                                    const retryable = claude.status===529||claude.status===500||claude.status===503||t.includes('timeout')||t.includes('overloaded')
+                                    if (retryable) { await new Promise(r=>setTimeout(r,5000)); claude = await fetch('https://api.anthropic.com/v1/messages', claudeOpts) }
+                                    if (!claude.ok) { const t2=await claude.text(); res.statusCode=500; res.end(JSON.stringify({error:`Claude API: ${t2.slice(0,200)}`})); return }
+                                }
+                                const cd = await claude.json()
+                                const raw = cd.content[0].text
+                                let parsed
+                                try { parsed = JSON.parse(raw) } catch {
+                                    const m = raw.match(/\{[\s\S]*\}/)
+                                    if (m) { try { parsed=JSON.parse(m[0]) } catch { res.statusCode=502; res.end(JSON.stringify({error:'AI returned malformed JSON'})); return } }
+                                    else { res.statusCode=502; res.end(JSON.stringify({error:'AI did not return JSON'})); return }
+                                }
+                                parsed.sourceUrl = url; parsed.generatedAt = new Date().toISOString(); parsed.pipeline = 'lesson-pipeline'
+                                res.end(JSON.stringify(parsed))
+                            } catch(err) { res.statusCode=500; res.end(JSON.stringify({error:err.message})) }
                         })
                     })
 

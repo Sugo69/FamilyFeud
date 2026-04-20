@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run dev)",
+      "Bash(npm run build)",
+      "Bash(npm run preview)",
+      "Bash(mkdir *)",
+      "Bash(cp *)",
+      "Bash(ls *)",
+      "WebFetch(domain:churchofjesuschrist.org)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Read",
+      "Write",
+      "Edit"
+    ]
+  }
+}

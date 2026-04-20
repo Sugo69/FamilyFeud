@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Exodus Family Feud - Pro Sync</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kindred — Youth Learning Together</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Permanent+Marker&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -14,8 +14,9 @@
             --warning-gold: #ffcc00;
             --text-silver: #e0e0e0;
             --border-glow: 0 0 30px rgba(0, 242, 255, 0.4);
-            --monitor-scale: 1.0;
         }
+
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Rajdhani', sans-serif;
@@ -23,164 +24,167 @@
             color: var(--text-silver);
             margin: 0;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             overflow-x: hidden;
             background-image:
-                linear-gradient(rgba(10, 10, 18, 0.98), rgba(10, 10, 18, 0.98)),
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 242, 255, 0.03) 2px, rgba(0, 242, 255, 0.03) 4px);
+                linear-gradient(rgba(10,10,18,0.98), rgba(10,10,18,0.98)),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,242,255,0.03) 2px, rgba(0,242,255,0.03) 4px);
         }
 
-        html { font-size: 18px; }
-
-        .monitor-scaling-root {
-            font-size: calc(18px * var(--monitor-scale));
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: font-size 0.2s ease-out;
-        }
-
-        #audio-unlock {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #000;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        /* ── Hero ── */
+        .hero {
             text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
+            padding: 60px 20px 40px;
+            position: relative;
         }
-        #audio-unlock h1 { font-size: 4rem; color: var(--neon-cyan); margin-bottom: 2rem; font-family: 'Orbitron', sans-serif; }
-        #audio-unlock button {
-            font-size: 2rem; padding: 20px 50px; background: var(--neon-cyan);
-            color: black; border: none; font-family: 'Orbitron', sans-serif; cursor: pointer;
-            border-radius: 12px; box-shadow: 0 0 30px var(--neon-cyan);
-            text-transform: uppercase; font-weight: bold;
+        .hero-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2.8rem, 8vw, 5.5rem);
+            font-weight: 700;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 60px var(--neon-cyan), 0 0 120px rgba(0,242,255,0.3);
+            letter-spacing: 0.15em;
+            margin: 0 0 8px;
+            text-transform: uppercase;
         }
-
-        .view-switcher {
-            position: fixed; top: 10px; right: 10px; z-index: 6000;
-            display: flex; flex-direction: column; background: rgba(10, 10, 20, 0.98);
-            border: 2px solid var(--neon-cyan); box-shadow: 0 0 40px rgba(0,0,0,1);
-            border-radius: 15px; overflow: hidden; transform: translateX(125%);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); width: 280px;
-            padding: 15px 0;
+        .hero-tagline {
+            font-family: 'Permanent Marker', cursive;
+            font-size: clamp(1.1rem, 3vw, 1.6rem);
+            color: var(--neon-pink);
+            letter-spacing: 0.1em;
+            margin: 0 0 12px;
         }
-        .view-switcher.visible { transform: translateX(0); }
-
-        .view-btn {
-            background: transparent; border: none; border-bottom: 1px solid #222;
-            color: var(--neon-cyan); padding: 18px 20px; cursor: pointer;
-            font-size: 1rem; font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase; text-align: left;
-        }
-        .view-btn:hover { background: rgba(0, 242, 255, 0.1); }
-        .view-btn.active { background: var(--neon-cyan); color: black; font-weight: bold; }
-
-        .settings-label { color: #888; font-size: 0.75rem; padding: 20px 20px 8px 20px; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 2px; }
-
-        .slider-container { padding: 5px 20px 25px 20px; border-bottom: 1px solid #222; }
-        input[type=range] { width: 100%; -webkit-appearance: none; background: #333; height: 8px; border-radius: 4px; outline: none; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: var(--neon-cyan); cursor: pointer; border: 2px solid white; box-shadow: 0 0 10px var(--neon-cyan); }
-
-        #menu-trigger {
-            position: fixed; top: 10px; right: 10px; z-index: 5999;
-            background: rgba(10, 10, 20, 0.8); color: var(--neon-cyan);
-            border: 2px solid var(--neon-cyan); width: 50px; height: 50px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 10px; cursor: pointer; font-size: 1.4rem;
-            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+        .hero-sub {
+            color: #555;
+            font-size: 0.95rem;
+            font-family: 'Rajdhani', sans-serif;
+            max-width: 460px;
+            margin: 0 auto;
         }
 
-        .admin-only, .contestant-only, .backlog-only, .teacher-only { display: none; }
-        body.mode-admin .admin-only { display: block; width: 100%; max-width: 850px; margin: 0 auto; padding-bottom: 140px; padding-top: 20px; box-sizing: border-box; }
-        body.mode-contestant .contestant-only { display: flex; flex-direction: column; align-items: center; width: 100%; }
-        body.mode-contestant .bottom-hud { display: flex; }
-        body.mode-backlog .backlog-only { display: block; width: 100%; max-width: 900px; margin: 0 auto; padding: 20px; padding-bottom: 60px; box-sizing: border-box; }
-        body.mode-teacher .teacher-only { display: block; width: 100%; max-width: 900px; margin: 0 auto; padding: 20px; padding-bottom: 80px; box-sizing: border-box; }
-
-        .container { max-width: 1400px; width: 95%; text-align: center; padding: 1em; box-sizing: border-box; margin-top: 1em; }
-
-        h1.tv-title { font-family: 'Orbitron', sans-serif; font-size: 3.5em; margin: 0; color: var(--neon-pink); text-transform: uppercase; letter-spacing: 0.2em; text-shadow: 0 0 30px var(--neon-pink); font-style: italic; }
-
-        .subtitle.tv-sub {
-            font-family: 'Permanent Marker', cursive; color: var(--neon-cyan); font-size: 1.8em;
-            margin-bottom: 1.2em; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 0.8em;
+        /* ── Sections ── */
+        .section {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 20px 40px;
         }
-        .faceoff-icon { font-size: 1.2em; display: none; filter: drop-shadow(0 0 15px var(--neon-cyan)); }
-
-        .question-box.tv-q {
-            background: rgba(20, 20, 50, 0.95); border: 0.15em solid var(--neon-cyan);
-            padding: 1em 1.5em; margin-bottom: 1em; font-size: 3.8em;
-            line-height: 1.15; min-height: 4.5em; display: flex; align-items: center;
-            justify-content: center; box-shadow: var(--border-glow); clip-path: polygon(2% 0, 100% 0, 98% 100%, 0 100%);
+        .section-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: #444;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 0 0 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #1a1a2a;
         }
 
-        .board.tv-board { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8em; margin-bottom: 2em; perspective: 2000px; width: 100%; }
-
-        .answer-slot { height: 5.2em; position: relative; transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-        .answer-slot.revealed { transform: rotateY(180deg); }
-
-        .front, .back {
-            position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
-            display: flex; align-items: center; padding: 0 1.5em; box-sizing: border-box;
-            border: 0.15em solid var(--neon-purple); font-size: 1.8em; text-transform: uppercase; font-weight: 700; overflow: hidden;
+        /* ── Game Catalog ── */
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 8px;
         }
-        .front { background: linear-gradient(135deg, #1a1a2e 0%, #2e1a47 100%); color: var(--neon-purple); justify-content: center; border-radius: 0.2em; }
-        .back { background: linear-gradient(135deg, var(--neon-cyan) 0%, #008080 100%); color: white; justify-content: space-between; transform: rotateY(180deg); border-color: #fff; border-radius: 0.2em; }
-
-        .pts-badge { background: rgba(0, 0, 0, 0.8); color: var(--neon-pink); padding: 0.2em 0.8em; border: 0.1em solid var(--neon-pink); font-family: 'Orbitron', sans-serif; font-size: 0.85em; }
-
-        .strike-tracker { display: flex; gap: 0.8em; margin: 0.8em 0; justify-content: center; }
-        .strike-x { font-size: 3.5em; color: #1a1a2e; font-family: 'Orbitron', sans-serif; border: 0.1em solid #1a1a2e; width: 1.8em; height: 1.8em; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
-        .strike-x.active { color: var(--warning-gold); border-color: var(--warning-gold); text-shadow: 0 0 20px var(--warning-gold); box-shadow: 0 0 30px rgba(255, 204, 0, 0.6); }
-
-        .bottom-hud { display: none; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: auto; padding: 1.2em 4em; background: rgba(0,0,0,0.95); border-top: 0.25em solid var(--neon-purple); box-sizing: border-box; }
-        .score-side { flex: 1; max-width: 25em; transition: transform 0.3s; }
-        .score-num { font-family: 'Orbitron', sans-serif; font-size: 5.5em; line-height: 1; margin-bottom: 0.1em; }
-        .score-name { font-size: 1.2em; font-weight: bold; letter-spacing: 0.2em; text-transform: uppercase; }
-
-        .active-glow { border: 0.2em solid var(--neon-cyan); box-shadow: 0 0 60px var(--neon-cyan); background: rgba(0, 242, 255, 0.15); padding: 0.8em; border-radius: 0.8em; transform: scale(1.05); }
-
-        #alert-steal, #alert-win, #game-over-pop, #alert-switch {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 3em; font-family: 'Orbitron', sans-serif; display: none; z-index: 7100; text-align: center; width: 90%;
+        .game-card {
+            background: #0d0d1f;
+            border: 2px solid #1a1a35;
+            border-radius: 16px;
+            padding: 28px 24px;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+            position: relative;
+            overflow: hidden;
         }
-        #alert-steal { background: var(--neon-pink); color: white; box-shadow: 0 0 150px var(--neon-pink); font-size: 5.5em; }
-        #alert-win { background: var(--neon-cyan); color: black; box-shadow: 0 0 300px var(--neon-cyan); font-size: 5.5em; }
-        #alert-switch { background: var(--warning-gold); color: black; box-shadow: 0 0 300px var(--warning-gold); font-size: 5.5em; border: 0.2em solid white; }
-        #game-over-pop { background: #000; color: var(--neon-cyan); border: 0.4em solid var(--neon-cyan); box-shadow: 0 0 400px var(--neon-cyan); font-size: 4em; }
+        .game-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .game-card.cyan::before { background: radial-gradient(ellipse at top left, rgba(0,242,255,0.06) 0%, transparent 70%); }
+        .game-card.pink::before { background: radial-gradient(ellipse at top left, rgba(255,0,127,0.06) 0%, transparent 70%); }
+        .game-card:hover { transform: translateY(-3px); }
+        .game-card.cyan:hover { border-color: var(--neon-cyan); box-shadow: 0 0 40px rgba(0,242,255,0.15); }
+        .game-card.pink:hover { border-color: var(--neon-pink); box-shadow: 0 0 40px rgba(255,0,127,0.15); }
+        .game-card:hover::before { opacity: 1; }
 
-        #strike-pop { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 8000; }
-        .pop-x { font-size: 20vw; color: red; font-family: 'Orbitron', sans-serif; font-weight: 900; text-shadow: 0 0 60px red; }
+        .game-card-icon { font-size: 2.2rem; line-height: 1; }
+        .game-card-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+        }
+        .game-card.cyan .game-card-name { color: var(--neon-cyan); }
+        .game-card.pink .game-card-name { color: var(--neon-pink); }
+        .game-card-desc {
+            font-size: 0.9rem;
+            color: #888;
+            line-height: 1.5;
+            flex: 1;
+        }
+        .game-card-tag {
+            display: inline-block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            align-self: flex-start;
+        }
+        .game-card.cyan .game-card-tag { background: rgba(0,242,255,0.1); color: var(--neon-cyan); border: 1px solid rgba(0,242,255,0.3); }
+        .game-card.pink .game-card-tag { background: rgba(255,0,127,0.1); color: var(--neon-pink); border: 1px solid rgba(255,0,127,0.3); }
+        .game-card-play {
+            margin-top: 6px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #444;
+            transition: color 0.2s;
+        }
+        .game-card.cyan:hover .game-card-play { color: var(--neon-cyan); }
+        .game-card.pink:hover .game-card-play { color: var(--neon-pink); }
 
-        .admin-box { background: #1a1a35; padding: 20px; border-radius: 15px; margin-bottom: 15px; border: 2px solid #444; }
-        .btn-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-        .admin-btn { font-family: 'Orbitron', sans-serif; background: transparent; border: 2px solid var(--neon-cyan); color: var(--neon-cyan); padding: 14px; cursor: pointer; text-transform: uppercase; font-size: 0.95rem; flex: 1; min-width: 130px; border-radius: 10px; }
-        .admin-btn.selected { background: var(--neon-cyan); color: black; box-shadow: 0 0 15px var(--neon-cyan); }
-        .danger { border-color: var(--warning-gold); color: var(--warning-gold); }
+        /* ── Display Scale ── */
+        .scale-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .scale-btn {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: 2px solid #1a1a35;
+            background: transparent;
+            color: #666;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .scale-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+        .scale-btn.active { border-color: var(--neon-cyan); background: rgba(0,242,255,0.1); color: var(--neon-cyan); box-shadow: 0 0 15px rgba(0,242,255,0.2); }
+        .scale-note { color: #333; font-size: 0.8rem; margin-left: auto; font-family: 'Rajdhani', sans-serif; }
 
-        .admin-ans-card { background: #0a0a1a; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--neon-purple); margin-bottom: 10px; border-radius: 12px; box-sizing: border-box; }
-        .admin-ans-card div { flex: 1; padding-right: 10px; color: white; }
-        .admin-ans-card button { background: var(--neon-cyan); color: black; font-weight: bold; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; min-width: 90px; font-family: 'Orbitron', sans-serif; font-size: 0.8rem; }
-        .admin-ans-card button:disabled { background: transparent; color: #444; border: 1px solid #333; opacity: 1; cursor: default; }
-
-        input[type="text"] { flex: 1; padding: 15px; background: black; color: white; border: 2px solid var(--neon-purple); font-size: 1.1rem; font-family: 'Orbitron', sans-serif; width: 100%; box-sizing: border-box; border-radius: 8px; }
-
-        .steal-label { color: var(--warning-gold); font-family: 'Orbitron', sans-serif; font-size: 1.1rem; padding: 10px; text-align: center; }
-
-        /* Backlog */
+        /* ── Backlog ── */
+        .admin-box { background: #0d0d1f; padding: 20px; border-radius: 14px; margin-bottom: 14px; border: 1px solid #1a1a35; }
         .bl-form { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
         .bl-form-row { display: flex; gap: 10px; flex-wrap: wrap; }
         .bl-form select { background: black; color: white; border: 2px solid var(--neon-purple); padding: 14px; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; border-radius: 8px; flex: 1; min-width: 160px; cursor: pointer; }
-        .bl-form textarea { background: black; color: white; border: 2px solid var(--neon-purple); padding: 14px; font-family: 'Rajdhani', sans-serif; font-size: 1rem; border-radius: 8px; resize: vertical; min-height: 80px; box-sizing: border-box; }
+        .bl-form textarea { background: black; color: white; border: 2px solid var(--neon-purple); padding: 14px; font-family: 'Rajdhani', sans-serif; font-size: 1rem; border-radius: 8px; resize: vertical; min-height: 80px; width: 100%; }
         .bl-add-btn { background: var(--neon-cyan); color: black; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: bold; border: none; padding: 14px 24px; border-radius: 8px; cursor: pointer; text-transform: uppercase; align-self: flex-start; }
+        input[type="text"], input[type="url"] { flex: 1; padding: 14px; background: black; color: white; border: 2px solid var(--neon-purple); font-size: 1rem; font-family: 'Rajdhani', sans-serif; width: 100%; border-radius: 8px; }
 
         .bl-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .bl-filter-btn { font-family: 'Orbitron', sans-serif; background: transparent; border: 2px solid #444; color: #888; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; }
@@ -190,7 +194,7 @@
         .bl-filter-btn.p2 { border-color: var(--neon-cyan); color: var(--neon-cyan); } .bl-filter-btn.p2.active { background: var(--neon-cyan); color: black; }
         .bl-filter-btn.p3 { border-color: var(--neon-purple); color: var(--neon-purple); } .bl-filter-btn.p3.active { background: var(--neon-purple); color: white; }
 
-        .bl-item { background: #0a0a1a; padding: 16px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: flex-start; gap: 12px; border-left: 6px solid #444; }
+        .bl-item { background: #080814; padding: 16px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: flex-start; gap: 12px; border-left: 6px solid #444; }
         .bl-item.p0 { border-left-color: #ff4444; } .bl-item.p1 { border-left-color: var(--warning-gold); }
         .bl-item.p2 { border-left-color: var(--neon-cyan); } .bl-item.p3 { border-left-color: var(--neon-purple); }
         .bl-seq { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: #555; white-space: nowrap; padding-top: 3px; min-width: 52px; }
@@ -199,7 +203,7 @@
         .bl-badge.p2 { background: var(--neon-cyan); color: black; } .bl-badge.p3 { background: var(--neon-purple); color: white; }
         .bl-body { flex: 1; min-width: 0; }
         .bl-desc-text { color: white; font-size: 1rem; line-height: 1.4; margin-bottom: 8px; word-break: break-word; }
-        .bl-batch-tag { display: inline-block; background: rgba(157, 0, 255, 0.2); border: 1px solid var(--neon-purple); color: var(--neon-purple); padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-family: 'Orbitron', sans-serif; margin-right: 5px; margin-top: 3px; }
+        .bl-batch-tag { display: inline-block; background: rgba(157,0,255,0.2); border: 1px solid var(--neon-purple); color: var(--neon-purple); padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-family: 'Orbitron', sans-serif; margin-right: 5px; margin-top: 3px; }
         .bl-no-batch { color: #444; font-size: 0.8rem; font-style: italic; }
         .bl-actions { display: flex; flex-direction: column; gap: 6px; }
         .bl-del-btn { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; padding: 6px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase; background: transparent; border: 1px solid #ff4444; color: #ff4444; white-space: nowrap; }
@@ -207,7 +211,7 @@
         .bl-edit-btn { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; padding: 6px 12px; border-radius: 6px; cursor: pointer; text-transform: uppercase; background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); white-space: nowrap; }
         .bl-edit-btn:hover { background: var(--neon-cyan); color: black; }
         .bl-edit-form { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
-        .bl-edit-form select, .bl-edit-form input[type=text], .bl-edit-form textarea { background: #0a0a1a; color: white; border: 2px solid var(--neon-purple); padding: 10px; border-radius: 6px; box-sizing: border-box; width: 100%; font-size: 0.9rem; }
+        .bl-edit-form select, .bl-edit-form input[type=text], .bl-edit-form textarea { background: #0a0a1a; color: white; border: 2px solid var(--neon-purple); padding: 10px; border-radius: 6px; width: 100%; font-size: 0.9rem; }
         .bl-edit-form select { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; }
         .bl-edit-form textarea { font-family: 'Rajdhani', sans-serif; min-height: 100px; resize: vertical; }
         .bl-edit-actions { display: flex; gap: 8px; }
@@ -216,16 +220,18 @@
         .bl-notes { margin-top: 8px; padding: 8px 10px; background: rgba(0,242,255,0.04); border-left: 3px solid rgba(0,242,255,0.2); border-radius: 4px; }
         .bl-notes-label { font-family: 'Orbitron', sans-serif; font-size: 0.6rem; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
         .bl-notes-text { color: #999; font-family: 'Rajdhani', sans-serif; font-size: 0.88rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+        .admin-btn { font-family: 'Orbitron', sans-serif; background: transparent; border: 2px solid var(--neon-cyan); color: var(--neon-cyan); padding: 10px 16px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; border-radius: 10px; white-space: nowrap; }
+        .admin-btn:hover { background: rgba(0,242,255,0.1); }
 
-        /* AI Story Generator Modal */
-        #ai-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 9500; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        /* ── AI Story Generator Modal ── */
+        #ai-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.93); z-index: 9500; overflow-y: auto; padding: 20px; }
         .ai-modal-box { max-width: 840px; margin: 20px auto; background: #0d0d1f; border: 2px solid var(--neon-cyan); border-radius: 15px; padding: 30px; box-shadow: 0 0 80px rgba(0,242,255,0.15); }
-        .ai-modal-box h2 { font-family: 'Orbitron', sans-serif; color: var(--neon-cyan); margin: 0 0 8px 0; font-size: 1.3rem; }
-        .ai-modal-box p { color: #777; font-family: 'Rajdhani', sans-serif; font-size: 1rem; margin: 0 0 20px 0; }
-        .ai-select { background: black; color: white; border: 2px solid var(--neon-purple); padding: 14px; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; border-radius: 8px; width: 100%; cursor: pointer; margin-bottom: 12px; box-sizing: border-box; }
+        .ai-modal-box h2 { font-family: 'Orbitron', sans-serif; color: var(--neon-cyan); margin: 0 0 8px; font-size: 1.3rem; }
+        .ai-modal-box p { color: #777; font-family: 'Rajdhani', sans-serif; font-size: 1rem; margin: 0 0 20px; }
+        .ai-select { background: black; color: white; border: 2px solid var(--neon-purple); padding: 14px; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; border-radius: 8px; width: 100%; cursor: pointer; margin-bottom: 12px; }
         .ai-preview-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 8px; }
         .ai-preview-item span { color: #888; font-family: 'Rajdhani', sans-serif; font-size: 0.9rem; line-height: 1.4; }
-        .ai-generate-btn { background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan)); color: black; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: bold; border: none; padding: 16px 24px; border-radius: 8px; cursor: pointer; text-transform: uppercase; width: 100%; margin: 12px 0 0 0; letter-spacing: 1px; }
+        .ai-generate-btn { background: linear-gradient(135deg, var(--neon-purple), var(--neon-cyan)); color: black; font-family: 'Orbitron', sans-serif; font-size: 0.9rem; font-weight: bold; border: none; padding: 16px 24px; border-radius: 8px; cursor: pointer; text-transform: uppercase; width: 100%; margin: 12px 0 0; letter-spacing: 1px; }
         .ai-generate-btn:disabled { opacity: 0.45; cursor: not-allowed; }
         .ai-status { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: var(--neon-cyan); text-align: center; padding: 24px; letter-spacing: 1px; }
         .ai-output-box { background: #050510; border: 1px solid #2a2a4a; border-radius: 8px; padding: 20px; white-space: pre-wrap; font-family: 'Rajdhani', sans-serif; font-size: 0.92rem; color: #ccc; line-height: 1.65; max-height: 55vh; overflow-y: auto; margin-bottom: 16px; }
@@ -233,244 +239,106 @@
         .ai-close-btn { background: transparent; border: 1px solid #444; color: #777; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; padding: 10px 20px; border-radius: 8px; cursor: pointer; text-transform: uppercase; margin-left: auto; }
         .ai-close-btn:hover { border-color: #888; color: #aaa; }
 
-        /* Teacher Portal */
-        .tp-topbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 0; }
-        .tp-game-card { background: #0a0a1a; padding: 16px; margin-bottom: 10px; border-radius: 12px; display: flex; align-items: flex-start; gap: 12px; border-left: 6px solid var(--neon-cyan); }
-        .tp-game-name-display { flex: 1; color: white; font-size: 1rem; font-weight: bold; line-height: 1.4; }
-        .tp-game-meta { color: #555; font-family: 'Orbitron', sans-serif; font-size: 0.65rem; margin-top: 4px; }
-        .tp-active-badge { background: var(--neon-cyan); color: black; font-family: 'Orbitron', sans-serif; font-size: 0.6rem; font-weight: bold; padding: 3px 8px; border-radius: 4px; margin-right: 6px; vertical-align: middle; }
-        .tp-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-        .tp-url-input { width: 100%; background: black; color: white; border: 2px solid var(--neon-purple); padding: 14px; font-size: 1rem; border-radius: 8px; box-sizing: border-box; font-family: 'Rajdhani', sans-serif; margin-bottom: 12px; }
-        .tp-url-input:focus { outline: none; border-color: var(--neon-cyan); }
-        .tp-status { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; padding: 12px 16px; border-radius: 8px; margin-bottom: 12px; letter-spacing: 0.5px; }
-        .tp-status.info { background: rgba(0,242,255,0.08); color: var(--neon-cyan); border: 1px solid rgba(0,242,255,0.3); }
-        .tp-status.error { background: rgba(255,68,68,0.1); color: #ff6666; border: 1px solid #ff4444; }
-        .tp-status.loading { background: rgba(157,0,255,0.1); color: var(--neon-purple); border: 1px solid var(--neon-purple); }
-        .question-card { background: #0e0e28; border: 2px solid #2a2a4a; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-        .question-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-        .round-num-label { font-family: 'Orbitron', sans-serif; font-size: 0.65rem; color: #555; flex: 1; }
-        .q-drag-handle { cursor: grab; color: #444; padding: 4px 6px; font-size: 1.1rem; user-select: none; line-height: 1; }
-        .q-drag-handle:hover { color: #777; }
-        .question-text-input { width: 100%; background: #050510; color: white; border: 2px solid #2a2a4a; padding: 10px 14px; border-radius: 8px; font-family: 'Rajdhani', sans-serif; font-size: 1rem; box-sizing: border-box; margin-bottom: 10px; }
-        .question-text-input:focus { outline: none; border-color: var(--neon-cyan); }
-        .answer-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-        .a-drag-handle { cursor: grab; color: #333; padding: 4px 5px; user-select: none; font-size: 1rem; line-height: 1; flex-shrink: 0; }
-        .a-drag-handle:hover { color: #666; }
-        .answer-text-input { flex: 1; background: #050510; color: white; border: 1px solid #2a2a4a; padding: 8px 12px; border-radius: 6px; font-family: 'Rajdhani', sans-serif; font-size: 0.95rem; min-width: 0; }
-        .answer-text-input:focus { outline: none; border-color: var(--neon-purple); }
-        .answer-points-input { width: 60px; background: #050510; color: var(--neon-pink); border: 1px solid #2a2a4a; padding: 8px 4px; border-radius: 6px; text-align: center; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; flex-shrink: 0; }
-        .btn-icon-del { background: transparent; border: 1px solid #ff4444; color: #ff4444; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; }
-        .btn-icon-del:hover { background: #ff4444; color: white; }
-        .btn-add-answer { background: transparent; border: 1px dashed #2a2a4a; color: #444; font-family: 'Orbitron', sans-serif; font-size: 0.6rem; padding: 8px; border-radius: 6px; cursor: pointer; width: 100%; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
-        .btn-add-answer:hover { border-color: #555; color: #777; }
-        .tp-game-name-input { flex: 1; min-width: 0; background: #050510; color: white; border: 2px solid var(--neon-purple); padding: 10px 14px; border-radius: 8px; font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; }
-        .tp-game-name-input:focus { outline: none; border-color: var(--neon-cyan); }
-        .answers-container { min-height: 10px; }
-
-        @media (max-width: 800px) {
-            .admin-ans-card { flex-direction: column; align-items: stretch; gap: 12px; }
-            .admin-ans-card button { width: 100%; height: 50px; font-size: 1rem; }
-            #admin-q-display { font-size: 1rem; line-height: 1.4; margin-top: 10px; color: #00f2ff; font-weight: bold; display: block; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; }
+        /* ── Footer ── */
+        .portal-footer {
+            text-align: center;
+            padding: 30px 20px 50px;
+            color: #222;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
     </style>
 </head>
-<body class="mode-contestant">
+<body>
 
-    <div id="audio-unlock">
-        <h1>Exodus Feud</h1>
-        <button onclick="startApp()">START GAME</button>
-        <p style="color: #666; margin-top: 30px; font-size: 1.2rem;">Syncing Pro Session...</p>
+    <!-- ── Hero ── -->
+    <div class="hero">
+        <h1 class="hero-logo">Kindred</h1>
+        <p class="hero-tagline">Youth Learning Together</p>
+        <p class="hero-sub">Interactive games and activities for LDS Sunday School classes, ages 14–16.</p>
     </div>
 
-    <div id="menu-trigger" onclick="toggleSwitcher()">⚙️</div>
+    <!-- ── Game Catalog ── -->
+    <div class="section">
+        <h2 class="section-title">Game Catalog</h2>
+        <div class="catalog-grid">
+            <a href="games/common-ground.html" class="game-card cyan">
+                <div class="game-card-icon">🎯</div>
+                <h3 class="game-card-name">Common Ground</h3>
+                <p class="game-card-desc">Survey-style family feud game — find common ground with your class on scripture topics. Teams compete to uncover the top answers.</p>
+                <span class="game-card-tag">Survey · Teams · Live Sync</span>
+                <div class="game-card-play">Play →</div>
+            </a>
 
-    <div class="view-switcher" id="main-switcher">
-        <button class="view-btn active" id="btn-con" onclick="setView('contestant')">Monitor View (TV)</button>
-        <button class="view-btn" id="btn-adm" onclick="setView('admin')">Admin mode</button>
-        <button class="view-btn" id="btn-bl" onclick="setView('backlog')">📋 Backlog</button>
-        <button class="view-btn" id="btn-teacher" onclick="setView('teacher')">🎓 Teacher Portal</button>
-
-        <div class="settings-label">Monitor Zoom / Scale</div>
-        <div class="slider-container">
-            <input type="range" id="res-slider" min="0.4" max="1.6" step="0.05" value="1.0" oninput="window.cloudUpdate({monitorScale: parseFloat(this.value)})">
+            <a href="games/memory.html" class="game-card pink">
+                <div class="game-card-icon">🧩</div>
+                <h3 class="game-card-name">Scripture Scout</h3>
+                <p class="game-card-desc">Memory matching game — pair scripture references with key phrases and modern applications. Builds recall and sparks discussion.</p>
+                <span class="game-card-tag">Memory · Pairs · Discussion</span>
+                <div class="game-card-play">Play →</div>
+            </a>
         </div>
-
-        <button class="view-btn reset-action" style="margin-top:20px;" id="reset-button" onclick="handleResetClick()">⚠️ Full Game Reset</button>
-        <button class="view-btn close-btn" onclick="toggleSwitcher()" style="background:#000; text-align:center; font-size:0.7rem; border-top:1px solid #333;">Close Menu</button>
     </div>
 
-    <div class="monitor-scaling-root" id="scale-root">
-        <div class="container">
-            <!-- MONITOR VIEW -->
-            <div class="contestant-only">
-                <h1 class="tv-title">Exodus Family Feud</h1>
-                <div class="subtitle tv-sub">
-                    <span class="faceoff-icon" id="tv-fo-icon">⚔️</span>
-                    <span id="round-label">Round 1</span>
-                    <span class="faceoff-icon" id="tv-fo-icon-2">⚔️</span>
-                </div>
-                <div class="strike-tracker">
-                    <div class="strike-x" id="sx-1">X</div>
-                    <div class="strike-x" id="sx-2">X</div>
-                    <div class="strike-x" id="sx-3">X</div>
-                </div>
-                <div class="question-box tv-q" id="q-txt">Connecting to Temple...</div>
-                <div class="board tv-board" id="game-board"></div>
-            </div>
-
-            <!-- BACKLOG VIEW -->
-            <div class="backlog-only">
-                <div class="admin-box">
-                    <h3 style="color:var(--neon-cyan); margin:0 0 4px 0;">Add Backlog Item</h3>
-                    <div class="bl-form">
-                        <div class="bl-form-row">
-                            <select id="bl-priority">
-                                <option value="P0">P0 — Critical</option>
-                                <option value="P1" selected>P1 — High</option>
-                                <option value="P2">P2 — Medium</option>
-                                <option value="P3">P3 — Low</option>
-                            </select>
-                            <input type="text" id="bl-batch" placeholder="Batch ID(s) — comma separated (e.g. B1, Sprint-2)" style="flex:2; min-width:200px;">
-                        </div>
-                        <textarea id="bl-desc" placeholder="Description of the feature or backlog item..."></textarea>
-                        <button class="bl-add-btn" onclick="window.addBacklogItem()">+ Add Item</button>
-                    </div>
-                </div>
-
-                <div class="admin-box">
-                    <div class="bl-filters">
-                        <button class="bl-filter-btn active" id="bf-all" onclick="window.setBacklogFilter('all')">All</button>
-                        <button class="bl-filter-btn p0" id="bf-P0" onclick="window.setBacklogFilter('P0')">P0</button>
-                        <button class="bl-filter-btn p1" id="bf-P1" onclick="window.setBacklogFilter('P1')">P1</button>
-                        <button class="bl-filter-btn p2" id="bf-P2" onclick="window.setBacklogFilter('P2')">P2</button>
-                        <button class="bl-filter-btn p3" id="bf-P3" onclick="window.setBacklogFilter('P3')">P3</button>
-                        <input type="text" id="bl-batch-filter" placeholder="Filter by Batch ID..." style="flex:1; min-width:160px; padding:8px 14px; font-size:0.85rem;" oninput="window.renderBacklog()">
-                        <span class="bl-count" id="bl-count"></span>
-                        <button class="admin-btn" style="border-color:var(--neon-purple); color:var(--neon-purple); white-space:nowrap; padding:8px 16px; font-size:0.75rem;" onclick="window.openAiModal()">🤖 Generate Stories</button>
-                    </div>
-                </div>
-
-                <div id="backlog-list"></div>
-
-            </div>
-
-            <!-- TEACHER PORTAL VIEW -->
-            <div class="teacher-only">
-                <!-- Library sub-view -->
-                <div id="tp-library-view">
-                    <div class="admin-box">
-                        <div class="tp-topbar">
-                            <h3 style="color:var(--neon-cyan); margin:0; flex:1; font-size:1rem;">🎓 Teacher Portal — Games</h3>
-                            <button class="admin-btn" style="white-space:nowrap; min-width:auto; padding:10px 16px; font-size:0.75rem;" onclick="window.openEditor('url')">⚡ From URL</button>
-                            <button class="admin-btn" style="white-space:nowrap; min-width:auto; padding:10px 16px; font-size:0.75rem;" onclick="window.openEditor('manual')">✏️ Manual</button>
-                        </div>
-                        <p style="color:#555; font-family:'Rajdhani',sans-serif; font-size:0.9rem; margin:10px 0 0 0;">Paste a lesson URL to auto-generate questions, or build one manually. Set a game active to replace the default Exodus game on the monitor.</p>
-                    </div>
-                    <div id="tp-game-list"></div>
-                </div>
-
-                <!-- Editor sub-view -->
-                <div id="tp-editor-view" style="display:none">
-                    <div class="admin-box">
-                        <div class="tp-topbar" style="margin-bottom:12px;">
-                            <button class="admin-btn" style="min-width:auto; padding:10px 16px; font-size:0.75rem;" onclick="window.closeEditor()">← Back</button>
-                            <input type="text" class="tp-game-name-input" id="tp-game-name" placeholder="Game name / lesson topic" oninput="if(window.editorGame) window.editorGame.name = this.value">
-                            <button class="bl-add-btn" style="padding:10px 18px; font-size:0.8rem; white-space:nowrap;" onclick="window.saveCurrentGame()">💾 Save</button>
-                            <button class="admin-btn" id="tp-set-active-btn" style="min-width:auto; padding:10px 16px; font-size:0.75rem; border-color:var(--neon-cyan); color:var(--neon-cyan); white-space:nowrap;" onclick="window.setGameAsActive()">▶ Set Active</button>
-                        </div>
-                        <div id="tp-url-section">
-                            <input type="url" id="tp-url-input" class="tp-url-input" placeholder="Paste lesson URL (e.g. https://www.churchofjesuschrist.org/study/...)">
-                            <select id="tp-q-type" class="ai-select" style="margin-bottom:12px;">
-                                <option value="scripture_based">📖 Scripture-Based — quote the verse, ask a factual question (4 answers)</option>
-                                <option value="scripture_application">✨ Scripture Application — quote the verse, ask how it applies today (4 answers)</option>
-                                <option value="family_feud">🎮 Classic Family Feud — survey style (6 answers)</option>
-                            </select>
-                            <button class="ai-generate-btn" id="tp-gen-btn" onclick="window.generateFromUrl()" style="margin:0;">⚡ Generate Questions from URL</button>
-                        </div>
-                    </div>
-                    <div id="tp-status" class="tp-status" style="display:none;"></div>
-                    <div id="tp-questions-list"></div>
-                    <button class="admin-btn" style="width:100%; margin-top:4px; padding:14px;" onclick="window.addBlankRound()">+ Add Round</button>
-                </div>
-            </div>
-
-            <!-- ADMIN VIEW -->
-            <div class="admin-only">
-                <div class="admin-box">
-                    <h3 style="color:var(--neon-cyan); margin:0;">1. Teams & Scoring</h3>
-                    <div class="btn-grid">
-                        <div style="flex:1">
-                            <input type="text" id="in-n1" placeholder="Team 1" onchange="window.cloudUpdate({t1Name: this.value})">
-                            <div class="btn-grid" style="margin-top:10px">
-                                <button class="admin-btn" onclick="adjustScore(1, -5)">-5</button>
-                                <button class="admin-btn" onclick="adjustScore(1, 5)">+5</button>
-                                <button class="admin-btn" style="border-color:var(--neon-pink); color:var(--neon-pink);" onclick="handleManualWin(1)">Win Round</button>
-                            </div>
-                        </div>
-                        <div style="flex:1">
-                            <input type="text" id="in-n2" placeholder="Team 2" onchange="window.cloudUpdate({t2Name: this.value})">
-                            <div class="btn-grid" style="margin-top:10px">
-                                <button class="admin-btn" onclick="adjustScore(2, -5)">-5</button>
-                                <button class="admin-btn" onclick="adjustScore(2, 5)">+5</button>
-                                <button class="admin-btn" style="border-color:var(--neon-pink); color:var(--neon-pink);" onclick="handleManualWin(2)">Win Round</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="admin-box">
-                    <h3 style="color:var(--warning-gold); margin:0;">2. Match Play</h3>
-                    <div id="steal-status" class="steal-label" style="display:none;">⚠️ STEAL ACTIVE!</div>
-                    <div class="btn-grid">
-                        <button id="h-fo" class="admin-btn" onclick="window.cloudUpdate({activeTeam: 0, strikes: 0})">Face-Off Mode</button>
-                        <button id="h-t1" class="admin-btn" onclick="window.cloudUpdate({activeTeam: 1, originalTeamId: 1})">Light Playing</button>
-                        <button id="h-t2" class="admin-btn" onclick="window.cloudUpdate({activeTeam: 2, originalTeamId: 2})">Star Playing</button>
-                    </div>
-                    <div class="btn-grid">
-                        <button class="admin-btn danger" style="padding: 35px;" onclick="window.sendStrike()">WRONG ANSWER (X)</button>
-                        <button class="admin-btn" onclick="window.cloudUpdate({strikes: 0})">Clear X</button>
-                    </div>
-                </div>
-
-                <div class="admin-box">
-                    <h3 style="color:var(--neon-pink); margin:0;">3. Management</h3>
-                    <div class="btn-grid">
-                        <button class="admin-btn undo-btn" onclick="window.undoLastAction()">↩️ Undo Last</button>
-                        <button class="admin-btn danger" onclick="window.clearAllBanners()">Dismiss Banner</button>
-                    </div>
-                    <div class="btn-grid">
-                        <button class="admin-btn" onclick="window.changeRound(1)">Next Round >></button>
-                        <button class="admin-btn" onclick="window.changeRound(-1)">&lt;&lt; Prev</button>
-                        <button class="admin-btn danger" style="background: rgba(255,0,0,0.1)" onclick="window.cloudUpdate({gameOverTime: Date.now()})">🏁 End Game</button>
-                    </div>
-                </div>
-
-                <div class="admin-box">
-                    <h3 style="color:var(--neon-cyan); margin:0;">4. Reveal Answers</h3>
-                    <div id="admin-q-display"></div>
-                    <div id="admin-ans-list"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- HUD (Monitor Only) -->
-        <div class="bottom-hud">
-            <div class="score-side" id="h-side-1">
-                <div class="score-num" id="s1-txt" style="color: var(--neon-cyan);">0</div>
-                <div class="score-name" id="n1-txt">LIGHT SQUAD</div>
-            </div>
-            <div class="score-side" style="text-align: right;" id="h-side-2">
-                <div class="score-num" id="s2-txt" style="color: var(--neon-pink);">0</div>
-                <div class="score-name" id="n2-txt">STAR SQUAD</div>
+    <!-- ── Display Scale ── -->
+    <div class="section">
+        <h2 class="section-title">Classroom Display Scale</h2>
+        <div class="admin-box">
+            <p style="color:#555; font-family:'Rajdhani',sans-serif; font-size:0.9rem; margin:0 0 16px;">Set once here — both games will use this scale. Adjust if the TV or projector clips the edges.</p>
+            <div class="scale-grid">
+                <button class="scale-btn" data-scale="0.55" onclick="setScale(0.55)">📱 Mobile</button>
+                <button class="scale-btn" data-scale="0.75" onclick="setScale(0.75)">📟 Tablet</button>
+                <button class="scale-btn" data-scale="1.0" onclick="setScale(1.0)">🖥 HD 1080p</button>
+                <button class="scale-btn" data-scale="1.3" onclick="setScale(1.3)">📺 4K TV</button>
+                <span class="scale-note" id="scale-note">Scale: 100%</span>
             </div>
         </div>
     </div>
 
-    <!-- AI Story Generator Modal -->
+    <!-- ── Backlog ── -->
+    <div class="section">
+        <h2 class="section-title">Product Backlog</h2>
+
+        <div class="admin-box">
+            <h3 style="color:var(--neon-cyan); margin:0 0 4px; font-family:'Orbitron',sans-serif; font-size:1rem;">Add Backlog Item</h3>
+            <div class="bl-form">
+                <div class="bl-form-row">
+                    <select id="bl-priority">
+                        <option value="P0">P0 — Critical</option>
+                        <option value="P1" selected>P1 — High</option>
+                        <option value="P2">P2 — Medium</option>
+                        <option value="P3">P3 — Low</option>
+                    </select>
+                    <input type="text" id="bl-batch" placeholder="Batch ID(s) — comma separated (e.g. BATCH-1, Sprint-2)" style="flex:2; min-width:200px;">
+                </div>
+                <textarea id="bl-desc" placeholder="Description of the feature or backlog item..."></textarea>
+                <button class="bl-add-btn" onclick="window.addBacklogItem()">+ Add Item</button>
+            </div>
+        </div>
+
+        <div class="admin-box">
+            <div class="bl-filters">
+                <button class="bl-filter-btn active" id="bf-all" onclick="window.setBacklogFilter('all')">All</button>
+                <button class="bl-filter-btn p0" id="bf-P0" onclick="window.setBacklogFilter('P0')">P0</button>
+                <button class="bl-filter-btn p1" id="bf-P1" onclick="window.setBacklogFilter('P1')">P1</button>
+                <button class="bl-filter-btn p2" id="bf-P2" onclick="window.setBacklogFilter('P2')">P2</button>
+                <button class="bl-filter-btn p3" id="bf-P3" onclick="window.setBacklogFilter('P3')">P3</button>
+                <input type="text" id="bl-batch-filter" placeholder="Filter by Batch ID..." style="flex:1; min-width:160px; padding:8px 14px; font-size:0.85rem;" oninput="window.renderBacklog()">
+                <span class="bl-count" id="bl-count"></span>
+                <button class="admin-btn" style="border-color:var(--neon-purple); color:var(--neon-purple);" onclick="window.openAiModal()">🤖 Generate Stories</button>
+            </div>
+        </div>
+
+        <div id="backlog-list"></div>
+    </div>
+
+    <!-- ── AI Story Generator Modal ── -->
     <div id="ai-modal">
         <div class="ai-modal-box">
             <h2>🤖 AI Story Generator</h2>
-            <p>Select a batch — Claude will write user stories, an implementation plan, test cases, and a validation checklist you can execute directly in Claude Code.</p>
+            <p>Select a batch — Claude will write user stories, an implementation plan, test cases, and a ready-to-paste Claude Code prompt.</p>
 
             <div id="ai-batch-row">
                 <select class="ai-select" id="ai-batch-select" onchange="window.previewBatch(this.value)">
@@ -502,17 +370,12 @@
         </div>
     </div>
 
-    <div id="strike-pop"><div class="pop-x">X</div></div>
-    <div id="alert-steal">STEAL OPPORTUNITY!</div>
-    <div id="alert-win">TEAM WINS ROUND!</div>
-    <div id="alert-switch">SWITCH PLAY!</div>
-    <div id="game-over-pop">GAME OVER</div>
+    <div class="portal-footer">Kindred · LDS Youth Platform · Powered by Firebase + Claude</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, collection, addDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, updateDoc, collection, addDoc, deleteDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -528,225 +391,33 @@
         const db = getFirestore(app);
         const appId = 'exodus-feud-final-v10';
 
-        const gameData = [
-            { level: "Round 1", question: "Name an Egyptian god that Jehovah discredited through the 10 plagues.", answers: [{ text: "Hapi (Nile)", points: 40 }, { text: "Heqet (Frog)", points: 30 }, { text: "Amun-Ra (Sun)", points: 20 }, { text: "Apis / Hathor", points: 10 }] },
-            { level: "Round 2", question: "Name a specific instruction or symbol of the Passover.", answers: [{ text: "Lamb without blemish", points: 40 }, { text: "Blood on doorposts", points: 30 }, { text: "Unleavened bread", points: 20 }, { text: "Bitter herbs", points: 10 }] },
-            { level: "Round 3", question: "Name a behavior that shows a 'hard heart' like Pharaoh.", answers: [{ text: "Using unkind words", points: 40 }, { text: "Unwilling to share", points: 30 }, { text: "Refusing to forgive", points: 20 }, { text: "Not listening to God", points: 10 }] },
-            { level: "Round 4", question: "What did the blood of the Passover lamb save Israel from?", answers: [{ text: "The tenth plague", points: 40 }, { text: "The destroyer", points: 30 }, { text: "Physical bondage", points: 20 }, { text: "Bondage of sin", points: 10 }] },
-            { level: "Round 5", question: "Name a plague sent to show there is 'none like Him'.", answers: [{ text: "Water to blood", points: 30 }, { text: "Frogs", points: 25 }, { text: "3 Days Darkness", points: 20 }, { text: "Firstborn death", points: 15 }, { text: "Swarm Influx", points: 10 }] },
-            { level: "Round 6", question: "What object teaches hard heart vs soft heart?", answers: [{ text: "A rock (hard)", points: 40 }, { text: "A sponge (soft)", points: 30 }, { text: "Water (Word)", points: 20 }] },
-            { level: "Round 7", question: "Who does the unblemished Passover lamb symbolize?", answers: [{ text: "Jesus Christ", points: 40 }, { text: "The Savior", points: 30 }, { text: "The Firstborn", points: 20 }, { text: "The Lamb of God", points: 10 }] },
-            { level: "Round 8", question: "What modern ordinance remembers our deliverance?", answers: [{ text: "The Sacrament", points: 50 }, { text: "Bread and water", points: 30 }, { text: "Sacrament prayers", points: 20 }] },
-            { level: "Round 9", question: "What was a main reason for the 10 plagues?", answers: [{ text: "Show none like Him", points: 40 }, { text: "Free Israelites", points: 30 }, { text: "Immense power", points: 20 }, { text: "Discredit false gods", points: 10 }] },
-            { level: "Round 10", question: "What is the meaning behind Passover foods?", answers: [{ text: "Bitter herbs=Sin", points: 40 }, { text: "Unleavened=Leaving", points: 30 }, { text: "Haste=Urgency", points: 20 }] }
-        ];
+        // ── Display Scale ──────────────────────────────────────────────
+        const SCALE_LABELS = { 0.55: 'Mobile', 0.75: 'Tablet', 1.0: 'HD 1080p', 1.3: '4K TV' };
 
-        let sharedState = { currentRound: 0, t1Score: 0, t2Score: 0, strikes: 0, revealed: [], strikeTime: 0, winTime: 0, winningTeamId: 0, activeTeam: 0, originalTeamId: 0, t1Name: "LIGHT SQUAD", t2Name: "STAR SQUAD", gameOverTime: 0, consecutiveWins: 0, lastWinnerId: 0, switchPlayTime: 0, lastWinWasFaceOff: false, monitorScale: 1.0, prevState: null };
-        let lastStrike = 0, lastWin = 0, lastRevCount = 0, lastGameOver = 0, lastSwitch = 0, autoAdvanceTimeout = null, user = null, resetConfirming = false;
-        let currentGameRounds = null, currentActiveGameId = null;
-        function getGameRounds() { return currentGameRounds || gameData; }
-
-        async function init() {
-            await signInAnonymously(auth);
-
-            onAuthStateChanged(auth, (u) => {
-                user = u; if (!user) return;
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'feudSession', 'state');
-                onSnapshot(docRef, (snap) => {
-                    if (snap.exists()) { sharedState = snap.data(); syncUI(); }
-                    else { setDoc(docRef, sharedState); }
-                }, (error) => console.error("Firestore sync error:", error));
-                const activeGameRef = doc(db, 'artifacts', appId, 'public', 'data', 'activeGame', 'current');
-                onSnapshot(activeGameRef, (snap) => {
-                    if (snap.exists()) { const d = snap.data(); currentGameRounds = d.rounds?.length ? d.rounds : null; currentActiveGameId = d.gameId || null; }
-                    else { currentGameRounds = null; currentActiveGameId = null; }
-                    syncUI();
-                });
+        window.setScale = (val) => {
+            localStorage.setItem('kindred_display_scale', String(val));
+            document.querySelectorAll('.scale-btn').forEach(b => {
+                b.classList.toggle('active', parseFloat(b.dataset.scale) === val);
             });
-        }
-
-        window.cloudUpdate = (updates) => {
-            if (!user) return;
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'feudSession', 'state');
-            if (!updates.isUndo && !updates.isReset) {
-                const history = { ...sharedState }; delete history.prevState; updates.prevState = history;
-            }
-            delete updates.isUndo; delete updates.isReset;
-            updateDoc(docRef, updates).catch(e => console.error("Update error:", e));
+            const pct = Math.round(val * 100);
+            document.getElementById('scale-note').textContent = `Scale: ${pct}% — ${SCALE_LABELS[val] || 'Custom'}`;
         };
 
-        function syncUI() {
-            const data = getGameRounds()[sharedState.currentRound]; if (!data) return;
-            const isMon = document.body.classList.contains('mode-contestant');
+        (function initScale() {
+            const saved = parseFloat(localStorage.getItem('kindred_display_scale') || '1.0');
+            window.setScale(saved);
+        })();
 
-            document.documentElement.style.setProperty('--monitor-scale', sharedState.monitorScale || 1.0);
-
-            if (sharedState.winTime === 0) { document.getElementById('alert-win').style.display = 'none'; document.getElementById('alert-steal').style.display = 'none'; lastWin = 0; }
-            if (sharedState.switchPlayTime === 0) { document.getElementById('alert-switch').style.display = 'none'; lastSwitch = 0; }
-            if (sharedState.gameOverTime === 0) { document.getElementById('game-over-pop').style.display = 'none'; lastGameOver = 0; }
-            if (sharedState.strikeTime === 0) { document.getElementById('strike-pop').style.display = 'none'; lastStrike = 0; }
-
-            document.getElementById('q-txt').innerText = data.question;
-            document.getElementById('round-label').innerText = data.level || `Round ${(sharedState.currentRound || 0) + 1}`;
-            document.getElementById('s1-txt').innerText = sharedState.t1Score || 0;
-            document.getElementById('s2-txt').innerText = sharedState.t2Score || 0;
-            document.getElementById('n1-txt').innerText = sharedState.t1Name;
-            document.getElementById('n2-txt').innerText = sharedState.t2Name;
-
-            const isFO = sharedState.activeTeam === 0;
-            document.getElementById('tv-fo-icon').style.display = isFO ? 'inline-block' : 'none';
-            document.getElementById('tv-fo-icon-2').style.display = isFO ? 'inline-block' : 'none';
-            document.getElementById('h-side-1').className = sharedState.activeTeam === 1 ? 'score-side active-glow' : 'score-side';
-            document.getElementById('h-side-2').className = sharedState.activeTeam === 2 ? 'score-side active-glow' : 'score-side';
-
-            const board = document.getElementById('game-board'); board.innerHTML = '';
-            const revList = sharedState.revealed || [];
-            data.answers.forEach((ans, i) => {
-                const isRevealed = revList.includes(i);
-                const slot = document.createElement('div'); slot.className = `answer-slot ${isRevealed ? 'revealed' : ''}`;
-                slot.innerHTML = `<div class="front">${i + 1}</div><div class="back"><span>${ans.text}</span><span class="pts-badge">${ans.points}</span></div>`;
-                board.appendChild(slot);
-            });
-
-            for(let i=1; i<=3; i++) { document.getElementById(`sx-${i}`).className = (sharedState.strikes || 0) >= i ? 'strike-x active' : 'strike-x'; }
-
-            document.getElementById('in-n1').value = sharedState.t1Name || "";
-            document.getElementById('in-n2').value = sharedState.t2Name || "";
-            document.getElementById('h-t1').className = sharedState.activeTeam === 1 ? 'admin-btn selected' : 'admin-btn';
-            document.getElementById('h-t2').className = sharedState.activeTeam === 2 ? 'admin-btn selected' : 'admin-btn';
-            document.getElementById('h-fo').className = isFO ? 'admin-btn selected' : 'admin-btn';
-            document.getElementById('steal-status').style.display = (sharedState.strikes || 0) >= 3 ? 'block' : 'none';
-            document.getElementById('admin-q-display').innerText = data.question;
-            document.getElementById('res-slider').value = sharedState.monitorScale || 1.0;
-
-            const adminList = document.getElementById('admin-ans-list'); adminList.innerHTML = '';
-            data.answers.forEach((ans, i) => {
-                const isItemRev = revList.includes(i);
-                const card = document.createElement('div'); card.className = 'admin-ans-card';
-                card.innerHTML = `<div><strong>${ans.text}</strong> (${ans.points})</div><button onclick="window.revealIdx(${i})" ${isItemRev ? 'disabled' : ''}>REVEAL</button>`;
-                adminList.appendChild(card);
-            });
-
-            if (sharedState.strikeTime > lastStrike && sharedState.strikeTime !== 0) { lastStrike = sharedState.strikeTime; if(isMon) doStrikeAnim(); }
-            if (sharedState.winTime > lastWin && sharedState.winTime !== 0) { lastWin = sharedState.winTime; if(isMon) doWinAnim(sharedState.winningTeamId); }
-            if (sharedState.switchPlayTime > lastSwitch && sharedState.switchPlayTime !== 0) { lastSwitch = sharedState.switchPlayTime; if(isMon) doSwitchAnim(); }
-            if (revList.length > lastRevCount) { lastRevCount = revList.length; if(isMon && sharedState.winTime <= lastWin) playHappyReveal(); }
-            if (sharedState.gameOverTime > lastGameOver && sharedState.gameOverTime !== 0) { lastGameOver = sharedState.gameOverTime; if(isMon) doGameOver(); }
-        }
-
-        window.startApp = () => { initAudio(); document.getElementById('audio-unlock').style.display = 'none'; };
-
-        window.revealIdx = (idx) => {
-            const revList = sharedState.revealed || []; if (revList.includes(idx)) return;
-            const pts = getGameRounds()[sharedState.currentRound].answers[idx].points;
-            let up = { revealed: [...revList, idx] }; const team = sharedState.activeTeam;
-            if (team !== 0) {
-                if (sharedState.strikes >= 3 || up.revealed.length === getGameRounds()[sharedState.currentRound].answers.length) {
-                    up.winTime = Date.now(); up.winningTeamId = team; up.strikes = 0; up.lastWinWasFaceOff = false;
-                    if (team === 1) up.t1Score = (sharedState.t1Score || 0) + pts; else up.t2Score = (sharedState.t2Score || 0) + pts;
-                    if (document.body.classList.contains('mode-admin')) scheduleAutoAdvance();
-                } else {
-                    if (team === 1) up.t1Score = (sharedState.t1Score || 0) + pts; else up.t2Score = (sharedState.t2Score || 0) + pts;
-                }
-            }
-            window.cloudUpdate(up);
-        };
-
-        window.sendStrike = () => {
-            let cur = (sharedState.strikes || 0); let up = { strikeTime: Date.now() };
-            if (cur < 3) { up.strikes = cur + 1; if (up.strikes === 3 && sharedState.activeTeam !== 0) up.activeTeam = (sharedState.activeTeam === 1) ? 2 : 1; }
-            else { up.winTime = Date.now(); up.winningTeamId = sharedState.originalTeamId; up.strikes = 0; up.lastWinWasFaceOff = false; if (document.body.classList.contains('mode-admin')) scheduleAutoAdvance(); }
-            window.cloudUpdate(up);
-        };
-
-        window.handleManualWin = (tid) => { window.cloudUpdate({winTime: Date.now(), winningTeamId: tid, strikes: 0, lastWinWasFaceOff: (sharedState.activeTeam === 0)}); if (document.body.classList.contains('mode-admin')) scheduleAutoAdvance(); };
-        window.clearAllBanners = () => { if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout); window.cloudUpdate({ winTime: 0, strikeTime: 0, gameOverTime: 0, strikes: 0, switchPlayTime: 0 }); };
-        function scheduleAutoAdvance() { if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout); autoAdvanceTimeout = setTimeout(() => { window.changeRound(1); autoAdvanceTimeout = null; }, 6000); }
-        window.undoLastAction = () => { if (sharedState.prevState) window.cloudUpdate({ ...sharedState.prevState, isUndo: true }); };
-        window.adjustScore = (t, a) => { if (t === 1) window.cloudUpdate({ t1Score: (sharedState.t1Score || 0) + a }); else window.cloudUpdate({ t2Score: (sharedState.t2Score || 0) + a }); };
-
-        function doStrikeAnim() { const o = document.getElementById('strike-pop'); o.style.display = 'flex'; playBuzzer(); setTimeout(() => { o.style.display = 'none'; if (sharedState.strikes === 3) { const a = document.getElementById('alert-steal'); a.style.display = 'block'; setTimeout(() => a.style.display = 'none', 3000); } }, 1200); }
-        function doWinAnim(tid) { if (!tid) return; const n = tid === 1 ? sharedState.t1Name : sharedState.t2Name; const b = document.getElementById('alert-win'); b.innerText = `${n} WINS ROUND!`; b.style.display = 'block'; playWinSfx(); setTimeout(() => b.style.display = 'none', 5000); }
-        function doSwitchAnim() { const b = document.getElementById('alert-switch'); b.style.display = 'block'; playHappyReveal(); setTimeout(() => b.style.display = 'none', 3000); }
-        function doGameOver() { const b = document.getElementById('game-over-pop'); let r = (sharedState.t1Score > sharedState.t2Score) ? `${sharedState.t1Name}<br>CHAMPION!` : (sharedState.t2Score > sharedState.t1Score ? `${sharedState.t2Name}<br>CHAMPION!` : "TIE GAME!"); b.innerHTML = `GAME OVER<br><br><span style="color:var(--warning-gold)">${r}</span>`; b.style.display = 'block'; playWinSfx(); }
-
-        window.changeRound = (dir) => {
-            if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);
-            const next = Math.max(0, Math.min(getGameRounds().length - 1, (sharedState.currentRound || 0) + dir));
-            const winner = sharedState.winningTeamId; let nextActive = winner || 0; let streak = sharedState.consecutiveWins || 0; let lastId = sharedState.lastWinnerId || 0; let sw = false;
-            if (winner !== 0 && !sharedState.lastWinWasFaceOff) { if (winner === lastId) streak++; else { streak = 1; lastId = winner; } if (streak >= 2) { sw = true; nextActive = (winner === 1) ? 2 : 1; streak = 0; lastId = 0; } }
-            else if (winner !== 0) nextActive = winner;
-            window.cloudUpdate({ currentRound: next, revealed: [], strikes: 0, activeTeam: nextActive, originalTeamId: nextActive, gameOverTime: 0, winningTeamId: 0, winTime: 0, strikeTime: 0, lastWinnerId: lastId, consecutiveWins: streak, switchPlayTime: sw ? Date.now() : 0, lastWinWasFaceOff: false });
-        };
-
-        window.toggleSwitcher = () => document.getElementById('main-switcher').classList.toggle('visible');
-        window.setView = (m) => {
-            document.body.className = `mode-${m}`;
-            document.getElementById('btn-con').classList.toggle('active', m === 'contestant');
-            document.getElementById('btn-adm').classList.toggle('active', m === 'admin');
-            document.getElementById('btn-bl').classList.toggle('active', m === 'backlog');
-            document.getElementById('btn-teacher').classList.toggle('active', m === 'teacher');
-            if (m === 'backlog') initBacklog();
-            if (m === 'teacher') window.initTeacherPortal();
-            toggleSwitcher();
-        };
-        window.handleResetClick = () => { const b = document.getElementById('reset-button'); if (!resetConfirming) { resetConfirming = true; b.innerText = "TAP TO CONFIRM"; b.classList.add('reset-confirming'); setTimeout(() => { resetConfirming = false; b.innerText = "⚠️ Full Game Reset"; b.classList.remove('reset-confirming'); }, 4000); } else { window.resetGame(); resetConfirming = false; b.innerText = "⚠️ Full Game Reset"; b.classList.remove('reset-confirming'); toggleSwitcher(); } };
-        window.resetGame = () => { if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout); setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'feudSession', 'state'), { currentRound: 0, t1Score: 0, t2Score: 0, strikes: 0, revealed: [], strikeTime: 0, winTime: 0, winningTeamId: 0, activeTeam: 0, originalTeamId: 0, t1Name: "LIGHT SQUAD", t2Name: "STAR SQUAD", gameOverTime: 0, prevState: null, consecutiveWins: 0, lastWinnerId: 0, switchPlayTime: 0, lastWinWasFaceOff: false, monitorScale: 1.0 }); lastStrike = lastWin = lastGameOver = lastRevCount = lastSwitch = 0; };
-
-        let audioCtx = null;
-        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-        function playHappyReveal() { if (!audioCtx) return; const now = audioCtx.currentTime; const notes = [880, 1108, 1318]; notes.forEach((f, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(f, now + (i * 0.08)); g.gain.setValueAtTime(0, now + (i * 0.08)); g.gain.linearRampToValueAtTime(0.2, now + (i * 0.08) + 0.02); g.gain.linearRampToValueAtTime(0, now + (i * 0.08) + 0.15); o.connect(g); g.connect(audioCtx.destination); o.start(now + (i * 0.08)); o.stop(now + (i * 0.08) + 0.15); }); }
-        function playBuzzer() { if (!audioCtx) return; const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(110, audioCtx.currentTime); o.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.5); g.gain.setValueAtTime(0.5, audioCtx.currentTime); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.5); }
-        function playWinSfx() { if (!audioCtx) return; [523, 659, 784, 1046, 1318].forEach((f, i) => { const o = audioCtx.createOscillator(); const g = audioCtx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(0, audioCtx.currentTime + i * 0.1); g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + i * 0.1 + 0.05); g.gain.linearRampToValueAtTime(0, audioCtx.currentTime + i * 0.1 + 0.3); o.connect(g); g.connect(audioCtx.destination); o.start(audioCtx.currentTime + i * 0.1); o.stop(audioCtx.currentTime + i * 0.1 + 0.4); }); }
-        // --- Backlog ---
+        // ── Backlog ────────────────────────────────────────────────────
         let backlogItems = [], backlogFilter = 'all', backlogUnsubscribe = null, editingDocId = null, savedGuides = {};
 
-        function initBacklog() {
-            if (backlogUnsubscribe) return;
-            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'backlogItems');
-            backlogUnsubscribe = onSnapshot(query(colRef, orderBy('seqId', 'asc')), (snap) => {
-                backlogItems = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
-                renderBacklog();
-            });
-            // Listen for saved guides
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'blGuides'), (snap) => {
-                savedGuides = {};
-                snap.docs.forEach(d => { savedGuides[d.id] = d.data(); });
-                renderBacklog();
-            });
-        }
-
         const SEED_ITEMS = [
-            {
-                priority: 'P0',
-                batchIds: ['BATCH-1'],
-                description: "No-Code Content Editor — Teacher's Portal. Allow a teacher to paste a URL (e.g. churchofjesuschrist.org lesson page) and use AI to auto-generate the round questions and answers. Moves the app from a one-time hardcoded game into a reusable platform any teacher or youth leader can use for any topic (Passover, New Testament, Church History, etc.) without touching JavaScript. Includes an in-app editor to review/edit AI-generated questions before going live."
-            },
-            {
-                priority: 'P1',
-                batchIds: ['BATCH-2'],
-                description: "Distributed Wireless Buzzers — Phone-as-Buzzer (Player Mode). Add a third 'Player Mode' accessed via QR code displayed on the monitor. The two students at the front scan with their phones. First to tap their screen locks out the other, instantly flashing their team color on the TV and playing a buzzer sound. Removes admin bias in Face-Off and makes the game feel like a real high-stakes game show."
-            },
-            {
-                priority: 'P1',
-                batchIds: ['BATCH-1'],
-                description: "Active Cinematic Transitions. When 'Next Round' is triggered, play a 2-3 second animated scene (e.g. monolith rising, data-sea parting) instead of an instant jump. Hides data loading, builds tension, and elevates production quality. Include 'Sudden Death' music that auto-plays when scores are within 10 points at Round 10."
-            },
-            {
-                priority: 'P2',
-                batchIds: ['BATCH-2'],
-                description: "Audience Participation Poll. Display a QR code at the start of each round so the non-playing audience (up to 10 kids) can vote on what they think the #1 answer is. If the playing team lands the #1 answer, show a 'Crowd Favorite!' badge on the TV. Keeps the full room engaged, not just the two teams playing."
-            },
-            {
-                priority: 'P2',
-                batchIds: ['BATCH-3'],
-                description: "Session Memory & Season Standings. For recurring weekly classes, persist squad scores across sessions. Add a Leaderboard tab tracking Light vs Star squad over a full semester. Track MVPs (most points per player), and show a Hall of Fame pre-show loop on the TV monitor before each game starts."
-            },
-            {
-                priority: 'P1',
-                batchIds: ['BATCH-2'],
-                description: "Scripture Display & Hybrid Game Mode. Integrate a second engagement format alongside Family Feud: display a scripture from the weekly lesson and ask a related question (inspired by the Exodus Matching Game in the repo). Support pop-up video clips on the weekly topic. Family Feud tests knowledge breadth; the scripture format tests reading comprehension. Both modes should be selectable from the Teacher's Portal (Evolution #1)."
-            }
+            { priority: 'P0', batchIds: ['BATCH-1'], description: "No-Code Content Editor — Teacher's Portal. Allow a teacher to paste a URL (e.g. churchofjesuschrist.org lesson page) and use AI to auto-generate the round questions and answers. Moves the app from a one-time hardcoded game into a reusable platform any teacher or youth leader can use for any topic without touching JavaScript. Includes an in-app editor to review/edit AI-generated questions before going live." },
+            { priority: 'P1', batchIds: ['BATCH-2'], description: "Distributed Wireless Buzzers — Phone-as-Buzzer (Player Mode). Add a third 'Player Mode' accessed via QR code displayed on the monitor. The two students at the front scan with their phones. First to tap their screen locks out the other, instantly flashing their team color on the TV and playing a buzzer sound. Removes admin bias in Face-Off and makes the game feel like a real high-stakes game show." },
+            { priority: 'P1', batchIds: ['BATCH-1'], description: "Active Cinematic Transitions. When 'Next Round' is triggered, play a 2-3 second animated scene instead of an instant jump. Hides data loading, builds tension, and elevates production quality. Include 'Sudden Death' music that auto-plays when scores are within 10 points at the final round." },
+            { priority: 'P2', batchIds: ['BATCH-2'], description: "Audience Participation Poll. Display a QR code at the start of each round so the non-playing audience can vote on what they think the #1 answer is. If the playing team lands the #1 answer, show a 'Crowd Favorite!' badge on the TV. Keeps the full room engaged, not just the two teams playing." },
+            { priority: 'P2', batchIds: ['BATCH-3'], description: "Session Memory & Season Standings. For recurring weekly classes, persist squad scores across sessions. Add a Leaderboard tab tracking team scores over a full semester. Track MVPs and show a Hall of Fame pre-show loop on the TV monitor before each game starts." },
+            { priority: 'P1', batchIds: ['BATCH-2'], description: "Scripture Display & Hybrid Game Mode. Integrate a second engagement format alongside Common Ground: display a scripture from the weekly lesson and ask a related question. Both modes selectable from the Teacher's Portal. Family Feud tests knowledge breadth; the scripture format tests reading comprehension." },
         ];
 
         window.seedBacklogItems = async () => {
@@ -757,6 +428,21 @@
             }
         };
 
+        function initBacklog() {
+            if (backlogUnsubscribe) return;
+            const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'backlogItems');
+            backlogUnsubscribe = onSnapshot(query(colRef, orderBy('seqId', 'asc')), (snap) => {
+                backlogItems = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+                if (backlogItems.length === 0) window.seedBacklogItems();
+                renderBacklog();
+            });
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'blGuides'), (snap) => {
+                savedGuides = {};
+                snap.docs.forEach(d => { savedGuides[d.id] = d.data(); });
+                renderBacklog();
+            });
+        }
+
         window.addBacklogItem = async () => {
             const priority = document.getElementById('bl-priority').value;
             const batchRaw = document.getElementById('bl-batch').value.trim();
@@ -765,9 +451,7 @@
             document.getElementById('bl-desc').style.borderColor = '';
             const batchIds = batchRaw ? batchRaw.split(',').map(b => b.trim()).filter(Boolean) : [];
             const seqId = backlogItems.length > 0 ? Math.max(...backlogItems.map(i => i.seqId || 0)) + 1 : 1;
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'backlogItems'), {
-                seqId, priority, description, batchIds, createdAt: Date.now()
-            });
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'backlogItems'), { seqId, priority, description, batchIds, createdAt: Date.now() });
             document.getElementById('bl-desc').value = '';
             document.getElementById('bl-batch').value = '';
         };
@@ -806,7 +490,7 @@
                             <select id="edit-p-${item._docId}">${opts}</select>
                             <input type="text" id="edit-b-${item._docId}" value="${(item.batchIds||[]).join(', ')}" placeholder="Batch IDs — comma separated">
                             <textarea id="edit-d-${item._docId}">${item.description}</textarea>
-                            <textarea id="edit-n-${item._docId}" placeholder="📝 Implementation notes / spec updates / changelog…" style="min-height:70px; border-color:rgba(0,242,255,0.3);">${item.notes || ''}</textarea>
+                            <textarea id="edit-n-${item._docId}" placeholder="📝 Implementation notes…" style="min-height:70px; border-color:rgba(0,242,255,0.3);">${item.notes || ''}</textarea>
                             <div class="bl-edit-actions">
                                 <button class="bl-add-btn" style="padding:10px 20px;font-size:0.8rem;" onclick="window.saveBacklogEdit('${item._docId}')">Save</button>
                                 <button class="admin-btn" style="padding:10px 20px;font-size:0.8rem;" onclick="window.cancelBacklogEdit()">Cancel</button>
@@ -851,7 +535,7 @@
             editingDocId = null;
         };
 
-        // --- AI Story Generator ---
+        // ── AI Story Generator ─────────────────────────────────────────
         let aiContent = '', aiCurrentBatch = '';
 
         window.openAiModal = (singleDocId) => {
@@ -864,7 +548,6 @@
             if (ind) ind.style.display = 'none';
 
             if (singleDocId) {
-                // Single-item mode: hide batch selector, show item directly
                 const item = backlogItems.find(i => i._docId === singleDocId);
                 if (!item) return;
                 sel.value = '';
@@ -872,7 +555,6 @@
                 document.getElementById('ai-modal').dataset.singleDocId = singleDocId;
                 window.previewBatch(null, [item]);
             } else {
-                // Batch mode
                 batchRow.style.display = 'block';
                 delete document.getElementById('ai-modal').dataset.singleDocId;
                 const batches = [...new Set(backlogItems.flatMap(i => i.batchIds || []))].sort();
@@ -904,8 +586,7 @@
             if (singleDocId) {
                 const item = backlogItems.find(i => i._docId === singleDocId);
                 if (!item) return;
-                items = [item];
-                batchId = `BL-${String(item.seqId).padStart(3,'0')}`;
+                items = [item]; batchId = `BL-${String(item.seqId).padStart(3,'0')}`;
             } else {
                 batchId = document.getElementById('ai-batch-select').value;
                 if (!batchId) { alert('Please select a batch.'); return; }
@@ -926,9 +607,7 @@
                     body: JSON.stringify({ items, batchId })
                 });
                 const ct = res.headers.get('content-type') || '';
-                if (!ct.includes('application/json')) {
-                    throw new Error('Unexpected server response. Make sure ANTHROPIC_API_KEY is set in your .env file and restart npm run dev.');
-                }
+                if (!ct.includes('application/json')) throw new Error('Unexpected server response. Check ANTHROPIC_API_KEY in .env and restart npm run dev.');
                 const data = await res.json();
                 if (data.error) throw new Error(data.error);
                 aiContent = data.content;
@@ -936,7 +615,6 @@
                 document.getElementById('ai-output-content').textContent = aiContent;
                 status.style.display = 'none';
                 document.getElementById('ai-output-section').style.display = 'block';
-                // Auto-save to Firestore
                 const guideId = singleDocId || `batch-${batchId}`;
                 setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'blGuides', guideId), {
                     blDocId: singleDocId || null, batchId, content: aiContent,
@@ -970,9 +648,7 @@
             document.getElementById('ai-status').style.display = 'none';
             document.getElementById('ai-idle-close').style.display = 'none';
             document.getElementById('ai-items-preview').innerHTML =
-                `<div style="font-family:'Orbitron',sans-serif;font-size:0.65rem;color:#555;margin-bottom:8px;">
-                    Saved guide — ${new Date(guide.generatedAt).toLocaleDateString()}
-                </div>`;
+                `<div style="font-family:'Orbitron',sans-serif;font-size:0.65rem;color:#555;margin-bottom:8px;">Saved guide — ${new Date(guide.generatedAt).toLocaleDateString()}</div>`;
             document.getElementById('ai-output-content').textContent = aiContent;
             document.getElementById('ai-output-section').style.display = 'block';
             const ind = document.getElementById('ai-save-indicator');
@@ -987,340 +663,9 @@
             });
         };
 
-        // ==================== TEACHER PORTAL ====================
-        let teacherGames = [], teacherGamesUnsub = null;
-        window.editorGame = null;
-        let editorMode = 'url';
-
-        window.initTeacherPortal = function() {
-            if (teacherGamesUnsub) { renderGameLibrary(); return; }
-            teacherGamesUnsub = onSnapshot(
-                query(collection(db, 'artifacts', appId, 'public', 'data', 'games'), orderBy('updatedAt', 'desc')),
-                (snap) => { teacherGames = snap.docs.map(d => ({ _docId: d.id, ...d.data() })); renderGameLibrary(); }
-            );
-        };
-
-        function renderGameLibrary() {
-            const list = document.getElementById('tp-game-list');
-            if (!list) return;
-            if (!teacherGames.length) {
-                list.innerHTML = '<div class="bl-empty">No games yet. Create one above!</div>';
-                return;
-            }
-            list.innerHTML = teacherGames.map(g => {
-                const isActive = currentActiveGameId === g._docId;
-                const rc = (g.rounds || []).length;
-                const date = g.updatedAt ? new Date(g.updatedAt).toLocaleDateString() : '';
-                const srcSnip = g.sourceUrl ? `<div class="tp-game-meta" style="color:#3a3a5a; word-break:break-all; margin-top:2px;">${g.sourceUrl.slice(0, 55)}${g.sourceUrl.length > 55 ? '…' : ''}</div>` : '';
-                return `<div class="tp-game-card">
-                    <div style="flex:1; min-width:0;">
-                        <div class="tp-game-name-display">${isActive ? '<span class="tp-active-badge">ACTIVE</span>' : ''}${escHtml(g.name || 'Unnamed Game')}</div>
-                        <div class="tp-game-meta">${rc} round${rc !== 1 ? 's' : ''} · ${g.generatedBy ? 'AI' : 'Manual'} · ${date}</div>
-                        ${srcSnip}
-                    </div>
-                    <div class="tp-actions">
-                        <button class="bl-edit-btn" onclick="window.loadGameToEditor('${g._docId}')">Edit</button>
-                        ${isActive
-                            ? `<button class="bl-edit-btn" style="border-color:#555;color:#555;" onclick="window.deactivateGame()">⏹ Deactivate</button>`
-                            : `<button class="bl-edit-btn" style="border-color:var(--neon-cyan);color:var(--neon-cyan);" onclick="window.setGameActiveById('${g._docId}')">▶ Activate</button>`
-                        }
-                        <button class="bl-del-btn" onclick="window.deleteTeacherGame('${g._docId}', \`${(g.name || '').replace(/`/g, '')}\`)">Delete</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        window.openEditor = function(mode) {
-            editorMode = mode;
-            window.editorGame = {
-                name: '', rounds: mode === 'manual' ? [blankRound()] : [],
-                sourceUrl: null, generatedBy: null, _docId: null
-            };
-            showEditorView();
-            document.getElementById('tp-game-name').value = '';
-            document.getElementById('tp-url-section').style.display = mode === 'url' ? 'block' : 'none';
-            const ui = document.getElementById('tp-url-input'); if (ui) ui.value = '';
-            hideTpStatus();
-            renderEditorRounds();
-        };
-
-        window.loadGameToEditor = function(docId) {
-            const g = teacherGames.find(x => x._docId === docId);
-            if (!g) return;
-            window.editorGame = JSON.parse(JSON.stringify(g));
-            editorMode = g.sourceUrl ? 'url' : 'manual';
-            showEditorView();
-            document.getElementById('tp-game-name').value = g.name || '';
-            document.getElementById('tp-url-section').style.display = editorMode === 'url' ? 'block' : 'none';
-            const ui = document.getElementById('tp-url-input'); if (ui && g.sourceUrl) ui.value = g.sourceUrl;
-            hideTpStatus();
-            renderEditorRounds();
-        };
-
-        window.closeEditor = function() {
-            window.editorGame = null;
-            document.getElementById('tp-editor-view').style.display = 'none';
-            document.getElementById('tp-library-view').style.display = 'block';
-            renderGameLibrary();
-        };
-
-        function showEditorView() {
-            document.getElementById('tp-library-view').style.display = 'none';
-            document.getElementById('tp-editor-view').style.display = 'block';
-        }
-
-        window.generateFromUrl = async function() {
-            const url = document.getElementById('tp-url-input')?.value?.trim();
-            if (!url) { showTpStatus('Please enter a URL first.', 'error'); return; }
-            const btn = document.getElementById('tp-gen-btn');
-            btn.disabled = true;
-            showTpStatus('Fetching page content…', 'loading');
-            try {
-                const cr = await fetch('/api/fetch-content', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
-                const cd = await cr.json();
-                if (!cr.ok) throw new Error(cd.error || 'Failed to fetch page');
-                if (!cd.text || cd.text.length < 80) throw new Error('Page had too little readable text — try a different URL.');
-                showTpStatus('Generating questions with Claude… (15–20 seconds)', 'loading');
-                const questionType = document.getElementById('tp-q-type')?.value || 'scripture_based';
-                const qr = await fetch('/api/generate-questions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: cd.text, sourceUrl: url, questionType }) });
-                const qd = await qr.json();
-                if (!qr.ok) throw new Error(qd.error || 'AI generation failed');
-                window.editorGame.rounds = qd.rounds || [];
-                window.editorGame.sourceUrl = url;
-                window.editorGame.generatedBy = 'claude-sonnet-4-6';
-                window.editorGame.questionType = qd.questionType || questionType;
-                const nameEl = document.getElementById('tp-game-name');
-                if (!nameEl.value.trim() && qd.topic) { nameEl.value = qd.topic; window.editorGame.name = qd.topic; }
-                showTpStatus(`✓ Generated ${window.editorGame.rounds.length} rounds. Review below, then Save.`, 'info');
-                renderEditorRounds();
-            } catch (err) {
-                showTpStatus(`Error: ${err.message}`, 'error');
-            } finally {
-                btn.disabled = false;
-            }
-        };
-
-        function showTpStatus(msg, type) {
-            const el = document.getElementById('tp-status');
-            if (!el) return;
-            el.textContent = msg;
-            el.className = `tp-status ${type}`;
-            el.style.display = 'block';
-        }
-        function hideTpStatus() { const el = document.getElementById('tp-status'); if (el) el.style.display = 'none'; }
-
-        function blankRound() {
-            return { question: '', answers: [
-                { text: '', points: 38 }, { text: '', points: 22 }, { text: '', points: 14 },
-                { text: '', points: 10 }, { text: '', points: 9 }, { text: '', points: 7 }
-            ]};
-        }
-
-        function renderEditorRounds() {
-            const list = document.getElementById('tp-questions-list');
-            if (!list) return;
-            list.innerHTML = '';
-            (window.editorGame?.rounds || []).forEach((round, ri) => list.appendChild(makeQCard(round, ri)));
-            if (window.Sortable && (window.editorGame?.rounds?.length || 0) > 1) {
-                Sortable.create(list, {
-                    handle: '.q-drag-handle', animation: 200,
-                    onEnd: (e) => {
-                        const m = window.editorGame.rounds.splice(e.oldIndex, 1)[0];
-                        window.editorGame.rounds.splice(e.newIndex, 0, m);
-                        renderEditorRounds();
-                    }
-                });
-            }
-        }
-
-        function makeQCard(round, ri) {
-            const card = document.createElement('div');
-            card.className = 'question-card';
-
-            const hdr = document.createElement('div');
-            hdr.className = 'question-card-header';
-
-            const handle = document.createElement('span');
-            handle.className = 'q-drag-handle';
-            handle.title = 'Drag to reorder';
-            handle.innerHTML = '&#8286;';
-
-            const lbl = document.createElement('span');
-            lbl.className = 'round-num-label';
-            lbl.textContent = `Round ${ri + 1}`;
-
-            const del = document.createElement('button');
-            del.className = 'btn-icon-del';
-            del.title = 'Delete round';
-            del.textContent = '✕';
-            del.onclick = () => {
-                if (window.editorGame.rounds.length <= 1) return;
-                if (confirm(`Delete Round ${ri + 1}?`)) { window.editorGame.rounds.splice(ri, 1); renderEditorRounds(); }
-            };
-
-            hdr.appendChild(handle); hdr.appendChild(lbl); hdr.appendChild(del);
-
-            const qi = document.createElement('input');
-            qi.type = 'text';
-            qi.className = 'question-text-input';
-            qi.value = round.question || '';
-            qi.placeholder = 'Name something students might know about this lesson…';
-            qi.maxLength = 200;
-            qi.oninput = () => { window.editorGame.rounds[ri].question = qi.value; };
-
-            const ansDiv = document.createElement('div');
-            ansDiv.className = 'answers-container';
-            (round.answers || []).forEach((ans, ai) => ansDiv.appendChild(makeAnsRow(ans, ri, ai)));
-            if (window.Sortable && (round.answers?.length || 0) > 1) {
-                Sortable.create(ansDiv, {
-                    handle: '.a-drag-handle', animation: 150,
-                    onEnd: (e) => {
-                        const m = window.editorGame.rounds[ri].answers.splice(e.oldIndex, 1)[0];
-                        window.editorGame.rounds[ri].answers.splice(e.newIndex, 0, m);
-                        renderEditorRounds();
-                    }
-                });
-            }
-
-            const addBtn = document.createElement('button');
-            addBtn.className = 'btn-add-answer';
-            addBtn.textContent = '+ Add Answer';
-            addBtn.onclick = () => { window.editorGame.rounds[ri].answers.push({ text: '', points: 5 }); renderEditorRounds(); };
-
-            card.appendChild(hdr); card.appendChild(qi); card.appendChild(ansDiv); card.appendChild(addBtn);
-            return card;
-        }
-
-        function makeAnsRow(answer, ri, ai) {
-            const row = document.createElement('div');
-            row.className = 'answer-row';
-
-            const handle = document.createElement('span');
-            handle.className = 'a-drag-handle';
-            handle.title = 'Drag to reorder';
-            handle.innerHTML = '&#8286;';
-
-            const ti = document.createElement('input');
-            ti.type = 'text';
-            ti.className = 'answer-text-input';
-            ti.value = answer.text || '';
-            ti.placeholder = 'Answer text';
-            ti.maxLength = 80;
-            ti.oninput = () => { window.editorGame.rounds[ri].answers[ai].text = ti.value; };
-
-            const pi = document.createElement('input');
-            pi.type = 'number';
-            pi.className = 'answer-points-input';
-            pi.value = answer.points ?? 10;
-            pi.min = 1; pi.max = 100;
-            pi.title = 'Points';
-            pi.oninput = () => { const v = parseInt(pi.value, 10); if (!isNaN(v)) window.editorGame.rounds[ri].answers[ai].points = v; };
-
-            const del = document.createElement('button');
-            del.className = 'btn-icon-del';
-            del.textContent = '✕';
-            del.title = 'Delete answer';
-            del.onclick = () => {
-                if (window.editorGame.rounds[ri].answers.length <= 2) return;
-                window.editorGame.rounds[ri].answers.splice(ai, 1);
-                renderEditorRounds();
-            };
-
-            row.appendChild(handle); row.appendChild(ti); row.appendChild(pi); row.appendChild(del);
-            return row;
-        }
-
-        window.addBlankRound = function() {
-            if (!window.editorGame) return;
-            window.editorGame.rounds.push(blankRound());
-            renderEditorRounds();
-            document.getElementById('tp-questions-list').lastElementChild?.scrollIntoView({ behavior: 'smooth' });
-        };
-
-        window.saveCurrentGame = async function() {
-            if (!window.editorGame) return false;
-            const name = document.getElementById('tp-game-name')?.value?.trim();
-            window.editorGame.name = name;
-            if (!name) { showTpStatus('Please enter a game name.', 'error'); return false; }
-            if (!window.editorGame.rounds.length) { showTpStatus('Add at least one round.', 'error'); return false; }
-            const hasEmpty = window.editorGame.rounds.some(r => !r.question.trim() || r.answers.some(a => !a.text.trim()));
-            if (hasEmpty) { showTpStatus('Fill in all question and answer fields before saving.', 'error'); return false; }
-            const payload = {
-                name: window.editorGame.name,
-                rounds: window.editorGame.rounds,
-                sourceUrl: window.editorGame.sourceUrl || null,
-                generatedBy: window.editorGame.generatedBy || null,
-                updatedAt: Date.now(),
-            };
-            try {
-                if (window.editorGame._docId) {
-                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'games', window.editorGame._docId), payload);
-                } else {
-                    payload.createdAt = Date.now();
-                    const ref = await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'games'), payload);
-                    window.editorGame._docId = ref.id;
-                }
-                showTpStatus('✓ Game saved!', 'info');
-                return true;
-            } catch (err) {
-                showTpStatus(`Save failed: ${err.message}`, 'error');
-                return false;
-            }
-        };
-
-        window.setGameActiveById = async function(docId) {
-            const g = teacherGames.find(x => x._docId === docId);
-            if (g) await activateGame(g);
-        };
-
-        window.setGameAsActive = async function() {
-            if (!window.editorGame) return;
-            const saved = await window.saveCurrentGame();
-            if (!saved || !window.editorGame._docId) return;
-            const g = teacherGames.find(x => x._docId === window.editorGame._docId) || window.editorGame;
-            await activateGame(g);
-        };
-
-        async function activateGame(g) {
-            const rounds = g.rounds || [];
-            const activeRef = doc(db, 'artifacts', appId, 'public', 'data', 'activeGame', 'current');
-            const stateRef = doc(db, 'artifacts', appId, 'public', 'data', 'feudSession', 'state');
-            await setDoc(activeRef, { gameId: g._docId, name: g.name, rounds });
-            await updateDoc(stateRef, {
-                currentRound: 0, revealed: [], strikes: 0, activeTeam: 0, originalTeamId: 0,
-                winTime: 0, strikeTime: 0, gameOverTime: 0, switchPlayTime: 0,
-                winningTeamId: 0, lastWinnerId: 0, consecutiveWins: 0, lastWinWasFaceOff: false,
-                activeGameId: g._docId
-            });
-            currentActiveGameId = g._docId;
-            renderGameLibrary();
-            showTpStatus(`✓ "${g.name}" is now active! Switch to Monitor or Admin to play.`, 'info');
-        }
-
-        window.deactivateGame = async function() {
-            if (!confirm('Stop using this custom game? The default Exodus game will be used.')) return;
-            const activeRef = doc(db, 'artifacts', appId, 'public', 'data', 'activeGame', 'current');
-            await deleteDoc(activeRef);
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'feudSession', 'state'), {
-                currentRound: 0, revealed: [], strikes: 0, activeGameId: null, winTime: 0, strikeTime: 0, gameOverTime: 0
-            });
-            currentActiveGameId = null;
-            renderGameLibrary();
-        };
-
-        window.deleteTeacherGame = async function(docId, name) {
-            if (!confirm(`Delete "${name}"?`)) return;
-            if (currentActiveGameId === docId) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activeGame', 'current'));
-                currentActiveGameId = null;
-            }
-            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'games', docId));
-        };
-
-        function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-        // ==================== END TEACHER PORTAL ====================
-
-        window.onload = init;
+        // ── Boot ───────────────────────────────────────────────────────
+        signInAnonymously(auth).catch(e => console.error('Auth failed:', e));
+        onAuthStateChanged(auth, (user) => { if (user) initBacklog(); });
     </script>
 </body>
 </html>

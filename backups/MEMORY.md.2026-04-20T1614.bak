@@ -1,0 +1,7 @@
+# Memory Index — Kindred Youth Platform
+
+- [Project Overview](project_overview.md) — Kindred portal + Common Ground + Scripture Scout games, Firebase sync, backlog, display scale
+- [User Profile](user_profile.md) — LDS teacher/developer building a reusable church youth game platform
+- [Tech Decisions](tech_decisions.md) — Vite MPA, port 5174, Firebase Firestore, lesson pipeline, retry logic, Vercel deployment
+- [Backlog & Features](backlog_features.md) — 6 seeded backlog items, AI guide generation, Firestore guide persistence
+- [Claude Code Skills](skills_overview.md) — extract-lesson, youth-leader, gamemaster + UI lesson pipeline in both games
