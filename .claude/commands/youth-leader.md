@@ -64,6 +64,11 @@ Load the JSON file from `$ARGUMENTS`. Extract:
 - `youthThemes.youngWomenTheme.relevantPhrases` (HIGH relevance only)
 - `fsyConnections[]` where `relevanceScore >= 5`
 - `allQuestions[]`
+- `allScriptureRefs[]` — for each ref, note `ref`, `verseText`, and `url`
+  - Build a quick lookup map: `{ "Deuteronomy 6:5": { text: "...", url: "..." }, ... }`
+  - If `verseText` is null for a ref, note it as "⚠ text not fetched — quote from memory or Church app"
+- `allVideoLinks[]` — title + url for each video in the lesson
+- `allConferenceMessages[]` — title + speaker + url for each talk
 - `stats`
 
 ---
@@ -203,6 +208,8 @@ For each question, produce the full game-ready object:
   "question": "...",
   "type": "scripture_based | scripture_application | family_feud",
   "source": "Section title or scripture reference this came from",
+  "verseText": "Quoted verse text from lesson JSON verseText field (null for family_feud)",
+  "url": "https://www.churchofjesuschrist.org/... (scripture or talk link, null for family_feud)",
   "youthThemeConnection": "AP Theme | YW Theme | Annual | null",
   "fsyConnection": "Chapter N: title | null",
   "complianceCheck": "PASS | REVIEW: reason",
@@ -216,12 +223,13 @@ For each question, produce the full game-ready object:
 ```
 
 **Question generation rules:**
-- Scripture-based: quote the verse as context, ask a factual question about what it says. 4 answers.
-- Scripture application: quote the verse, ask how that principle applies to youth today. 4 answers. Must be answerable by any youth regardless of testimony level.
+- Scripture-based: use `verseText` from the lesson JSON to quote the verse verbatim. If `verseText` is null, quote from memory. Ask a factual question about what it says. 4 answers.
+- Scripture application: quote `verseText` verbatim, ask how that principle applies to youth today. 4 answers. Must be answerable by any youth regardless of testimony level.
 - Family Feud: survey-style ("Name something…", "Name a way…"). 4–6 answers. Answers should be real things youth actually do or experience — not idealized church answers only.
 - At least one question must directly reference the AP Quorum Theme or YW Theme if HIGH relevance phrases were found
 - At least one question must use a FSY connection if a chapter scored ≥ 5 relevance
 - No question may publicly expose personal struggles or require a testimony to answer
+- Include `verseText` and `url` in the output JSON for every scripture-based or application question
 
 **Quality check before including a question:**
 - Would a non-member youth be able to participate? (If no, add a "scaffold" note)

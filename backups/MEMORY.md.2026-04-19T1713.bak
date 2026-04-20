@@ -1,0 +1,6 @@
+# Memory Index — Family Feud Game
+
+- [Project Overview](project_overview.md) — Game purpose, audience, three-view architecture, Firebase sync, backlog + AI story generator
+- [User Profile](user_profile.md) — LDS teacher/developer building a reusable church youth game platform
+- [Tech Decisions](tech_decisions.md) — Vite port 5174, Firebase Firestore, Anthropic API, Vercel deployment
+- [Backlog & Features](backlog_features.md) — 6 seeded backlog items, AI guide generation, Firestore guide persistence

@@ -57,13 +57,19 @@ You are NOT designing a game that replaces the lesson — you are designing an e
 
 Read the lesson JSON from `$ARGUMENTS`. Extract:
 - `title`, `weekLabel`, `lessonScriptures`
-- All `sections[].scriptureRefs`, `.questions`
+- All `sections[].scriptureRefs`, `.questions`, `.videoLinks`, `.conferenceMessages`
 - `youthThemes` — HIGH relevance phrases only
 - `fsyConnections[]` where `relevanceScore >= 5`
 - `allQuestions[]`
+- `allScriptureRefs[]` — build a lookup map `{ ref → { verseText, url } }` for every scripture in the lesson
+  - These are used verbatim on question cards and in the facilitation script
+  - If `verseText` is null, note "⚠ fetch failed — quote from Church app or memory"
+- `allVideoLinks[]` — available for opening/closing moments in the facilitation script
+- `allConferenceMessages[]` — available as opening/closing quotes in the script
 
 If a Youth Leader plan output is also supplied, extract:
 - Ice breaker, application activity, and testimony invitation details
+- Any `verseText` already used in lesson plan activities (don't duplicate them)
 - Any compliance flags — do NOT design a game around flagged content
 
 ---
@@ -221,7 +227,9 @@ Output format per question:
 {
   "question": "...",
   "type": "scripture_based | scripture_application | family_feud",
-  "openingScripture": "<verse to read before this question, or null>",
+  "openingScripture": "<verse reference to read before this question, or null>",
+  "verseText": "Verbatim verse text from lesson JSON verseText field (null for family_feud)",
+  "url": "https://www.churchofjesuschrist.org/... (scripture or talk link for QR code, null for family_feud)",
   "source": "Section title or scripture ref",
   "youthThemeConnection": "AP | YW | Annual | null",
   "fsyConnection": "Chapter N: title | null",

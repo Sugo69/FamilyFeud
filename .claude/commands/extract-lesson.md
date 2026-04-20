@@ -66,8 +66,82 @@ Every `<h2>` / `<h3>` is a section boundary. Track title and order. Sections und
 
 ### D. Scripture References
 Every scripture citation in body text. Formats: explicit links, parenthetical `(see X)`, inline `X 6:4–9`, abbreviations.
-Record: `{ ref, book, section, fromChildrenSection, isDuplicate }`.
+Record: `{ ref, book, chapter, verses, section, fromChildrenSection, isDuplicate }`.
 A ref is `isDuplicate: true` if the same or overlapping range appeared in a main-lesson section.
+
+### D2. Fetch scripture verse texts
+
+After collecting all scripture references, group them by **chapter** (book + chapter number) to minimise fetches. For each unique chapter:
+
+1. Build the Gospel Library URL using this book-slug table:
+
+| Book | Slug | Volume |
+|------|------|--------|
+| Genesis | gen | ot |
+| Exodus | ex | ot |
+| Leviticus | lev | ot |
+| Numbers | num | ot |
+| Deuteronomy | deut | ot |
+| Joshua | josh | ot |
+| Judges | judg | ot |
+| Ruth | ruth | ot |
+| 1 Samuel | 1-sam | ot |
+| 2 Samuel | 2-sam | ot |
+| 1 Kings | 1-kgs | ot |
+| 2 Kings | 2-kgs | ot |
+| Psalms | ps | ot |
+| Proverbs | prov | ot |
+| Isaiah | isa | ot |
+| Jeremiah | jer | ot |
+| Ezekiel | ezek | ot |
+| Matthew | matt | nt |
+| Mark | mark | nt |
+| Luke | luke | nt |
+| John | john | nt |
+| Acts | acts | nt |
+| Romans | rom | nt |
+| 1 Corinthians | 1-cor | nt |
+| 2 Corinthians | 2-cor | nt |
+| Galatians | gal | nt |
+| Ephesians | eph | nt |
+| Philippians | philip | nt |
+| Colossians | col | nt |
+| Hebrews | heb | nt |
+| James | james | nt |
+| Revelation | rev | nt |
+| 1 Nephi | 1-ne | bofm |
+| 2 Nephi | 2-ne | bofm |
+| Jacob | jacob | bofm |
+| Mosiah | mosiah | bofm |
+| Alma | alma | bofm |
+| Helaman | hel | bofm |
+| 3 Nephi | 3-ne | bofm |
+| 4 Nephi | 4-ne | bofm |
+| Mormon | morm | bofm |
+| Ether | ether | bofm |
+| Moroni | moro | bofm |
+| D&C | dc | dc-testament |
+| Moses | moses | pgp |
+| Abraham | abr | pgp |
+| Articles of Faith | a-of-f | pgp |
+
+URL pattern: `https://www.churchofjesuschrist.org/study/scriptures/{volume}/{slug}/{chapter}?lang=eng`
+
+2. WebFetch that URL. Parse the HTML for verse elements — look for `<p>` tags containing a `<sup>` or `<span class="verse-number">` verse number, e.g.:
+   ```
+   <p ...><sup>5</sup>And thou shalt love the Lord thy God...</p>
+   ```
+   Extract each verse as `{ verseNum: 5, text: "And thou shalt love the Lord thy God..." }` stripping leading verse numbers and HTML tags.
+
+3. For each scripture reference in the lesson, look up the fetched verse data and attach:
+   ```json
+   { "verseText": "And thou shalt love the Lord thy God with all thine heart..." }
+   ```
+   For ranges (e.g., 6:4–9), concatenate verses 4 through 9 with a space. Truncate combined text to 400 characters if very long, adding `…`.
+
+4. If a chapter fetch fails (404, timeout, JS-rendered), set `verseText: null` and log a warning — do not block the rest of extraction.
+
+5. Batch fetches in groups of 4 (parallel) to stay within rate limits.
 
 ### E. Video Links
 Links/iframes to media.churchofjesuschrist.org, YouTube, or video embeds.
@@ -150,7 +224,19 @@ Record per chapter: `{ chapter, title, headerScripture, relevanceScore, connecti
     }
   ],
 
-  "allScriptureRefs": [],
+  "allScriptureRefs": [
+    {
+      "ref": "Deuteronomy 6:5",
+      "book": "Deuteronomy",
+      "chapter": 6,
+      "verses": "5",
+      "verseText": "And thou shalt love the Lord thy God with all thine heart, and with all thy soul, and with all thy might.",
+      "url": "https://www.churchofjesuschrist.org/study/scriptures/ot/deut/6?lang=eng#p5",
+      "section": "Love the Lord",
+      "fromChildrenSection": false,
+      "isDuplicate": false
+    }
+  ],
   "allVideoLinks": [],
   "allConferenceMessages": [],
   "allQuestions": [],
@@ -199,6 +285,8 @@ Record per chapter: `{ chapter, title, headerScripture, relevanceScore, connecti
     "scriptureRefCount": 0,
     "uniqueScriptureRefCount": 0,
     "duplicateScriptureRefCount": 0,
+    "verseTextFetched": 0,
+    "verseTextFailed": 0,
     "videoCount": 0,
     "conferenceMessageCount": 0,
     "questionCount": 0,
@@ -278,8 +366,9 @@ Add a **Key Connections** table below the diagram:
 🏷  SECTIONS  (<N> main + <N> children)
   Each section: title [refs · questions]
 
-📖 SCRIPTURE REFERENCES  (<N> unique / <M> total)
+📖 SCRIPTURE REFERENCES  (<N> unique / <M> total — <V> verse texts fetched, <F> failed)
   Grouped by section. Mark ♻ duplicates and ✨ children-only.
+  For each ref: show first 80 chars of verseText (or "⚠ text unavailable" if null).
 
 🎥 VIDEOS  (<N>)
 🎙 CONFERENCE MESSAGES  (<N>)

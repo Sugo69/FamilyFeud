@@ -58,6 +58,7 @@ A ready-to-paste prompt the developer can drop into Claude Code to implement thi
             rollupOptions: {
                 input: {
                     main: resolve(__dirname, 'index.html'),
+                    admin: resolve(__dirname, 'admin.html'),
                     commonGround: resolve(__dirname, 'games/common-ground.html'),
                     memory: resolve(__dirname, 'games/memory.html'),
                 }

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1a2e"/>
+      <stop offset="100%" stop-color="#0a0a0f"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#bg)"/>
+  <rect width="32" height="32" rx="7" fill="none" stroke="#00d4ff" stroke-width="1" opacity="0.25"/>
+  <!-- Vertical bar of K -->
+  <rect x="7" y="6" width="4" height="20" rx="1" fill="#00d4ff" filter="url(#glow)"/>
+  <!-- Top arm of K -->
+  <polygon points="11,15 21,6 22,6 22,9 11,17.5" fill="#00d4ff" filter="url(#glow)"/>
+  <!-- Bottom arm of K -->
+  <polygon points="11,16.5 22,23 22,26 21,26 11,19" fill="#00d4ff" filter="url(#glow)"/>
+</svg>
