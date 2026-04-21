@@ -4,7 +4,15 @@ Design, plan, and run enrichment games that maximize every youth's engagement, s
 
 ## Invocation
 
-`$ARGUMENTS` should be a path to a lesson JSON file (from `/project:extract-lesson`) **and/or** a lesson plan output (from `/project:youth-leader`). Either or both may be supplied. If neither exists, ask the user which lesson to start from and offer to run extract-lesson first.
+`$ARGUMENTS` must be a path to a lesson JSON file (from `/project:extract-lesson`) **and** optionally a lesson plan output (from `/project:youth-leader`).
+
+**Pipeline requirement (strictly enforced):**
+1. `/project:extract-lesson <URL>` — must run first; produces `lesson-database/<lessonId>.json` with `allScriptureRefs[].verseText`
+2. `/project:youth-leader <lessonId>.json` — must run second; produces discussion questions, L1–L4 activities, and compliance flags
+3. `/project:gamemaster <lessonId>.json` — reads BOTH outputs above; never generates questions without them
+
+If the lesson JSON does not exist, stop and instruct the user to run extract-lesson first.
+If the youth-leader plan output is not supplied, run `/project:youth-leader` on the lesson JSON inline before proceeding — do not skip it.
 
 Examples:
 - `/project:gamemaster lesson-database/old-testament-2026-lesson-20.json`
@@ -53,7 +61,9 @@ You are NOT designing a game that replaces the lesson — you are designing an e
 
 ---
 
-## Step 1 — Load lesson inputs
+## Step 1 — Load lesson inputs (from extract-lesson + youth-leader)
+
+**Source requirement:** All scripture content — verse text, references, scene context — must come from the `allScriptureRefs[]` array in the extract-lesson JSON. All discussion questions must come from the youth-leader plan output (L2–L4 discussion questions). Never invent content independently.
 
 Read the lesson JSON from `$ARGUMENTS`. Extract:
 - `title`, `weekLabel`, `lessonScriptures`
@@ -368,9 +378,95 @@ Output the full JSON array ready to paste into the Teacher Portal:
 
 ---
 
-### ARTIFACT 6: Mindmap Game Layer
+### ARTIFACT 6: Scripture Scout Cards (Match Modal — Print-Ready)
+
+Generate one card per scripture pair. Each card maps directly to the Scripture Scout match modal layout shown below. All content must come from extract-lesson `allScriptureRefs[]` (verse text, reference, url) and youth-leader discussion questions.
+
+**Card layout (two-panel):**
+
+```
+┌──────────────────────┬─────────────────────────────────────────────┐
+│                      │  ┌──────────────────────────────────┐       │
+│                      │  │ SCENE: <SCENE NAME IN CAPS>      │       │
+│   [GAME PIECE ICON]  │  └──────────────────────────────────┘       │
+│                      │                                             │
+│   (choose the emoji  │  <BOOK CHAPTER:VERSE>                       │
+│   or Unicode icon    │                                             │
+│   that best fits the │  "<Summarized verse text — max 50 words,    │
+│   scripture scene,   │   trimmed to the essential spiritual        │
+│   e.g. 🌊 parting   │   meaning; use ellipsis … for skipped       │
+│   sea, 🔥 burning   │   words; never invent text>"                │
+│   bush, ⚗️ manna,  │                                             │
+│   🏔 Sinai, etc.)   │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  │
+│                      │  CLASS DISCUSSION                           │
+│   [QR CODE]          │  <Discussion question from youth-leader     │
+│   SCAN TO            │   plan — L2 meaning or L3 application       │
+│   READ ALONG         │   level; never L4 testimony-required>       │
+│                      │                                             │
+└──────────────────────┴─────────────────────────────────────────────┘
+```
+
+**Field rules:**
+
+| Field | Source | Rule |
+|-------|--------|------|
+| Game piece icon | Pick from icon bank below | Must relate to the physical scene or story element of the scripture |
+| Scene name | Derive from scripture context | Short location or event label in ALL CAPS (e.g. "THE SHORES OF THE RED SEA", "THE BURNING BUSH", "MOUNT SINAI") |
+| Scripture reference | `allScriptureRefs[].ref` | Exact ref (e.g. "Exodus 14:21–22") |
+| Verse text | `allScriptureRefs[].verseText` | Summarize to ≤50 words; preserve key spiritual terms verbatim; use `…` for cuts; wrap in quotes |
+| QR code URL | `allScriptureRefs[].url` | Gospel Library URL for the verse; label "SCAN TO READ ALONG" |
+| Class discussion | Youth-leader plan discussion questions | L2 or L3 question only; connects answer back to modern life or Jesus Christ; never asks about personal struggles |
+
+**Icon bank — pick the closest match:**
+
+| Scene type | Icon |
+|-----------|------|
+| Water / sea / flood | 🌊 |
+| Wind / breath / spirit | 🌬 |
+| Fire / burning / light | 🔥 |
+| Mountain / commandments | 🏔 |
+| Bread / manna / feast | 🍞 |
+| Book / scriptures / law | 📖 |
+| Heart / love / covenant | ❤️ |
+| Shield / armor / protection | 🛡 |
+| Key / unlock / open | 🗝 |
+| Star / heaven / promise | ⭐ |
+| Tree / vine / harvest | 🌿 |
+| Hands / prayer / blessing | 🙏 |
+| Crown / king / priesthood | 👑 |
+| Dove / peace / forgiveness | 🕊 |
+| Tent / tabernacle / home | ⛺ |
+| Staff / rod / path | 🪄 |
+| Lamb / sacrifice / Atonement | 🐑 |
+| Cross / Christ-connection | ✝ |
+| Sun / day / dawn | ☀️ |
+| Cloud / pillar / presence | ☁️ |
+
+If no icon fits clearly, use ✝ (the Atonement connects to every scripture).
+
+**Output format per card:**
+
+```json
+{
+  "cardId": "scout-<N>",
+  "icon": "<emoji>",
+  "iconLabel": "<scene type label, e.g. 'Water'>",
+  "scene": "<SCENE NAME IN ALL CAPS>",
+  "ref": "<Book Chapter:Verse>",
+  "verse": "<Summarized verse text ≤50 words in quotes>",
+  "qrUrl": "<Gospel Library URL>",
+  "question": "<Class discussion question from youth-leader plan>",
+  "christConnection": "<One sentence connecting this card to Jesus Christ>",
+  "complianceCheck": "PASS | REVIEW: reason"
+}
+```
+
+---
+
+### ARTIFACT 7: Mindmap Game Layer
 
 Append to the existing lesson mindmap file (`lesson-database/<lessonId>-mindmap.md`) a new section:
+
 
 ```markdown
 ## Gamemaster Layer
@@ -403,11 +499,13 @@ Append to the existing lesson mindmap file (`lesson-database/<lessonId>-mindmap.
 👥 Roles: <N> students assigned, no spectators
 📖 Scripture Anchors: <N> verses woven in
 ❓ Questions: <N> total (<N> scripture_based, <N> application, <N> family_feud)
+🧩 Scripture Scout cards: <N> cards (icon · scene · verse · discussion)
 🗺  Mindmap updated: lesson-database/<lessonId>-mindmap.md
 
 Print checklist:
 □ Question cards (<N> cards)
 □ Sabotage card deck (<N> cards)
+□ Scripture Scout match cards (<N> cards — icon + scene + verse + discussion)
 □ Score sheet (team names, <N> rounds)
 □ Role cards (optional — helps students know their job)
 

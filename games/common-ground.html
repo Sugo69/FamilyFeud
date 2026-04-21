@@ -466,11 +466,16 @@
                 </div>
 
                 <div class="admin-box">
-                    <h3 style="color:#ff9900; margin:0;">5. WLED Lighting</h3>
-                    <p style="color:#888; font-size:0.8rem; margin:8px 0;">ESP8266 running WLED on your classroom WiFi. Presets: 2=Strike, 3=Reveal, 4=Win, 5=Switch Play.</p>
+                    <h3 style="color:#ff9900; margin:0;">5. LED Lighting</h3>
+                    <div style="color:#555; font-size:0.72rem; text-transform:uppercase; letter-spacing:1px; margin:10px 0 4px 0;">USB — Direct (preferred)</div>
                     <div class="btn-grid" style="align-items:center;">
-                        <input type="text" id="wled-ip-input" placeholder="192.168.x.x or wled.local" style="flex:1; font-size:0.9rem;">
-                        <button class="admin-btn" onclick="window.wledTest()" style="border-color:#ff9900; color:#ff9900; white-space:nowrap;">Test</button>
+                        <button id="wled-usb-btn" class="admin-btn" onclick="window.wledConnectUsb()" style="border-color:#ff9900; color:#ff9900;">🔌 Connect USB</button>
+                        <span id="wled-usb-status" style="color:#888; font-size:0.8rem; flex:1; text-align:right;">Not connected</span>
+                    </div>
+                    <div style="color:#555; font-size:0.72rem; text-transform:uppercase; letter-spacing:1px; margin:10px 0 4px 0;">WiFi — Fallback</div>
+                    <div class="btn-grid" style="align-items:center;">
+                        <input type="text" id="wled-ip-input" placeholder="4.3.2.1 or 192.168.x.x" style="flex:1; font-size:0.9rem;">
+                        <button class="admin-btn" onclick="window.wledTest()" style="border-color:#555; color:#555; white-space:nowrap;">Test</button>
                         <button class="admin-btn" onclick="window.wledSaveIp()" style="white-space:nowrap;">Save</button>
                     </div>
                     <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
@@ -550,7 +555,7 @@
         function getGameRounds() { return currentGameRounds || gameData; }
 
         async function init() {
-            await signInAnonymously(auth);
+            if (!auth.currentUser) await signInAnonymously(auth);
 
             onAuthStateChanged(auth, (u) => {
                 user = u; if (!user) return;
@@ -681,11 +686,53 @@
         function doSwitchAnim() { const b = document.getElementById('alert-switch'); b.style.display = 'block'; playHappyReveal(); setTimeout(() => b.style.display = 'none', 3000); }
         function doGameOver() { const b = document.getElementById('game-over-pop'); let r = (sharedState.t1Score > sharedState.t2Score) ? `${sharedState.t1Name}<br>CHAMPION!` : (sharedState.t2Score > sharedState.t1Score ? `${sharedState.t2Name}<br>CHAMPION!` : "TIE GAME!"); b.innerHTML = `GAME OVER<br><br><span style="color:var(--warning-gold)">${r}</span>`; b.style.display = 'block'; playWinSfx(); }
 
-        // WLED lighting integration — proxied via /api/wled (works in dev and Vercel https)
+        // LED lighting — USB serial (preferred) with WiFi proxy fallback
         const WLED_PRESETS = { strike: 2, reveal: 3, win: 4, switchPlay: 5 };
         const WLED_TEXT_COLORS = { steal: [255,0,128], win: [255,215,0], switchPlay: [255,128,0], gameOver: [255,0,255] };
         function wledBri() { return parseInt(localStorage.getItem('kindred_wled_bri') || '128'); }
+
+        // USB Serial
+        let wledSerialWriter = null;
+        function buildSerialCmd(event, text) {
+            if (!text) return event.toUpperCase();
+            const prefix = { steal:'STEAL', win:'WIN', switchPlay:'SWITCH', gameOver:'GAMEOVER' }[event] || event.toUpperCase();
+            return `${prefix}:${text}`;
+        }
+        window.wledConnectUsb = async () => {
+            if (!navigator.serial) { document.getElementById('wled-usb-status').textContent = '✗ Chrome only'; return; }
+            try {
+                const port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 115200 });
+                const enc = new TextEncoderStream();
+                enc.readable.pipeTo(port.writable);
+                wledSerialWriter = enc.writable.getWriter();
+                document.getElementById('wled-usb-status').textContent = '✓ Connected';
+                document.getElementById('wled-usb-btn').textContent = '🔌 Reconnect';
+                await wledSerialWriter.write(`BRI:${wledBri()}\n`);
+            } catch(e) { document.getElementById('wled-usb-status').textContent = `✗ ${e.message}`; }
+        };
+        async function wledAutoConnect() {
+            if (!navigator.serial) return;
+            const ports = await navigator.serial.getPorts();
+            if (!ports.length) return;
+            try {
+                await ports[0].open({ baudRate: 115200 });
+                const enc = new TextEncoderStream();
+                enc.readable.pipeTo(ports[0].writable);
+                wledSerialWriter = enc.writable.getWriter();
+                document.getElementById('wled-usb-status').textContent = '✓ Auto-connected';
+                document.getElementById('wled-usb-btn').textContent = '🔌 Reconnect';
+                await wledSerialWriter.write(`BRI:${wledBri()}\n`);
+            } catch(e) {}
+        }
+
         function wledTrigger(event, text) {
+            const cmd = buildSerialCmd(event, text);
+            if (wledSerialWriter) {
+                wledSerialWriter.write(cmd + '\n').catch(() => { wledSerialWriter = null; document.getElementById('wled-usb-status').textContent = 'Disconnected'; });
+                return;
+            }
+            // WiFi fallback
             const ip = localStorage.getItem('kindred_wled_ip'); if (!ip) return;
             const bri = wledBri();
             const payload = text
@@ -702,6 +749,7 @@
         window.wledSetBri = (val) => {
             localStorage.setItem('kindred_wled_bri', val);
             document.getElementById('wled-bri-label').textContent = val;
+            if (wledSerialWriter) { wledSerialWriter.write(`BRI:${val}\n`).catch(() => {}); return; }
             const ip = localStorage.getItem('kindred_wled_ip'); if (!ip) return;
             fetch('/api/wled', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip, payload: { bri: parseInt(val) } }) }).catch(() => {});
         };
@@ -711,14 +759,15 @@
             localStorage.setItem('kindred_wled_ip', ip);
             const s = document.getElementById('wled-status'); s.textContent = 'Testing…';
             fetch('/api/wled', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip, payload: { on: true, bri: wledBri() } }) })
-                .then(r => { s.textContent = r.ok ? '✓ Connected' : '✗ WLED unreachable'; })
+                .then(r => { s.textContent = r.ok ? '✓ Connected' : '✗ Unreachable'; })
                 .catch(() => { s.textContent = '✗ Proxy error'; });
         };
-        // Load saved WLED settings on page load
+        // Load saved settings + auto-connect serial on page load
         const savedWledIp = localStorage.getItem('kindred_wled_ip');
         if (savedWledIp) { const el = document.getElementById('wled-ip-input'); if (el) el.value = savedWledIp; }
         const savedWledBri = localStorage.getItem('kindred_wled_bri');
         if (savedWledBri) { const sl = document.getElementById('wled-bri-slider'); if (sl) { sl.value = savedWledBri; document.getElementById('wled-bri-label').textContent = savedWledBri; } }
+        wledAutoConnect();
 
         window.changeRound = (dir) => {
             if (autoAdvanceTimeout) clearTimeout(autoAdvanceTimeout);

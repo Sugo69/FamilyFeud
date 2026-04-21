@@ -1550,8 +1550,8 @@
                         </div>
                         <div class="record-actions">
                             ${hasContent ? `<button id="lib-toggle-${entry.id}" class="btn-secondary" style="font-size:0.7rem; padding:5px 10px; white-space:nowrap;" onclick="window.toggleLibraryDetails('${entry.id}')">▼ Content</button>` : ''}
-                            ${!hasCG ? `<button class="btn-add" style="font-size:0.7rem; padding:6px 12px; white-space:nowrap;" onclick="window.generateLibraryGame('${entry.id}','common-ground')">⚡ CG</button>` : ''}
-                            ${!hasMem ? `<button class="btn-add" style="font-size:0.7rem; padding:6px 12px; white-space:nowrap; border-color:#a78bfa; color:#a78bfa;" onclick="window.generateLibraryGame('${entry.id}','memory')">⚡ Mem</button>` : ''}
+                            ${!hasCG ? `<button class="btn-add" style="font-size:0.7rem; padding:6px 12px; white-space:nowrap;" onclick="window.generateLibraryGame('${entry.id}','common-ground')">⚡ CG</button>` : `<button class="btn-secondary" style="font-size:0.7rem; padding:6px 12px; white-space:nowrap;" onclick="window.generateLibraryGame('${entry.id}','common-ground')">↺ CG</button>`}
+                            ${!hasMem ? `<button class="btn-add" style="font-size:0.7rem; padding:6px 12px; white-space:nowrap; border-color:#a78bfa; color:#a78bfa;" onclick="window.generateLibraryGame('${entry.id}','memory')">⚡ Mem</button>` : `<button class="btn-secondary" style="font-size:0.7rem; padding:6px 12px; white-space:nowrap; border-color:#a78bfa; color:#6b7280;" onclick="window.generateLibraryGame('${entry.id}','memory')">↺ Mem</button>`}
                             <button class="btn-icon" title="Delete" onclick="window.deleteLibraryEntry('${entry.id}', '${esc(entry.name||entry.id)}')">🗑</button>
                         </div>
                     </div>

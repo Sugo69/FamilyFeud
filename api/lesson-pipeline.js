@@ -118,6 +118,10 @@ export default async function handler(req, res) {
         }
         if (!lessonStructure) { res.status(502).json({ error: 'Extraction step returned malformed JSON' }); return }
 
+        console.log('[pipeline] STEP1 scriptureRefs:', JSON.stringify(
+            (lessonStructure.scriptureRefs || []).map(s => ({ ref: s.ref, verseText: s.verseText?.slice(0,60) || 'EMPTY' }))
+        ))
+
         // ── Step 3: Generate game content (mirrors youth-leader / gamemaster skills) ──
         const generatePrompt = buildGenerationPrompt(lessonStructure, url, gameType, questionType)
         const generateBody = JSON.stringify({
@@ -129,6 +133,8 @@ export default async function handler(req, res) {
         let generateResp = await callClaude(claudeHeaders, generateBody)
         if (generateResp.error) { res.status(500).json({ error: `Generation step: ${generateResp.error}` }); return }
 
+        console.log('[pipeline] STEP2 raw response (first 2000 chars):', generateResp.text?.slice(0, 2000))
+
         let parsed
         try {
             parsed = JSON.parse(generateResp.text)
@@ -138,6 +144,43 @@ export default async function handler(req, res) {
         }
         if (!parsed?.rounds?.length && !parsed?.pairs?.length) {
             res.status(502).json({ error: 'Generation step missing rounds/pairs' }); return
+        }
+
+        // Backfill and validate memory pairs
+        if (parsed.pairs?.length) {
+            console.log('[pipeline] STEP2 pairs BEFORE backfill:', JSON.stringify(
+                parsed.pairs.map(p => ({ cardA: p.cardA, verse: p.verse?.slice(0,60) || 'EMPTY', scene: p.scene || 'EMPTY' }))
+            ))
+
+            // Build a lookup from Step 1 scripture refs: normalised ref → verseText
+            const refLookup = {}
+            for (const s of (lessonStructure.scriptureRefs || [])) {
+                if (s.verseText?.trim()) {
+                    refLookup[s.ref.toLowerCase().replace(/\s+/g, '')] = s.verseText.trim()
+                }
+            }
+            console.log('[pipeline] refLookup keys:', Object.keys(refLookup))
+
+            for (const p of parsed.pairs) {
+                // If verse is missing, try to backfill from Step 1 scripture data
+                if (!p.verse?.trim()) {
+                    const refKey = (p.cardA || '').split('—')[0].trim().toLowerCase().replace(/\s+/g, '')
+                    console.log(`[pipeline] BACKFILL attempt for "${p.cardA}" → key "${refKey}" → found: ${!!refLookup[refKey]}`)
+                    p.verse = refLookup[refKey] || null
+                }
+                // If scene is missing, derive a minimal fallback
+                if (!p.scene?.trim()) {
+                    p.scene = (p.cardA || '').split('—')[0].trim() || null
+                }
+            }
+
+            // Drop any pair where verse is still null after backfill
+            const before = parsed.pairs.length
+            parsed.pairs = parsed.pairs.filter(p => p.verse?.trim())
+            console.log(`[pipeline] pairs AFTER filter: ${parsed.pairs.length}/${before} kept`)
+            if (parsed.pairs.length === 0) {
+                res.status(502).json({ error: `All ${before} pairs missing verse text even after backfill — try again` }); return
+            }
         }
 
         parsed.sourceUrl = url
@@ -223,7 +266,7 @@ Return ONLY valid JSON:
 function buildGenerationPrompt(lessonStructure, sourceUrl, gameType, questionType) {
     const isMemory = gameType === 'memory'
     const scriptureList = (lessonStructure.scriptureRefs || [])
-        .map(s => `- ${s.ref}: "${s.verseText || ''}" [${s.url || ''}]`).join('\n')
+        .map(s => `- ${s.ref}: "${s.verseText?.trim() || '[supply verbatim from your KJV knowledge]'}" [${s.url || ''}]`).join('\n')
     const talkList = (lessonStructure.talkLinks || [])
         .map(t => `- ${t.title}${t.speaker ? ` (${t.speaker})` : ''}: ${t.url}`).join('\n')
     const videoList = (lessonStructure.videoLinks || []).map(v => `- ${v}`).join('\n')
@@ -360,11 +403,11 @@ Generate exactly 12 matching pairs for a Scripture Scout memory card game. Each 
 - Card A: A scripture reference and short title (e.g., "Deuteronomy 6:5 — Love with all your heart")
 - Card B: A key phrase, concept, or modern application from that scripture (e.g., "The greatest commandment")
 
-Each pair must also include:
-- A short scene description (where in the story this takes place, e.g. "The shores of the Red Sea")
-- The actual scripture verse text (quoted from the scriptures — 1–3 sentences)
-- A discussion question for the class
-- A Gospel Library URL for the scripture (use the scripture links above if available, otherwise construct https://www.churchofjesuschrist.org/study/scriptures/{book}/{chapter}?lang=eng#{verse})
+Each pair MUST include ALL of the following — no field may be null or empty:
+- scene: where/when this scripture takes place (e.g. "The shores of the Red Sea") — REQUIRED
+- verse: the ACTUAL scripture text quoted verbatim from the KJV or standard works. This MUST be a real, complete quote. Do NOT leave this blank. Max 120 words. — REQUIRED
+- question: a class discussion question connecting the verse to modern youth life — REQUIRED
+- url: a Gospel Library URL for the scripture. Construct as https://www.churchofjesuschrist.org/study/scriptures/{volume}/{book}/{chapter}?lang=eng#{verseAnchor} if not found above — REQUIRED
 
 If a conference talk is clearly connected to a pair, use its URL as the pair's url. Otherwise use the scripture URL.
 
