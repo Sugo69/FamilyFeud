@@ -54,7 +54,7 @@ Example answers: Daily scripture study (40), Pray morning and night (30), Keep t
 CRITICAL: Respond with ONLY valid JSON, no markdown, no code fences.
 {"topic":"lesson topic","questionType":"scripture_application","rounds":[{"question":"[scripture quote (ref)]. [application question]?","type":"scripture_application","answers":[{"text":"answer","points":40},{"text":"answer","points":30},{"text":"answer","points":20},{"text":"answer","points":10}]}]}`,
 
-        family_feud: `You are a Family Feud question writer for an LDS youth Sunday School class (ages 14–16). Questions must be faith-appropriate and based on the provided content.
+        family_feud: `You are a survey-style question writer for a youth Sunday School class (ages 14–16). Questions must be faith-appropriate and based on the provided content.
 
 Source URL: ${sourceUrl || 'unknown'}
 
@@ -63,10 +63,10 @@ Lesson content:
 ${text}
 ---
 
-Generate exactly 4 Family Feud rounds with 6 answers each in classic survey style.
+Generate exactly 4 survey-style rounds with 6 answers each.
 
 CRITICAL: Respond with ONLY valid JSON, no markdown, no code fences.
-{"topic":"lesson topic","questionType":"family_feud","rounds":[{"question":"We surveyed 100 LDS youth... Name something...","type":"family_feud","answers":[{"text":"answer","points":38},{"text":"answer","points":22},{"text":"answer","points":14},{"text":"answer","points":10},{"text":"answer","points":9},{"text":"answer","points":7}]}]}`
+{"topic":"lesson topic","questionType":"family_feud","rounds":[{"question":"Ask 100 youth in a classroom poll: name something...","type":"family_feud","answers":[{"text":"answer","points":38},{"text":"answer","points":22},{"text":"answer","points":14},{"text":"answer","points":10},{"text":"answer","points":9},{"text":"answer","points":7}]}]}`
     };
 
     const prompt = prompts[questionType] || prompts.scripture_based;

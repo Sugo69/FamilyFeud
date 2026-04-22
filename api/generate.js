@@ -11,15 +11,15 @@ export default async function handler(req, res) {
 
     const formatId = (seq) => `BL-${String(seq).padStart(3, '0')}`;
 
-    const prompt = `You are a senior product manager and software architect. Generate a complete implementation document for the following batch of backlog items from the "Family Feud Game" app.
+    const prompt = `You are a senior product manager and software architect. Generate a complete implementation document for the following batch of backlog items from the Kindred-Youth app (kindred-youth.org).
 
 ## App Context
-- **Stack:** Single-file HTML/JS + Vite (port 5174) + Firebase Firestore (real-time sync)
+- **Stack:** Vite MPA + Firebase Firestore (real-time sync)
 - **Views:** TV Monitor (16:9 classroom display) | Admin (phone/iPad controller) | Backlog tracker
 - **Deployment:** Vercel (static build + serverless functions in /api)
-- **Users:** Church teacher (admin) and LDS youth students age 14-16 (players)
+- **Users:** Sunday School teacher (admin) and youth students age 13–16 (players)
 - **Theme:** Neon cyberpunk — Orbitron + Permanent Marker fonts, cyan/pink/purple palette
-- **Repo:** github.com/Sugo69/FamilyFeud
+- **Repo:** github.com/Sugo69/Kindred-Youth
 
 ## Batch: ${batchId}
 

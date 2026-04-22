@@ -13,11 +13,14 @@ export default async function handler(req, res) {
     if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
         return res.status(400).json({ error: 'Only HTTP/HTTPS URLs are allowed' });
     }
+    if (!isAllowedHost(parsedUrl.hostname)) {
+        return res.status(400).json({ error: 'Host not allowed. Kindred only fetches churchofjesuschrist.org lesson pages and speeches.byu.edu talks.' });
+    }
 
     let response;
     try {
         response = await fetch(url, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (FamilyFeudApp/1.0)' },
+            headers: { 'User-Agent': 'KindredYouth/1.0 (+https://kindred-youth.org)' },
             signal: AbortSignal.timeout(10000),
         });
     } catch (err) {
@@ -71,4 +74,11 @@ function cleanTitle(s) {
         .replace(/\s*\|\s*ChurchofJesusChrist\.org\s*$/i, '')
         .replace(/\s{2,}/g, ' ')
         .trim();
+}
+
+function isAllowedHost(hostname) {
+    const h = (hostname || '').toLowerCase();
+    return h === 'churchofjesuschrist.org'
+        || h.endsWith('.churchofjesuschrist.org')
+        || h === 'speeches.byu.edu';
 }

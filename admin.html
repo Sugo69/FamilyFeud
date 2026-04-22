@@ -932,6 +932,9 @@
                 <button class="bl-gen-btn" onclick="window.generateNextEightWeeks()" title="Pre-generate the next 8 upcoming Come Follow Me lessons. Skips lessons already in the library and any -thoughts URLs.">📅 Generate Next 8 Weeks</button>
             </div>
 
+            <div style="margin:8px 0 12px; padding:8px 12px; background:rgba(255,193,7,0.06); border:1px solid rgba(255,193,7,0.25); border-radius:6px; color:#bba373; font-family:'Rajdhani',sans-serif; font-size:0.78rem; line-height:1.45;">
+                <strong style="color:#f8b500;">ⓘ</strong> Generated lessons run an automated keyword filter + AI safety pass. They are <strong>not</strong> reviewed by The Church of Jesus Christ of Latter-day Saints. Review every lesson before classroom use. Kindred is not affiliated with or endorsed by the Church; "Come Follow Me," "For the Strength of Youth," and related Church program names are trademarks of Intellectual Reserve, Inc.
+            </div>
             <div id="library-list"></div>
         </div>
 
@@ -1669,7 +1672,7 @@
             { priority: 'P1', batchIds: ['BATCH-1'], description: "Active Cinematic Transitions. When 'Next Round' is triggered, play a 2-3 second animated scene instead of an instant jump. Hides data loading, builds tension, and elevates production quality. Include 'Sudden Death' music that auto-plays when scores are within 10 points at the final round." },
             { priority: 'P2', batchIds: ['BATCH-2'], description: "Audience Participation Poll. Display a QR code at the start of each round so the non-playing audience can vote on what they think the #1 answer is. If the playing team lands the #1 answer, show a 'Crowd Favorite!' badge on the TV. Keeps the full room engaged, not just the two teams playing." },
             { priority: 'P2', batchIds: ['BATCH-3'], description: "Session Memory & Season Standings. For recurring weekly classes, persist squad scores across sessions. Add a Leaderboard tab tracking team scores over a full semester. Track MVPs and show a Hall of Fame pre-show loop on the TV monitor before each game starts." },
-            { priority: 'P1', batchIds: ['BATCH-2'], description: "Scripture Display & Hybrid Game Mode. Integrate a second engagement format alongside Common Ground: display a scripture from the weekly lesson and ask a related question. Both modes selectable from the Teacher's Portal. Family Feud tests knowledge breadth; the scripture format tests reading comprehension." },
+            { priority: 'P1', batchIds: ['BATCH-2'], description: "Scripture Display & Hybrid Game Mode. Integrate a second engagement format alongside Common Ground: display a scripture from the weekly lesson and ask a related question. Both modes selectable from the Teacher's Portal. Common Ground tests knowledge breadth; the scripture format tests reading comprehension." },
         ];
 
         function initBacklog() {
@@ -2030,12 +2033,12 @@
         function renderComplianceBadge(report) {
             if (!report || !report.overall) return '';
             const map = {
-                'PASS':              { label: '✓ Compliant',       bg: '#063b1e', fg: '#48e091' },
-                'PASS_WITH_REWRITES':{ label: '⚠ Rewritten',        bg: '#3a2f00', fg: '#f8b500' },
-                'REVIEW_REQUIRED':   { label: '⚠ Review required',  bg: '#3a0018', fg: '#ff6b9d' },
+                'PASS':              { label: 'Auto-check: PASS',       bg: '#063b1e', fg: '#48e091' },
+                'PASS_WITH_REWRITES':{ label: 'Auto-check: REWRITTEN',   bg: '#3a2f00', fg: '#f8b500' },
+                'REVIEW_REQUIRED':   { label: 'Auto-check: REVIEW NEEDED', bg: '#3a0018', fg: '#ff6b9d' },
             };
             const m = map[report.overall] || map.REVIEW_REQUIRED;
-            const tip = `Pass ${report.passCount||0} · Review ${report.reviewCount||0} · Rewritten ${report.rewrittenCount||0} · Blocked ${report.blockedCount||0} · ${(report.policyRefs||[]).join(', ')}`;
+            const tip = `Automated keyword filter + AI safety pass. NOT a human or Church review. Pass ${report.passCount||0} · Review ${report.reviewCount||0} · Rewritten ${report.rewrittenCount||0} · Blocked ${report.blockedCount||0}. Teachers must review generated content before classroom use.`;
             return `<span title="${esc(tip)}" style="display:inline-block; padding:1px 8px; margin-left:6px; border-radius:10px; font-size:0.62rem; font-family:'Orbitron',sans-serif; background:${m.bg}; color:${m.fg}; border:1px solid ${m.fg}33;">${m.label}</span>`;
         }
 

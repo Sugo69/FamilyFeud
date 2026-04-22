@@ -33,15 +33,15 @@ export default defineConfig(({ mode }) => {
     const formatId = (seq) => `BL-${String(seq).padStart(3, '0')}`
 
     function buildPrompt(items, batchId) {
-        return `You are a senior product manager and software architect. Generate a complete implementation document for the following batch of backlog items from the "Family Feud Game" app.
+        return `You are a senior product manager and software architect. Generate a complete implementation document for the following batch of backlog items from the Kindred-Youth app (kindred-youth.org).
 
 ## App Context
-- **Stack:** Single-file HTML/JS + Vite (port 5174) + Firebase Firestore (real-time sync)
+- **Stack:** Vite MPA (port 5174) + Firebase Firestore (real-time sync)
 - **Views:** TV Monitor (16:9 classroom display) | Admin (phone/iPad controller) | Backlog tracker
 - **Deployment:** Vercel (static build + serverless functions in /api)
-- **Users:** Church teacher (admin) and LDS youth students age 14-16 (players)
+- **Users:** Sunday School teacher (admin) and youth students age 13–16 (players)
 - **Theme:** Neon cyberpunk — Orbitron + Permanent Marker fonts, cyan/pink/purple palette
-- **Repo:** github.com/Sugo69/FamilyFeud
+- **Repo:** github.com/Sugo69/Kindred-Youth
 
 ## Batch: ${batchId}
 
@@ -111,8 +111,11 @@ A ready-to-paste prompt the developer can drop into Claude Code to implement thi
                                 let parsedUrl
                                 try { parsedUrl = new URL(url) } catch { res.statusCode = 400; res.end(JSON.stringify({ error: 'Invalid URL' })); return }
                                 if (!['http:', 'https:'].includes(parsedUrl.protocol)) { res.statusCode = 400; res.end(JSON.stringify({ error: 'HTTP/HTTPS only' })); return }
+                                const host = (parsedUrl.hostname || '').toLowerCase()
+                                const hostAllowed = host === 'churchofjesuschrist.org' || host.endsWith('.churchofjesuschrist.org') || host === 'speeches.byu.edu'
+                                if (!hostAllowed) { res.statusCode = 400; res.end(JSON.stringify({ error: 'Host not allowed. Kindred only fetches churchofjesuschrist.org lesson pages and speeches.byu.edu talks.' })); return }
                                 const response = await fetch(url, {
-                                    headers: { 'User-Agent': 'Mozilla/5.0 (FamilyFeudApp/1.0)' },
+                                    headers: { 'User-Agent': 'KindredYouth/1.0 (+https://kindred-youth.org)' },
                                     signal: AbortSignal.timeout(10000),
                                 })
                                 if (!response.ok) { res.statusCode = 502; res.end(JSON.stringify({ error: `Remote ${response.status}` })); return }
@@ -157,7 +160,7 @@ A ready-to-paste prompt the developer can drop into Claude Code to implement thi
                                 const prompts = {
                                     scripture_based: `You are writing scripture-based quiz rounds for an LDS youth Sunday School class (ages 14–16).\n\nSource: ${sourceUrl || 'unknown'}\n\nLesson content:\n---\n${text}\n---\n\nGenerate exactly 4 rounds. For each round:\n- Choose a specific verse or short passage from the lesson text\n- "question" = the scripture quote + a factual question about that passage. Format: "[Scripture text] (Reference). [Factual question]?"\n- Exactly 4 answers that are facts directly from that scripture. Points: 40, 30, 20, 10\n\nCRITICAL: ONLY valid JSON, no markdown.\n{"topic":"lesson topic","questionType":"scripture_based","rounds":[{"question":"[scripture quote (ref)]. [factual question]?","type":"scripture_based","answers":[{"text":"answer","points":40},{"text":"answer","points":30},{"text":"answer","points":20},{"text":"answer","points":10}]}]}`,
                                     scripture_application: `You are writing application-based scripture rounds for an LDS youth Sunday School class (ages 14–16).\n\nSource: ${sourceUrl || 'unknown'}\n\nLesson content:\n---\n${text}\n---\n\nGenerate exactly 4 rounds. For each round:\n- Choose a specific verse or principle from the lesson\n- "question" = short scripture quote + application question. Format: "[Quote] (Reference). Name a way LDS youth today [application]."\n- 4 practical application answers. Points: 40, 30, 20, 10\n\nCRITICAL: ONLY valid JSON, no markdown.\n{"topic":"lesson topic","questionType":"scripture_application","rounds":[{"question":"[scripture quote (ref)]. [application question]?","type":"scripture_application","answers":[{"text":"answer","points":40},{"text":"answer","points":30},{"text":"answer","points":20},{"text":"answer","points":10}]}]}`,
-                                    family_feud: `You are a Family Feud question writer for an LDS youth Sunday School class (ages 14-16).\n\nSource: ${sourceUrl || 'unknown'}\n\nContent:\n---\n${text}\n---\n\nGenerate exactly 4 rounds with 6 answers each in classic survey style.\n\nCRITICAL: ONLY valid JSON, no markdown.\n{"topic":"lesson topic","questionType":"family_feud","rounds":[{"question":"We surveyed 100 LDS youth... Name something...","type":"family_feud","answers":[{"text":"answer","points":38},{"text":"answer","points":22},{"text":"answer","points":14},{"text":"answer","points":10},{"text":"answer","points":9},{"text":"answer","points":7}]}]}`
+                                    family_feud: `You are a survey-style question writer for a youth Sunday School class (ages 14-16).\n\nSource: ${sourceUrl || 'unknown'}\n\nContent:\n---\n${text}\n---\n\nGenerate exactly 4 survey-style rounds with 6 answers each.\n\nCRITICAL: ONLY valid JSON, no markdown.\n{"topic":"lesson topic","questionType":"family_feud","rounds":[{"question":"Ask 100 youth in a classroom poll: name something...","type":"family_feud","answers":[{"text":"answer","points":38},{"text":"answer","points":22},{"text":"answer","points":14},{"text":"answer","points":10},{"text":"answer","points":9},{"text":"answer","points":7}]}]}`
                                 }
                                 const prompt = prompts[questionType] || prompts.scripture_based
                                 const response = await fetch('https://api.anthropic.com/v1/messages', {

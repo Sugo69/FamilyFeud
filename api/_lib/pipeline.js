@@ -624,7 +624,7 @@ ${typeInstructions[questionType] || typeInstructions.mixed}
 Rules per type:
 - scripture_based: quote verseText verbatim, ask factual question. 4 answers (40/30/20/10).
 - scripture_application: quote verseText verbatim, ask how it applies to youth today. 4 answers (40/30/20/10).
-- family_feud: survey style ("We surveyed 100 LDS youth…"). 6 answers (38/22/14/10/9/7). Real youth behaviors, not just idealized church answers.
+- family_feud: survey style ("Ask 100 youth in a classroom poll: …"). 6 answers (38/22/14/10/9/7). Real youth behaviors, not just idealized church answers.
 
 Return ONLY valid JSON:
 {
