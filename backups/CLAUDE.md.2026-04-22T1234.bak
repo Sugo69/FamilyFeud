@@ -25,12 +25,11 @@
 
 ## Project Structure
 ```
-Kindred-Youth/                  # Repo: github.com/Sugo69/Kindred-Youth (renamed from FamilyFeud 2026-04-22)
+FamilyFeud/
 ├── CLAUDE.md
-├── index.html                  # Kindred portal — marketing landing (pre-auth) + game catalog (post-auth) + display scale gear menu
+├── index.html                  # Kindred portal — game catalog, display scale gear menu
 ├── admin.html                  # Admin portal — Google auth (lewiswf@gmail.com), teachers/classrooms/backlog
-├── package.json                # name: kindred-youth
-├── vercel.json                 # COOP header (same-origin-allow-popups) for Google sign-in popup on prod
+├── package.json
 ├── vite.config.js              # MPA build config (4 pages) + ALL dev middleware
 ├── public/
 │   └── favicon.svg             # Kindred "K" logo — dark navy + neon cyan glow
@@ -58,7 +57,6 @@ Kindred-Youth/                  # Repo: github.com/Sugo69/Kindred-Youth (renamed
 │       ├── lesson-reviewer.md  # Subagent — per-item PASS/REWRITE/BLOCK verdict vs. Church policy
 │       └── content-safety.md   # Subagent — fast child-safety gate (substances, exposure, URLs, TMs)
 ├── Opus47_Backlog.md           # Opus 4.7 backlog (P0–P3) for scaling Kindred to hundreds of teachers
-├── legal-review-2026-04-22.md  # Trademark / copyright / privacy / AI-content research snapshot
 ├── lesson-database/            # Extracted lesson data (local, not Firestore)
 │   ├── *.json                  # Structured lesson data with scriptures, themes, FSY connections
 │   └── *-mindmap.md            # Mermaid mindmaps per lesson
@@ -160,13 +158,10 @@ Two-step Claude pipeline used by both games' Teacher Portal "From Lesson" mode. 
 - **Client-side retry**: on any error, shows 30-second countdown in status bar and auto-retries; clicking Generate again cancels the countdown and retries immediately
 
 ## Come Follow Me Schedule (`src/lib/cfm-schedule.js`)
-Maps every 2026 Old Testament Sunday to its Gospel Library URL and lesson id. Exports `getCurrentCfmLesson()`, `getCfmLessonForDate(date)`, `getNextCfmLesson(date)`, `getUpcomingCfmLessons(date, count)`, `resolveLessonIdFromUrl(url)`, `isGeneratableLessonUrl(url)`.
+Maps every 2026 Old Testament Sunday to its Gospel Library URL and lesson id. Exports `getCurrentCfmLesson()`, `getCfmLessonForDate(date)`, `getNextCfmLesson(date)`, `resolveLessonIdFromUrl(url)`.
 - Used by the admin Library tab's **⭐ Fill This Week's Lesson** button to prefill the lesson name + URL.
 - Used by `addLibraryEntry()` to derive a deterministic doc ID (`cfm-{manual}-{slug}`) via `setDoc`, so repeat clicks on the same lesson no longer produce duplicate entries.
-- `getUpcomingCfmLessons(date, count)` powers the **8-week pre-generate horizon** (pre-populates the admin library with the next N lessons so teachers always have at least two months ready).
-- `isGeneratableLessonUrl(url)` filters out `-thoughts` companion URLs (adult devotional sidecars that don't belong in the youth pipeline).
 - Lesson blocks are 2-week teaching cycles (1st + 3rd Sunday); `weekStart` is the Sunday the lesson first opens.
-- **2027 transition**: will need a rewrite when the New Testament manual publishes (~Nov 2026). Hard deadline: first 2027 Sunday. Keep deterministic `cfm-{manual}-{slug}` doc IDs to avoid data migration.
 
 ## Compliance surfaces
 - **Admin Library cards** ([admin.html](admin.html)) show a pill next to each generated game: `✓ Compliant` (green), `⚠ Rewritten` (amber), `⚠ Review required` (pink). Tooltip expands to pass/review/rewritten/blocked counts and cited policy refs.
@@ -258,8 +253,7 @@ Addressable 9×7 WS2812B matrix (63 LEDs) on ESP8266 NodeMCU, controlled from th
 - Web Audio API for flip/match/mismatch/win/sabotage sounds
 
 ## Kindred Portal (`index.html`)
-- **Pre-auth marketing landing** (shown before sign-in): hero reel + "What is Kindred?" + three-benefit grid (Come Follow Me ready · Classroom-safe AI · No prep for busy teachers) + Google sign-in CTA + share CTA + non-affiliation disclaimer in footer. Mobile-first. See `OPUS-033` in `Opus47_Backlog.md`.
-- Post-auth hero: "Kindred" logo + "Youth Learning Together" tagline + game catalog
+- Hero: "Kindred" logo + "Youth Learning Together" tagline
 - **Google Sign-In gate** — all users must sign in with Google
   - `lewiswf@gmail.com` (admin): bypasses classroom picker, enters portal with `room=null`
   - Other teachers: queries `classrooms` collection for `teacherEmail == user.email`
@@ -359,16 +353,11 @@ Archived under `archive/` (see `archive/README.md` for why they're kept):
 - `archive/Deployment & Safeguard Guide.docx` — Deployment notes
 - `archive/app.js.legacy` — Original pre-Vite prototype
 
-## Deployment (Vercel + Cloudflare)
-- **Repo**: `github.com/Sugo69/Kindred-Youth`, branch `main` (Vercel auto-deploys on push to main)
-- **Hosting**: Vercel (Vite MPA auto-detected; all `api/*.js` → serverless functions)
-- **Primary domain**: `kindred-youth.org` — CNAME `@` → Vercel apex (DNS-only / grey cloud at Cloudflare so Vercel terminates TLS)
-- **Defensive domain**: `kindred-youth.com` — Cloudflare Redirect Rule → 301 to `kindred-youth.org` (dummy `192.0.2.1` proxied A records on `@` + `www` to make the rule fire)
-- **Registrar + DNS**: Cloudflare Registrar (at-cost); WHOIS privacy auto; DNSSEC on; SSL/TLS Full (strict); Always Use HTTPS; Bot Fight Mode; Email Routing
-- **Env vars**: all `VITE_FIREBASE_*` + `ANTHROPIC_API_KEY` (no VITE_ prefix) set in Vercel Settings → Environment Variables (Production)
-- **Firebase Authorized Domains**: must include `kindred-youth.org` (Firebase Console → Authentication → Settings) or Google sign-in returns `auth/unauthorized-domain`
-- **`vercel.json`**: sets `Cross-Origin-Opener-Policy: same-origin-allow-popups` for all paths — required for the Google sign-in popup flow not to warn/break in Chrome
-- **Non-affiliation disclaimer**: rendered in the landing hero footer, portal footer, and admin footer — cites no affiliation with The Church of Jesus Christ of Latter-day Saints or Intellectual Reserve, Inc. (precaution, not legal opinion; see `legal-review-2026-04-22.md`)
+## Deployment (Vercel)
+1. Push to GitHub (`Sugo69/kindred-youth`, branch `main`)
+2. Import repo in Vercel dashboard
+3. Set all `VITE_*` env vars + `ANTHROPIC_API_KEY` (no VITE_ prefix)
+4. Deploy — Vercel auto-detects Vite MPA; all `api/*.js` files become serverless functions
 
 ## Key Constraints
 - Dev port **must be 5174** — 5173 is used by another project on this machine
