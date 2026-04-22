@@ -1048,32 +1048,21 @@
     <div id="toast"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import {
-            getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import {
-            getFirestore, collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
+            collection, doc, addDoc, setDoc, updateDoc, deleteDoc,
             query, orderBy, onSnapshot, serverTimestamp, getDocs, getDoc, writeBatch, arrayUnion, arrayRemove, limit
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { resolveLessonIdFromUrl, getCurrentCfmLesson } from "/src/lib/cfm-schedule.js";
+        import {
+            APP_ID,
+            createFirebaseStack,
+            isAdmin,
+            signInWithGoogle,
+            signOut,
+        } from "/src/auth.js";
 
-        const ADMIN_EMAIL = 'lewiswf@gmail.com';
-        const APP_ID = 'exodus-feud-final-v10';
-
-        const firebaseConfig = {
-            apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-            authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-            storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-            messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-            appId: import.meta.env.VITE_FIREBASE_APP_ID,
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
+        const { auth, db, provider } = createFirebaseStack();
 
         const basePath = `artifacts/${APP_ID}/public/data`;
         const teachersCol = collection(db, `${basePath}/teachers`);
@@ -1084,7 +1073,7 @@
         onAuthStateChanged(auth, user => {
             if (!user) {
                 show('signin-screen');
-            } else if (user.email !== ADMIN_EMAIL) {
+            } else if (!isAdmin(user)) {
                 show('denied-screen');
             } else {
                 document.getElementById('admin-email').textContent = user.email;
@@ -1105,7 +1094,7 @@
             const errEl = document.getElementById('signin-error');
             errEl.style.display = 'none';
             try {
-                await signInWithPopup(auth, provider);
+                await signInWithGoogle(auth, provider);
             } catch (e) {
                 errEl.textContent = e.message;
                 errEl.style.display = 'block';

@@ -719,32 +719,27 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import {
-            getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import {
-            getFirestore, collection, doc, getDoc, setDoc, updateDoc, query, where, getDocs, serverTimestamp, arrayUnion, arrayRemove, onSnapshot
+            collection, doc, getDoc, setDoc, updateDoc, query, where, getDocs, serverTimestamp, arrayUnion, arrayRemove, onSnapshot
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import {
+            APP_ID,
+            SESSION_KEY,
+            SESSION_NAME_KEY,
+            createFirebaseStack,
+            isAdmin,
+            signInWithGoogle,
+            signOut,
+        } from "/src/auth.js";
 
-        const ADMIN_EMAIL = '__admin_disabled_for_testing__'; // ⚠ TEST MODE — restore to 'lewiswf@gmail.com' when done
-        const APP_ID = 'exodus-feud-final-v10';
-        const SESSION_KEY = 'kindred_classroom_id';
-        const SESSION_NAME_KEY = 'kindred_classroom_name';
+        // ⚠ TEST MODE — flip to 'lewiswf@gmail.com' (or the constant exported
+        // from /src/auth.js) to restore admin. Kept local so admin.html stays
+        // as admin while index.html exercises the teacher flow on the same
+        // Gmail account.
+        const ADMIN_EMAIL = '__admin_disabled_for_testing__';
 
-        const firebaseConfig = {
-            apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-            authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-            projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-            storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-            messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-            appId: import.meta.env.VITE_FIREBASE_APP_ID,
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
+        const { auth, db, provider } = createFirebaseStack();
 
         let currentUser = null;
 
@@ -759,7 +754,7 @@
                 return;
             }
 
-            if (user.email === ADMIN_EMAIL) {
+            if (isAdmin(user, ADMIN_EMAIL)) {
                 enterPortal(null, 'admin');
                 return;
             }
@@ -1320,7 +1315,7 @@
             errEl.style.display = 'none';
             btn.disabled = true;
             try {
-                await signInWithPopup(auth, provider);
+                await signInWithGoogle(auth, provider);
             } catch (e) {
                 // If auth/operation-not-allowed: Google Sign-In provider must be enabled in
                 // Firebase Console → Authentication → Sign-in method → Google.
