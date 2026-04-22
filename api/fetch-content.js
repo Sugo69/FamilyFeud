@@ -1,4 +1,4 @@
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -44,7 +44,7 @@ module.exports = async function handler(req, res) {
         .slice(0, 8000);
 
     return res.status(200).json({ text, title, sourceUrl: url });
-};
+}
 
 function extractPageTitle(html) {
     const og = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)

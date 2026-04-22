@@ -1,4 +1,4 @@
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -76,4 +76,4 @@ A ready-to-paste prompt the developer can drop into Claude Code to implement thi
         console.error('Generate error:', err);
         res.status(500).json({ error: err.message });
     }
-};
+}
