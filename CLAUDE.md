@@ -193,17 +193,13 @@ Maps every 2026 Old Testament Sunday to its Gospel Library URL and lesson id. Ex
 ## LED Lighting Integration (Common Ground)
 Addressable 9×7 WS2812B matrix (63 LEDs) on ESP8266 NodeMCU, controlled from the Admin view.
 
-### Primary: USB Serial (Web Serial API)
+### USB Serial only (Web Serial API)
 - Custom firmware `wled-firmware/kindred-leds.ino` replaces WLED for direct USB control
 - Admin view → **🔌 Connect USB** → Chrome serial port picker → commands sent via USB cable
 - **Chrome only** (Web Serial API) — no WiFi, no network, no proxy needed
 - Auto-reconnects on page load if Chrome has a previously approved port
 - Works at any venue regardless of WiFi (church Liahona captive portal, no cell signal, etc.)
-
-### Fallback: WiFi proxy
-- `api/wled.js` (Vercel) + `/api/wled` middleware (Vite dev) proxy browser → WLED device
-- IP stored in `localStorage.kindred_wled_ip`; enter in Admin view WiFi section
-- Requires WLED firmware (not kindred-leds.ino) and device on same network as server
+- The previous `/api/wled` WiFi proxy was removed to shrink the public attack surface — the device is USB-cabled to the teacher's laptop in production
 
 ### Serial commands (`wled-firmware/kindred-leds.ino`)
 | Command | Event | Effect |
@@ -223,7 +219,7 @@ Addressable 9×7 WS2812B matrix (63 LEDs) on ESP8266 NodeMCU, controlled from th
 - Future: second matrix for Team 2 — extend `wledTrigger(event, teamId)` with two serial ports
 
 ### Key functions
-- `wledTrigger(event, text)` — prefers serial writer; falls back to WiFi proxy silently
+- `wledTrigger(event, text)` — writes to the serial port if connected; no-op otherwise
 - `window.wledConnectUsb()` — triggers Chrome serial port picker (requires user gesture)
 - `buildSerialCmd(event, text)` — formats the serial command string
 

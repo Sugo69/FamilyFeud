@@ -9,5 +9,11 @@
         }
       ]
     }
-  ]
+  ],
+  "functions": {
+    "api/lesson-pipeline.js": { "maxDuration": 300 },
+    "api/generate.js": { "maxDuration": 60 },
+    "api/generate-questions.js": { "maxDuration": 30 },
+    "api/fetch-content.js": { "maxDuration": 10 }
+  }
 }
