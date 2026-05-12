@@ -146,7 +146,7 @@
         .strike-x { font-size: 3.5em; color: #1a1a2e; font-family: 'Orbitron', sans-serif; border: 0.1em solid #1a1a2e; width: 1.8em; height: 1.8em; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
         .strike-x.active { color: var(--warning-gold); border-color: var(--warning-gold); text-shadow: 0 0 20px var(--warning-gold); box-shadow: 0 0 30px rgba(255, 204, 0, 0.6); }
 
-        .bottom-hud { display: none; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: auto; padding: 1.2em 4em; background: rgba(0,0,0,0.95); border-top: 0.25em solid var(--neon-purple); box-sizing: border-box; }
+        .bottom-hud { display: none; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: auto; padding: 1.2em 4em; background: rgba(0,0,0,0.95); border-top: 0.25em solid var(--neon-purple); box-sizing: border-box; position: relative; }
         .score-side { flex: 1; max-width: 25em; transition: transform 0.3s; }
         .score-num { font-family: 'Orbitron', sans-serif; font-size: 5.5em; line-height: 1; margin-bottom: 0.1em; }
         .score-name { font-size: 1.2em; font-weight: bold; letter-spacing: 0.2em; text-transform: uppercase; }
@@ -506,6 +506,11 @@
                 <div class="score-num" id="s1-txt" style="color: var(--neon-cyan);">0</div>
                 <div class="score-name" id="n1-txt">LIGHT SQUAD</div>
             </div>
+            <!-- QR code — only shown for AI-generated games with a sourceUrl -->
+            <div id="monitor-qr-block" style="display:none; position:absolute; right:4.5em; top:-5.5em; flex-direction:column; align-items:center; gap:5px; opacity:0.85;">
+                <canvas id="cg-qr-canvas" width="80" height="80" style="border-radius:4px; border:1px solid rgba(255,255,255,0.15); display:block;"></canvas>
+                <span style="font-family:'Orbitron',sans-serif; font-size:0.42rem; color:#6b7280; text-transform:uppercase; letter-spacing:0.08em;">Scan to read along</span>
+            </div>
             <div class="score-side" style="text-align: right;" id="h-side-2">
                 <div class="score-num" id="s2-txt" style="color: var(--neon-pink);">0</div>
                 <div class="score-name" id="n2-txt">STAR SQUAD</div>
@@ -531,6 +536,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -597,7 +603,7 @@
 
         let sharedState = { currentRound: 0, t1Score: 0, t2Score: 0, strikes: 0, revealed: [], strikeTime: 0, winTime: 0, winningTeamId: 0, activeTeam: 0, originalTeamId: 0, t1Name: "LIGHT SQUAD", t2Name: "STAR SQUAD", gameOverTime: 0, consecutiveWins: 0, lastWinnerId: 0, switchPlayTime: 0, lastWinWasFaceOff: false, monitorScale: 1.0, showScripture: true, bookend: null, prevState: null };
         let lastStrike = 0, lastWin = 0, lastRevCount = 0, lastGameOver = 0, lastSwitch = 0, autoAdvanceTimeout = null, user = null, resetConfirming = false;
-        let currentGameRounds = null, currentActiveGameId = null, currentGameTopic = null;
+        let currentGameRounds = null, currentActiveGameId = null, currentGameTopic = null, currentGameSourceUrl = null, currentGameGeneratedBy = null;
         function getGameRounds() { return currentGameRounds || gameData; }
 
         async function init() {
@@ -613,8 +619,8 @@
                 }, (error) => console.error("Firestore sync error:", error));
                 const activeGameRef = doc(db, `${basePath}/activeGame/current`);
                 onSnapshot(activeGameRef, (snap) => {
-                    if (snap.exists()) { const d = snap.data(); currentGameRounds = d.rounds?.length ? d.rounds : null; currentActiveGameId = d.gameId || null; currentGameTopic = d.topic || d.name || null; }
-                    else { currentGameRounds = null; currentActiveGameId = null; currentGameTopic = null; }
+                    if (snap.exists()) { const d = snap.data(); currentGameRounds = d.rounds?.length ? d.rounds : null; currentActiveGameId = d.gameId || null; currentGameTopic = d.topic || d.name || null; currentGameSourceUrl = d.sourceUrl || null; currentGameGeneratedBy = d.generatedBy || null; }
+                    else { currentGameRounds = null; currentActiveGameId = null; currentGameTopic = null; currentGameSourceUrl = null; currentGameGeneratedBy = null; }
                     syncUI();
                 });
             });
@@ -649,8 +655,21 @@
             document.getElementById('n2-txt').innerText = sharedState.t2Name;
 
             const isFO = sharedState.activeTeam === 0;
-            document.getElementById('tv-fo-icon').style.display = isFO ? 'inline-block' : 'none';
-            document.getElementById('tv-fo-icon-2').style.display = isFO ? 'inline-block' : 'none';
+            const iconChar = isFO ? '🤺' : '⚔️';
+            document.getElementById('tv-fo-icon').textContent = iconChar;
+            document.getElementById('tv-fo-icon-2').textContent = iconChar;
+            document.getElementById('tv-fo-icon').style.display = 'inline-block';
+            document.getElementById('tv-fo-icon-2').style.display = 'inline-block';
+
+            // QR code — bottom-right HUD corner, only for AI-generated games
+            const qrBlock = document.getElementById('monitor-qr-block');
+            if (currentGameSourceUrl && currentGameGeneratedBy) {
+                qrBlock.style.display = 'flex';
+                const canvas = document.getElementById('cg-qr-canvas');
+                if (canvas && window.QRious) new window.QRious({ element: canvas, value: currentGameSourceUrl, size: 80, background: 'white', foreground: '#0a0a20' });
+            } else {
+                qrBlock.style.display = 'none';
+            }
             document.getElementById('h-side-1').className = sharedState.activeTeam === 1 ? 'score-side active-glow' : 'score-side';
             document.getElementById('h-side-2').className = sharedState.activeTeam === 2 ? 'score-side active-glow' : 'score-side';
 
@@ -1556,7 +1575,7 @@
             const rounds = g.rounds || [];
             const activeRef = doc(db, `${basePath}/activeGame/current`);
             const stateRef = doc(db, `${basePath}/feudSession/state`);
-            await setDoc(activeRef, { gameId: g._docId, name: g.name, rounds });
+            await setDoc(activeRef, { gameId: g._docId, name: g.name, rounds, sourceUrl: g.sourceUrl || null, generatedBy: g.generatedBy || null });
             await updateDoc(stateRef, {
                 currentRound: 0, revealed: [], strikes: 0, activeTeam: 0, originalTeamId: 0,
                 winTime: 0, strikeTime: 0, gameOverTime: 0, switchPlayTime: 0,
