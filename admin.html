@@ -764,6 +764,7 @@
             <button class="tab-btn" onclick="switchTab('classrooms')">Classrooms</button>
             <button class="tab-btn" onclick="switchTab('library')">Library</button>
             <button class="tab-btn" onclick="switchTab('backlog')">Backlog</button>
+            <button class="tab-btn" onclick="switchTab('calibrate')">🗺 Calibrate</button>
         </nav>
 
         <!-- ── Overview tab ── -->
@@ -2585,7 +2586,7 @@
     <script>
         function switchTab(name) {
             document.querySelectorAll('.tab-btn').forEach((b, i) => {
-                const tabs = ['overview', 'teachers', 'classrooms', 'library', 'backlog'];
+                const tabs = ['overview', 'teachers', 'classrooms', 'library', 'backlog', 'calibrate'];
                 b.classList.toggle('active', tabs[i] === name);
             });
             document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
@@ -2596,6 +2597,305 @@
             document.getElementById(id).classList.toggle('open');
         }
     </script>
+
+    <!-- ── Trail Board Calibration tab ──────────────────────────────────── -->
+    <style>
+        #tab-calibrate .calib-controls {
+            display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+            margin-bottom: 14px;
+        }
+        #tab-calibrate select, #tab-calibrate .calib-btn {
+            background: var(--surface); color: var(--text);
+            border: 1px solid var(--border); border-radius: 6px;
+            padding: 7px 14px; font-size: 13px; cursor: pointer;
+        }
+        #tab-calibrate .calib-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+        #tab-calibrate .calib-btn.active-mode { border-color: var(--neon-cyan); color: var(--neon-cyan); background: rgba(56,210,255,.08); }
+        #tab-calibrate .calib-btn.danger { border-color: #f87171; color: #f87171; }
+        .calib-board-wrap {
+            position: relative; width: 100%; cursor: crosshair;
+            border: 2px solid var(--border); border-radius: 8px; overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .calib-board-wrap img { width: 100%; display: block; }
+        .calib-board-wrap svg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        }
+        .calib-stop-circle { fill: #ffc857; stroke: #0a1628; stroke-width: 3; }
+        .calib-stop-circle.placed { fill: #4a7c59; }
+        .calib-stop-num { font-size: 22px; font-weight: 800; fill: #0a1628; pointer-events: none; }
+        .calib-region-dot { fill: #38d2ff; stroke: #0a1628; stroke-width: 2; }
+        .calib-region-text { font-size: 18px; font-weight: 800; fill: #f4ecd8;
+            paint-order: stroke; stroke: #0a1628; stroke-width: 4px; stroke-linejoin: round;
+            pointer-events: none; }
+        .calib-output {
+            background: #0d1117; border: 1px solid var(--border); border-radius: 8px;
+            padding: 14px; font-family: monospace; font-size: 12px; color: #c9d1d9;
+            white-space: pre; overflow-x: auto; margin-bottom: 10px;
+        }
+        .calib-regions-row {
+            display: grid; grid-template-columns: 1fr 80px 80px auto;
+            gap: 6px; align-items: center; margin-bottom: 6px;
+        }
+        .calib-regions-row input[type=text] {
+            background: var(--surface); color: var(--text);
+            border: 1px solid var(--border); border-radius: 4px; padding: 5px 8px; font-size: 13px;
+        }
+        .calib-regions-row input[type=number] {
+            background: var(--surface); color: var(--text);
+            border: 1px solid var(--border); border-radius: 4px; padding: 5px 6px;
+            font-size: 13px; width: 100%;
+        }
+        .calib-pick-btn { background: var(--surface); color: var(--text);
+            border: 1px solid var(--border); border-radius: 4px; padding: 5px 10px;
+            font-size: 12px; cursor: pointer; white-space: nowrap; }
+        .calib-pick-btn.waiting { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+        .calib-hint { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+    </style>
+
+    <script>
+    (function() {
+        const THEMES = ['ot','nt','bom','dc','moses','abraham'];
+        const MAX_STOPS = 10;
+        let currentTheme = 'nt';
+        let mode = 'stops'; // 'stops' | 'regions'
+        let stops = [];           // [{x,y}, ...]
+        let regions = [           // [{label,x,y}, ...]
+            {label:'', x:120,  y:1020},
+            {label:'', x:560,  y:1070},
+            {label:'', x:1180, y:1070},
+            {label:'', x:1780, y:1020},
+        ];
+        let waitingRegionIdx = -1; // which region is waiting for a click
+
+        function init() {
+            const tab = document.getElementById('tab-calibrate');
+            if (!tab) return;
+
+            tab.innerHTML = `
+<div class="section-head"><div class="section-title">Trail Board Calibration</div></div>
+<p class="calib-hint">
+  Select a theme, then click on the board to place stop positions 1–10 in order.
+  Switch to <strong>Regions</strong> mode to place the 4 geographic label positions.
+  Copy the output and paste it into the matching <code>src/lib/trail-positions-{key}.js</code>.
+</p>
+
+<div class="calib-controls">
+  <select id="calib-theme-select">
+    ${THEMES.map(t => `<option value="${t}"${t===currentTheme?' selected':''}>${t.toUpperCase()}</option>`).join('')}
+  </select>
+  <button class="calib-btn active-mode" id="calib-mode-stops" onclick="calibSetMode('stops')">📍 Stops</button>
+  <button class="calib-btn" id="calib-mode-regions" onclick="calibSetMode('regions')">🏷 Regions</button>
+  <button class="calib-btn" onclick="calibUndo()">↩ Undo last</button>
+  <button class="calib-btn danger" onclick="calibReset()">✕ Clear all</button>
+</div>
+
+<div id="calib-regions-editor" style="display:none; margin-bottom:14px;">
+  <p class="calib-hint" style="margin-bottom:8px">Enter label text, then click <em>Pick</em> and click on the board to set position.</p>
+  <div id="calib-regions-rows"></div>
+</div>
+
+<div class="calib-board-wrap" id="calib-board-wrap">
+  <img id="calib-img" src="" alt="trail board"/>
+  <svg id="calib-svg" viewBox="0 0 2000 1116" preserveAspectRatio="xMidYMid meet">
+    <g id="calib-markers"></g>
+  </svg>
+</div>
+
+<div id="calib-stop-count" style="font-size:13px;color:var(--text-muted);margin-bottom:8px;"></div>
+
+<div class="calib-output" id="calib-output"></div>
+<button class="calib-btn" onclick="calibCopy()" style="margin-bottom:20px">📋 Copy output</button>
+`;
+            document.getElementById('calib-theme-select').addEventListener('change', e => {
+                currentTheme = e.target.value;
+                stops = [];
+                regions = [
+                    {label:'', x:120,  y:1020},
+                    {label:'', x:560,  y:1070},
+                    {label:'', x:1180, y:1070},
+                    {label:'', x:1780, y:1020},
+                ];
+                loadThemeDefaults();
+                renderRegionRows();
+                renderAll();
+            });
+
+            document.getElementById('calib-svg').addEventListener('click', onBoardClick);
+
+            loadThemeDefaults();
+            renderRegionRows();
+            renderAll();
+        }
+
+        // Pre-fill regions with the stub labels from the position files
+        const STUB_REGIONS = {
+            ot:      ['MOAB','BETHLEHEM','SHILOH','MIZPAH'],
+            nt:      ['GALILEE','CAPERNAUM','JUDEA','JERUSALEM'],
+            bom:     ['JERUSALEM','WILDERNESS','PROMISED','LAND'],
+            dc:      ['PALMYRA','KIRTLAND','MISSOURI','NAUVOO'],
+            moses:   ['GARDEN','MOUNT','ENOCH','ARK'],
+            abraham: ['UR','CANAAN','EGYPT','COVENANT'],
+        };
+
+        function loadThemeDefaults() {
+            document.getElementById('calib-img').src =
+                `/games/assets/scripture-trail-board-${currentTheme}.png`;
+            const labels = STUB_REGIONS[currentTheme] || ['','','',''];
+            regions.forEach((r, i) => { r.label = labels[i] || ''; });
+        }
+
+        window.calibSetMode = function(m) {
+            mode = m;
+            waitingRegionIdx = -1;
+            document.getElementById('calib-mode-stops').classList.toggle('active-mode', m==='stops');
+            document.getElementById('calib-mode-regions').classList.toggle('active-mode', m==='regions');
+            document.getElementById('calib-regions-editor').style.display = m==='regions' ? '' : 'none';
+            document.getElementById('calib-board-wrap').style.cursor = m==='stops' ? 'crosshair' : 'default';
+            renderAll();
+        };
+
+        window.calibUndo = function() {
+            if (mode === 'stops' && stops.length > 0) { stops.pop(); renderAll(); }
+        };
+
+        window.calibReset = function() {
+            if (!confirm('Clear all placed positions?')) return;
+            stops = [];
+            regions.forEach(r => { r.x = 0; r.y = 0; });
+            renderRegionRows();
+            renderAll();
+        };
+
+        window.calibPickRegion = function(idx) {
+            waitingRegionIdx = idx;
+            document.getElementById('calib-board-wrap').style.cursor = 'crosshair';
+            document.querySelectorAll('.calib-pick-btn').forEach((b, i) => {
+                b.classList.toggle('waiting', i === idx);
+                b.textContent = i === idx ? '🎯 Click board…' : 'Pick';
+            });
+        };
+
+        function onBoardClick(e) {
+            const svg = document.getElementById('calib-svg');
+            const pt = svg.createSVGPoint();
+            pt.x = e.clientX;
+            pt.y = e.clientY;
+            const svgPt = pt.matrixTransform(svg.getScreenCTM().inverse());
+            const x = Math.round(svgPt.x);
+            const y = Math.round(svgPt.y);
+
+            if (mode === 'stops') {
+                if (stops.length < MAX_STOPS) {
+                    stops.push({ x, y });
+                    renderAll();
+                }
+            } else if (mode === 'regions' && waitingRegionIdx >= 0) {
+                regions[waitingRegionIdx].x = x;
+                regions[waitingRegionIdx].y = y;
+                waitingRegionIdx = -1;
+                document.getElementById('calib-board-wrap').style.cursor = 'default';
+                document.querySelectorAll('.calib-pick-btn').forEach(b => {
+                    b.classList.remove('waiting');
+                    b.textContent = 'Pick';
+                });
+                renderRegionRows();
+                renderAll();
+            }
+        }
+
+        function renderRegionRows() {
+            const container = document.getElementById('calib-regions-rows');
+            if (!container) return;
+            container.innerHTML = regions.map((r, i) => `
+<div class="calib-regions-row">
+  <input type="text" value="${r.label}" placeholder="Region label ${i+1}"
+         oninput="calibUpdateRegionLabel(${i}, this.value)"/>
+  <input type="number" value="${r.x}" placeholder="x"
+         oninput="calibUpdateRegionX(${i}, this.value)"/>
+  <input type="number" value="${r.y}" placeholder="y"
+         oninput="calibUpdateRegionY(${i}, this.value)"/>
+  <button class="calib-pick-btn" onclick="calibPickRegion(${i})">Pick</button>
+</div>`).join('');
+        }
+
+        window.calibUpdateRegionLabel = (i, v) => { regions[i].label = v; renderAll(); };
+        window.calibUpdateRegionX     = (i, v) => { regions[i].x = parseInt(v)||0; renderAll(); };
+        window.calibUpdateRegionY     = (i, v) => { regions[i].y = parseInt(v)||0; renderAll(); };
+
+        function renderAll() {
+            renderMarkers();
+            renderOutput();
+            const countEl = document.getElementById('calib-stop-count');
+            if (countEl) countEl.textContent =
+                mode === 'stops'
+                    ? `${stops.length} / ${MAX_STOPS} stops placed${stops.length===MAX_STOPS ? ' ✓' : ' — click the board to add the next'}`
+                    : 'Regions mode — enter labels and click Pick, then click the board';
+        }
+
+        function renderMarkers() {
+            const g = document.getElementById('calib-markers');
+            if (!g) return;
+            let html = '';
+
+            // Stop markers
+            stops.forEach((p, i) => {
+                html += `
+<circle cx="${p.x}" cy="${p.y}" r="34" class="calib-stop-circle placed"/>
+<text x="${p.x}" y="${p.y+8}" text-anchor="middle" class="calib-stop-num">${i+1}</text>`;
+            });
+
+            // Region markers
+            if (mode === 'regions') {
+                regions.forEach((r, i) => {
+                    if (!r.x && !r.y) return;
+                    html += `
+<circle cx="${r.x}" cy="${r.y}" r="8" class="calib-region-dot"/>
+<text x="${r.x}" y="${r.y - 14}" text-anchor="middle" class="calib-region-text">${r.label || `R${i+1}`}</text>`;
+                });
+            }
+            g.innerHTML = html;
+        }
+
+        function renderOutput() {
+            const el = document.getElementById('calib-output');
+            if (!el) return;
+            const pad = (n) => String(n).padStart(4);
+            const posLines = stops.map((p, i) =>
+                `  { x: ${pad(p.x)}, y: ${pad(p.y)} },  // ${i}`
+            ).join('\n');
+            const regLines = regions.map(r =>
+                `  { label: '${r.label}', x: ${pad(r.x)}, y: ${pad(r.y)} },`
+            ).join('\n');
+            el.textContent =
+`// src/lib/trail-positions-${currentTheme}.js — paste over the placeholder arrays
+
+  positions: [
+${posLines || '  // click the board to place stops'}
+  ],
+
+  regions: [
+${regLines}
+  ],`;
+        }
+
+        window.calibCopy = function() {
+            const text = document.getElementById('calib-output').textContent;
+            navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+        };
+
+        // Init when the calibrate tab is first opened
+        const origSwitch = window.switchTab;
+        window.switchTab = function(name) {
+            origSwitch(name);
+            if (name === 'calibrate' && !document.querySelector('#tab-calibrate img')) init();
+        };
+    })();
+    </script>
+
+    <div id="tab-calibrate" class="tab-pane">
+        <!-- content injected by calibration JS on first open -->
+    </div>
 
 </body>
 </html>
