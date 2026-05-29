@@ -11,6 +11,7 @@
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
   import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
   import { getCurrentCfmLesson, resolveLessonIdFromUrl } from '../src/lib/cfm-schedule.js';
+  import { TRAIL_THEMES, resolveTrailTheme } from '../src/lib/trail-themes.js';
 
   const APP_ID = 'exodus-feud-final-v10';
   const params = new URLSearchParams(location.search);
@@ -24,6 +25,7 @@
   window.__kindredGlobalBasePath = `artifacts/${APP_ID}/public/data`;
   window.__kindredLessonId     = lessonIdParam || getCurrentCfmLesson().lessonId;
   window.__kindredCurrentCfmLesson = getCurrentCfmLesson();
+  window.__kindredTrailTheme = TRAIL_THEMES[resolveTrailTheme(window.__kindredLessonId)];
 
   const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -884,16 +886,11 @@ body {
         <clipPath id="token-clip"><circle r="30"/></clipPath>
       </defs>
 
-      <!-- Painted board (Gemini) -->
-      <image href="assets/scripture-trail-board.png" x="0" y="0" width="2000" height="1116" preserveAspectRatio="xMidYMid slice"/>
+      <!-- Painted board — src set dynamically from trail theme -->
+      <image id="board-image" href="assets/scripture-trail-board-ot.png" x="0" y="0" width="2000" height="1116" preserveAspectRatio="xMidYMid slice"/>
 
-      <!-- region labels — drop-shadowed so they read on warm painted background -->
-      <g font-family="sans-serif" font-size="22" font-weight="800" letter-spacing="5" fill="#f4ecd8" style="paint-order: stroke; stroke: #0a1628; stroke-width: 5px; stroke-linejoin: round;">
-        <text x="120"  y="1020">MOAB</text>
-        <text x="560"  y="1070">BETHLEHEM</text>
-        <text x="1180" y="1070">SHILOH</text>
-        <text x="1780" y="1020">MIZPAH</text>
-      </g>
+      <!-- region labels — populated from trail theme by applyBoardTheme() -->
+      <g id="regions-layer" font-family="sans-serif" font-size="22" font-weight="800" letter-spacing="5" fill="#f4ecd8" style="paint-order: stroke; stroke: #0a1628; stroke-width: 5px; stroke-linejoin: round;"></g>
 
       <g id="stops-layer"></g>
       <g id="tokens-layer"></g>
@@ -1369,24 +1366,56 @@ document.getElementById('start-btn').addEventListener('click', () => {
   document.getElementById('score-cap-2').textContent  = state.team2.captain;
   document.getElementById('score-img-1').src = charSrc(state.team1.char);
   document.getElementById('score-img-2').src = charSrc(state.team2.char);
+  applyBoardTheme();
   renderBoard();
   showScene('board-scene');
 });
 
+// Pick `count` positions evenly distributed across theme.positions so stops
+// always span the full trail regardless of lesson stop count.
+function getPositionsForCount(theme, count) {
+  const all = theme.positions;
+  if (!all || count >= all.length) return all || [];
+  if (count === 1) return [all[0]];
+  const picks = [];
+  for (let i = 0; i < count; i++) {
+    picks.push(all[Math.round(i * (all.length - 1) / (count - 1))]);
+  }
+  return picks;
+}
+
+function applyBoardTheme() {
+  const theme = window.__kindredTrailTheme;
+  if (!theme) return;
+  const img = document.getElementById('board-image');
+  if (img) img.setAttribute('href', theme.boardSrc);
+  const regionsLayer = document.getElementById('regions-layer');
+  if (regionsLayer && theme.regions) {
+    regionsLayer.innerHTML = theme.regions
+      .map(r => `<text x="${r.x}" y="${r.y}">${r.label}</text>`)
+      .join('');
+  }
+}
+
 function renderBoard() {
+  const theme = window.__kindredTrailTheme;
+  const positions = getPositionsForCount(theme, TRAIL_STOPS.length);
+  const tokenStart = theme?.tokenStart || { x: 120, y: 820 };
+
   const stopsLayer = document.getElementById('stops-layer');
   const tokensLayer = document.getElementById('tokens-layer');
   stopsLayer.innerHTML = '';
   tokensLayer.innerHTML = '';
 
   TRAIL_STOPS.forEach((stop, idx) => {
+    const pos = positions[idx] || { x: 0, y: 0 };
     const completed = state.completedStops.includes(stop.n);
     const isNext = !completed && state.completedStops.length === idx;
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.classList.add('stop-node');
     if (!completed && !isNext) g.classList.add('locked');
-    g.setAttribute('transform', `translate(${stop.x}, ${stop.y})`);
+    g.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
     if (isNext) {
       g.addEventListener('click', () => openStop(stop));
       g.setAttribute('filter', 'url(#glow)');
@@ -1426,8 +1455,9 @@ function renderBoard() {
     const stop = team.position === 0 ? null : TRAIL_STOPS.find(s => s.n === team.position);
     const offsetX = i === 0 ? -36 : 36;
     const offsetY = -44;
-    const baseX = stop ? stop.x + offsetX : 120 + offsetX;
-    const baseY = stop ? stop.y + offsetY : 820;
+    const stopPos = stop ? (positions[stop.n - 1] || { x: tokenStart.x, y: tokenStart.y }) : tokenStart;
+    const baseX = stopPos.x + offsetX;
+    const baseY = stopPos.y + offsetY;
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.setAttribute('transform', `translate(${baseX}, ${baseY})`);
