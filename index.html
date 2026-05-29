@@ -475,6 +475,152 @@
         .game-card.pink:hover .game-card-play { color: var(--neon-pink); }
         .game-card.gold:hover .game-card-play { color: #ffc857; }
 
+        /* ── This Week's Lesson hero card ── */
+        .this-week-card {
+            background: linear-gradient(135deg, #0d0d1f 0%, #0d1828 100%);
+            border: 2px solid #1a2d47;
+            border-radius: 18px;
+            padding: 30px 32px 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .this-week-meta { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+        .this-week-eyebrow {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 2px;
+            color: var(--neon-cyan);
+        }
+        .this-week-dates {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 1.5px;
+            color: #6a6a80;
+        }
+        .this-week-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.2rem, 2.6vw, 1.7rem);
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.2;
+            color: #f0f0ff;
+        }
+        .this-week-badges { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .lesson-type-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid currentColor;
+        }
+        .lesson-type-badge.narrative { color: #ffc857; }
+        .lesson-type-badge.doctrinal { color: var(--neon-cyan); }
+        .lesson-type-badge.mixed     { color: #b388ff; }
+        .recommended-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255,200,87,0.1);
+            color: #ffc857;
+            border: 1px solid rgba(255,200,87,0.3);
+        }
+        .this-week-games {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 6px;
+        }
+        .this-week-game-tile {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 16px 18px;
+            border-radius: 12px;
+            background: #07071a;
+            border: 2px solid #1a1a35;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.15s, transform 0.15s;
+        }
+        .this-week-game-tile:hover { transform: translateY(-2px); }
+        .this-week-game-tile.cyan:hover { border-color: var(--neon-cyan); }
+        .this-week-game-tile.pink:hover { border-color: var(--neon-pink); }
+        .this-week-game-tile.gold:hover { border-color: #ffc857; }
+        .this-week-game-tile.fit-best {
+            border-color: #ffc857;
+            background: linear-gradient(135deg, rgba(255,200,87,0.06), rgba(0,0,0,0));
+        }
+        .this-week-game-tile.fit-limited { opacity: 0.45; }
+        .this-week-game-tile.fit-limited:hover { opacity: 0.65; }
+        .twg-row { display: flex; align-items: center; gap: 10px; }
+        .twg-icon { font-size: 1.4rem; }
+        .twg-name { font-family: 'Orbitron', sans-serif; font-size: 0.95rem; font-weight: 700; }
+        .twg-fit-label {
+            margin-left: auto;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 1.5px;
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+        .twg-fit-label.fit-best    { background: #ffc857; color: #0a0a12; }
+        .twg-fit-label.fit-good    { background: rgba(255,255,255,0.06); color: #c8c8d8; }
+        .twg-fit-label.fit-limited { background: rgba(255,200,87,0.12); color: #c89a4a; border: 1px solid rgba(200,154,74,0.3); }
+        .twg-cta { font-family: 'Orbitron', sans-serif; font-size: 0.68rem; letter-spacing: 1.5px; color: #8888a0; }
+        .this-week-game-tile.fit-best .twg-cta { color: #ffc857; }
+        .twg-note { font-size: 0.72rem; color: #6a6a80; line-height: 1.4; margin-top: 2px; }
+
+        /* ── Upcoming Lessons strip ── */
+        .upcoming-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+        }
+        .upcoming-card {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 16px 18px;
+            background: #0d0d1f;
+            border: 1px solid #1a1a35;
+            border-radius: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: border-color 0.15s, transform 0.15s;
+        }
+        .upcoming-card:hover { transform: translateY(-2px); border-color: #2a2a45; }
+        .upcoming-date {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1.5px;
+            color: #6a6a80;
+        }
+        .upcoming-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #d8d8e8;
+            line-height: 1.35;
+        }
+        .upcoming-rec {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+            padding-top: 8px;
+            border-top: 1px solid #1a1a35;
+            font-size: 0.78rem;
+            color: #a0a0b5;
+        }
+        .upcoming-rec .twg-icon { font-size: 1rem; }
+        .upcoming-rec-game { font-weight: 600; }
+        .upcoming-rec-game.cyan { color: var(--neon-cyan); }
+        .upcoming-rec-game.pink { color: var(--neon-pink); }
+        .upcoming-rec-game.gold { color: #ffc857; }
+
         /* ── Footer ── */
         .portal-footer {
             text-align: center;
@@ -1324,8 +1470,8 @@
                 </div>
                 <div class="ls-step">
                     <div class="ls-step-num">02</div>
-                    <h4>ADD A LESSON</h4>
-                    <p>Paste any churchofjesuschrist.org study URL — Come Follow Me, Seminary, Institute, or scripture. Kindred pulls the verses and generates both games.</p>
+                    <h4>OPEN THIS WEEK'S LESSON</h4>
+                    <p>Kindred recommends the right game for this week's Come Follow Me or Seminary lesson — narrative, doctrinal, or mixed. You can always pick a different game, or paste any churchofjesuschrist.org study URL for a custom lesson.</p>
                 </div>
                 <div class="ls-step">
                     <div class="ls-step-num">03</div>
@@ -1514,14 +1660,40 @@
             <p class="hero-tagline">Youth Learning Together</p>
         </div>
 
-        <!-- ── Game Catalog ── -->
+        <!-- ── This Week's Lesson (hero) ── -->
         <div class="section">
-            <h2 class="section-title">Game Catalog</h2>
+            <div id="this-week-card" class="this-week-card">
+                <div class="this-week-meta">
+                    <span class="this-week-eyebrow">📅 THIS WEEK</span>
+                    <span class="this-week-dates" id="this-week-dates"></span>
+                </div>
+                <h2 class="this-week-title" id="this-week-title">Loading this week's lesson…</h2>
+                <div class="this-week-badges">
+                    <span class="lesson-type-badge" id="this-week-type-badge"></span>
+                    <span class="recommended-badge">✨ RECOMMENDED</span>
+                </div>
+                <div class="this-week-games" id="this-week-games">
+                    <!-- 3 game tiles rendered by JS, sorted best-fit first -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Upcoming Lessons ── -->
+        <div class="section">
+            <h2 class="section-title">Upcoming Lessons</h2>
+            <div class="upcoming-grid" id="upcoming-grid">
+                <!-- rendered by JS -->
+            </div>
+        </div>
+
+        <!-- ── Browse by Game (secondary path) ── -->
+        <div class="section">
+            <h2 class="section-title">Or browse by game</h2>
             <div class="catalog-grid">
                 <a id="link-common-ground" href="games/common-ground.html" class="game-card cyan">
                     <div class="game-card-icon">🎯</div>
                     <h3 class="game-card-name">Common Ground</h3>
-                    <p class="game-card-desc">Survey-style game — find common ground with your class on scripture topics. Teams compete to uncover the top answers.</p>
+                    <p class="game-card-desc">Survey-style team game · best for topic-rich lessons.</p>
                     <span class="game-card-tag">Survey · Teams · Live Sync</span>
                     <div class="game-card-play">Play →</div>
                 </a>
@@ -1529,7 +1701,7 @@
                 <a id="link-memory" href="games/memory.html" class="game-card pink">
                     <div class="game-card-icon">🧩</div>
                     <h3 class="game-card-name">Scripture Match</h3>
-                    <p class="game-card-desc">Memory matching game — pair scripture references with key phrases and applications. Every match opens a full verse, Christ connection, and discussion question.</p>
+                    <p class="game-card-desc">Memory pairs · best for scripture-heavy lessons.</p>
                     <span class="game-card-tag">Memory · Pairs · Discussion</span>
                     <div class="game-card-play">Play →</div>
                 </a>
@@ -1537,7 +1709,7 @@
                 <a id="link-scripture-trail" href="games/scripture-trail.html" class="game-card gold">
                     <div class="game-card-icon">🚶</div>
                     <h3 class="game-card-name">Scripture Trail</h3>
-                    <p class="game-card-desc">Journey through the lesson's stories in order. Two teams, two captains, and a hand-painted trail board — each stop opens a video, a verse, and a multiple-choice question.</p>
+                    <p class="game-card-desc">Sequential story walkthrough · best for narrative lessons.</p>
                     <span class="game-card-tag">Sequential · Arcs · 30 min</span>
                     <div class="game-card-play">Play →</div>
                 </a>
@@ -1643,6 +1815,24 @@
             signInWithGoogle,
             signOut,
         } from "/src/auth.js";
+        import {
+            getCurrentCfmLesson,
+            getUpcomingCfmLessons,
+            formatLessonDateRange,
+            formatLessonTypeBadge,
+            getGameRecommendations,
+            getRecommendedGame,
+        } from "/src/lib/cfm-schedule.js";
+
+        // Expose to the rest of the portal JS (which lives in a non-module inline script later)
+        window.__kindredSchedule = {
+            getCurrentCfmLesson,
+            getUpcomingCfmLessons,
+            formatLessonDateRange,
+            formatLessonTypeBadge,
+            getGameRecommendations,
+            getRecommendedGame,
+        };
 
         // ⚠ TEST MODE — flip to 'lewiswf@gmail.com' (or the constant exported
         // from /src/auth.js) to restore admin. Kept local so admin.html stays
@@ -1939,6 +2129,9 @@
             document.getElementById('link-memory').href = `games/memory.html${suffix}`;
             document.getElementById('link-scripture-trail').href = `games/scripture-trail.html${suffix}`;
 
+            // Render the lesson-first portal sections (This Week + Upcoming)
+            renderLessonPortal(classroomId, suffix);
+
             // Top bar
             const badge = document.getElementById('classroom-badge');
             const adminLink = document.getElementById('admin-link');
@@ -2003,6 +2196,67 @@
                     </div>
                 </div>
             `;
+        }
+
+        // ── Lesson-first portal: render "This Week" + "Upcoming" using cfm-schedule ──
+        function renderLessonPortal(classroomId, suffix) {
+            const S = window.__kindredSchedule;
+            if (!S) { console.warn('[portal] cfm-schedule not loaded'); return; }
+            const current = S.getCurrentCfmLesson();
+            const upcoming = S.getUpcomingCfmLessons(new Date(), 6).slice(1, 7); // skip "this week", show next 6
+
+            // Build a per-game launch URL with both ?room= and ?lesson=
+            const lessonLink = (lesson, gameHref) => {
+                const params = new URLSearchParams();
+                if (classroomId) params.set('room', classroomId);
+                if (lesson?.lessonId) params.set('lesson', lesson.lessonId);
+                const qs = params.toString();
+                return qs ? `${gameHref}?${qs}` : gameHref;
+            };
+
+            // ── This Week hero card ──
+            document.getElementById('this-week-dates').textContent = S.formatLessonDateRange(current);
+            document.getElementById('this-week-title').textContent = current.title;
+            const typeBadge = document.getElementById('this-week-type-badge');
+            typeBadge.textContent = S.formatLessonTypeBadge(current.type);
+            typeBadge.className = `lesson-type-badge ${current.type || 'mixed'}`;
+
+            const recs = S.getGameRecommendations(current.type);
+            const tiles = recs.map(g => {
+                const fitLabel = g.fit === 'best' ? 'BEST FIT'
+                              : g.fit === 'good' ? 'GOOD FIT'
+                              : 'LIMITED FIT';
+                const note = g.fit === 'limited'
+                    ? '<div class="twg-note">Better suited for narrative lessons</div>' : '';
+                return `
+                    <a class="this-week-game-tile ${g.color} fit-${g.fit}" href="${lessonLink(current, g.href)}">
+                        <div class="twg-row">
+                            <span class="twg-icon">${g.icon}</span>
+                            <span class="twg-name">${g.name}</span>
+                            <span class="twg-fit-label fit-${g.fit}">${fitLabel}</span>
+                        </div>
+                        ${note}
+                        <div class="twg-cta">Play with this lesson →</div>
+                    </a>`;
+            }).join('');
+            document.getElementById('this-week-games').innerHTML = tiles;
+
+            // ── Upcoming Lessons ──
+            const upcomingHtml = upcoming.map(lesson => {
+                const rec = S.getRecommendedGame(lesson.type);
+                return `
+                    <a class="upcoming-card" href="${lessonLink(lesson, rec.href)}">
+                        <div class="upcoming-date">${S.formatLessonDateRange(lesson)}</div>
+                        <div class="upcoming-title">${lesson.title}</div>
+                        <div class="upcoming-rec">
+                            <span class="twg-icon">${rec.icon}</span>
+                            <span>Recommended:</span>
+                            <span class="upcoming-rec-game ${rec.color}">${rec.name}</span>
+                        </div>
+                    </a>`;
+            }).join('');
+            const grid = document.getElementById('upcoming-grid');
+            if (grid) grid.innerHTML = upcomingHtml || '<div style="color:#6a6a80; font-size:0.9rem;">No upcoming lessons in the current manual.</div>';
         }
 
         // ── Profile modal ──
