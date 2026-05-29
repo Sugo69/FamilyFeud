@@ -639,7 +639,15 @@
             letter-spacing: 1px;
         }
         .ls-h2 .accent { color: var(--neon-cyan); }
-        .ls-h2-sub { color: #a0a0b5; font-size: 1.05rem; line-height: 1.5; max-width: 680px; margin: 0 0 36px; }
+        .ls-h2-sub { color: #a0a0b5; font-size: 1.05rem; line-height: 1.5; max-width: 680px; margin: 0 0 8px; }
+        .ls-h2-cite {
+            font-size: 0.72rem;
+            color: #6a6a80;
+            letter-spacing: 0.5px;
+            margin: 0 0 36px;
+            max-width: 680px;
+            font-style: italic;
+        }
 
         /* Problem row */
         .ls-problem {
@@ -700,6 +708,80 @@
             color: var(--neon-cyan);
             font-weight: 700;
         }
+
+        /* Three-game toolkit (replaces legacy ls-feature long sections) */
+        .ls-toolkit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 22px;
+            margin-top: 28px;
+        }
+        .ls-toolkit-card {
+            background: #0d0d1f;
+            border: 2px solid #1a1a35;
+            border-radius: 16px;
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .ls-toolkit-card:hover { transform: translateY(-3px); }
+        .ls-toolkit-card.cyan:hover { border-color: var(--neon-cyan); }
+        .ls-toolkit-card.pink:hover { border-color: var(--neon-pink); }
+        .ls-toolkit-card.gold:hover { border-color: #ffc857; }
+        .ls-toolkit-icon { font-size: 2.4rem; line-height: 1; }
+        .ls-toolkit-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        .ls-toolkit-card.cyan h3 { color: var(--neon-cyan); }
+        .ls-toolkit-card.pink h3 { color: var(--neon-pink); }
+        .ls-toolkit-card.gold h3 { color: #ffc857; }
+        .ls-toolkit-tag {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 0;
+            opacity: 0.85;
+        }
+        .ls-toolkit-card.cyan .ls-toolkit-tag { color: var(--neon-cyan); }
+        .ls-toolkit-card.pink .ls-toolkit-tag { color: var(--neon-pink); }
+        .ls-toolkit-card.gold .ls-toolkit-tag { color: #ffc857; }
+        .ls-toolkit-body { font-size: 0.95rem; color: #a0a0b5; line-height: 1.55; margin: 0; flex: 1; }
+        .ls-toolkit-fit {
+            font-size: 0.8rem;
+            color: #8888a0;
+            padding-top: 10px;
+            border-top: 1px solid #1a1a35;
+            line-height: 1.5;
+        }
+        .ls-toolkit-fit strong { color: #c8c8d8; font-weight: 600; }
+
+        /* Smart recommendation strip — under the toolkit cards */
+        .ls-smart-strip {
+            margin-top: 28px;
+            padding: 18px 24px;
+            background: rgba(0,242,255,0.04);
+            border: 1px solid rgba(0,242,255,0.18);
+            border-radius: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+        }
+        .ls-smart-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 1.5px;
+            color: var(--neon-cyan);
+            white-space: nowrap;
+        }
+        .ls-smart-body { font-size: 0.95rem; color: #c8c8d8; line-height: 1.55; flex: 1; min-width: 260px; }
+        .ls-smart-body em { color: var(--neon-cyan); font-style: normal; font-weight: 600; }
 
         /* Mockup frames */
         .ls-mockup {
@@ -908,6 +990,35 @@
         }
         .ls-trust-card h4 { color: var(--neon-cyan); font-family: 'Orbitron', sans-serif; font-size: 0.82rem; letter-spacing: 1px; margin: 0 0 10px; }
         .ls-trust-card p { color: #bfbfcf; font-size: 0.9rem; line-height: 1.5; margin: 0; }
+        .ls-trust-bullets {
+            list-style: none;
+            padding: 0;
+            margin: 28px auto 0;
+            max-width: 720px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .ls-trust-bullets li {
+            position: relative;
+            padding: 14px 16px 14px 44px;
+            background: rgba(0,242,255,0.03);
+            border: 1px solid rgba(0,242,255,0.12);
+            border-radius: 10px;
+            color: #c8c8d8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .ls-trust-bullets li::before {
+            content: '✓';
+            position: absolute;
+            left: 16px;
+            top: 14px;
+            color: var(--neon-cyan);
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+        .ls-trust-bullets li strong { color: #f0f0ff; font-weight: 600; }
         .ls-trust-refs {
             margin-top: 28px;
             display: flex;
@@ -980,43 +1091,31 @@
 
         <!-- Hero -->
         <section class="ls-section ls-hero">
-            <div class="ls-hero-kicker">SCRIPTURE-ANCHORED GAMES FOR YOUTH LEADERS</div>
-            <h1>Turn any lesson into a <span class="accent">classroom-ready game.</span></h1>
+            <div class="ls-hero-kicker">SCRIPTURE-CENTERED GAMES FOR TEACHERS AND FAMILIES</div>
+            <h1>Help youth participate and <span class="accent">engage in learning.</span></h1>
             <p class="ls-hero-sub">
-                Kindred helps volunteer youth leaders run engaging, scripture-focused games
-                in under a minute of prep — no slides, no printouts, no planning from scratch every week.
+                Kindred turns any Come Follow Me, Seminary lessons, or General Conference talks
+                into a ready-to-play classroom game. Teachers can personalize games to meet teaching objectives.
+                Class is ready in minutes.
             </p>
-            <div class="ls-hero-ctas">
-                <button class="ls-cta-primary" onclick="window.signInGoogle()">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#0a0a12"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#0a0a12"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#0a0a12"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#0a0a12"/>
-                    </svg>
-                    Request Early Access
-                </button>
-                <a href="#how-it-works" class="ls-cta-secondary">See how it works ↓</a>
-            </div>
             <div class="ls-audience-row">
                 <span class="ls-audience-label">Built for</span>
                 <span class="ls-audience-badge">Sunday School</span>
                 <span class="ls-audience-badge">Seminary</span>
                 <span class="ls-audience-badge">Institute</span>
-                <span class="ls-audience-badge">Youth Programs</span>
-                <span class="ls-audience-badge">Young Adults</span>
-            </div>
-            <div class="ls-hero-pilot" style="margin-top:18px;">
-                <span class="dot"></span>INVITE-ONLY PILOT · FREE WHILE WE VALIDATE COSTS &amp; FINISH LEGAL REVIEW
+                <span class="ls-audience-badge">Young Women &amp; Men</span>
+                <span class="ls-audience-badge">Family Home Evening</span>
             </div>
         </section>
 
-        <!-- Problem -->
+        <!-- Problem (softened — teachers as faithful and busy, not inadequate) -->
         <section class="ls-section ls-section-tight">
-            <h2 class="ls-h2">Volunteers shouldn't need hours of prep <span class="accent">to run a great class.</span></h2>
+            <h2 class="ls-h2">Build <span class="accent">youth engagement</span> into every lesson.</h2>
             <p class="ls-h2-sub">
-                Youth leaders in Sunday School, Seminary, and Institute give their time — not their weekdays.
-                Kindred handles the lesson mechanics so you can focus on the people in the room.
+                Research finds students in active-learning classrooms are <strong style="color:var(--neon-cyan); font-weight:700;">1.5× less likely to fall behind</strong> than peers in lecture-only ones. Kindred is built around the same idea — turn each lesson into something youth <em>do</em>, not something they sit through.
+            </p>
+            <p class="ls-h2-cite">
+                Source: Freeman et al., PNAS meta-analysis of 225 classroom studies, 2014
             </p>
             <div class="ls-problem">
                 <div class="ls-problem-card">
@@ -1027,22 +1126,59 @@
                 <div class="ls-problem-card">
                     <span class="emoji">🙋</span>
                     <h3>GETTING STUDENTS TALKING</h3>
-                    <p>Games lower the barrier to participation. Students who stay quiet in a lecture will jump into a team round — and take the lesson home with them.</p>
+                    <p>Team games lower the barrier to participation. Students who don't normally raise their hand often jump into a round — and take the lesson home with them.</p>
                 </div>
                 <div class="ls-problem-card">
                     <span class="emoji">📺</span>
                     <h3>HOLDING ATTENTION</h3>
-                    <p>A visual, interactive format works for youth raised on interactive media. Kindred looks like something worth paying attention to.</p>
+                    <p>A visual, interactive format works for the way today's youth learn — built for classroom screens, not slide decks.</p>
                 </div>
             </div>
         </section>
 
-        <!-- Feature 1: Common Ground -->
-        <section class="ls-section">
+        <!-- The Three-Game Toolkit (replaces the old long feature sections) -->
+        <section class="ls-section ls-section-tight">
+            <h2 class="ls-h2">One lesson. <span class="accent">Three games. One smart recommendation.</span></h2>
+            <p class="ls-h2-sub">
+                Pick the format that fits this week's lesson. Kindred reads each Come Follow Me lesson and recommends the game that fits best — <em>narrative</em>, <em>doctrinal</em>, or somewhere in between.
+            </p>
+            <div class="ls-toolkit-grid">
+                <div class="ls-toolkit-card cyan">
+                    <div class="ls-toolkit-icon">🎯</div>
+                    <h3>Common Ground</h3>
+                    <p class="ls-toolkit-tag">Survey-style team game · best for topic-rich lessons</p>
+                    <p class="ls-toolkit-body">Teams race to uncover the top answers to a scripture-centered question, then discuss how the verse applies. High energy, fast turns, ~25 min.</p>
+                    <div class="ls-toolkit-fit"><strong>Great for:</strong> Deuteronomy, Proverbs, fruits-of-the-Spirit, Conference talks</div>
+                </div>
+                <div class="ls-toolkit-card pink">
+                    <div class="ls-toolkit-icon">🧩</div>
+                    <h3>Scripture Match</h3>
+                    <p class="ls-toolkit-tag">Memory pairs · best for scripture-heavy lessons</p>
+                    <p class="ls-toolkit-body">Match a scripture reference to its key phrase. Each match opens the full verse, a Christ connection, and a class discussion question — readable from the back row.</p>
+                    <div class="ls-toolkit-fit"><strong>Great for:</strong> Beatitudes, Psalms, key verses, named events</div>
+                </div>
+                <div class="ls-toolkit-card gold">
+                    <div class="ls-toolkit-icon">🚶</div>
+                    <h3>Scripture Trail</h3>
+                    <p class="ls-toolkit-tag">Sequential story walkthrough · best for narrative lessons</p>
+                    <p class="ls-toolkit-body">Two teams journey through the lesson's stories in order — three short Church videos set the scene, then captain-led teams answer multiple-choice questions and discuss as a class.</p>
+                    <div class="ls-toolkit-fit"><strong>Great for:</strong> Ruth, Joseph, David, Esther, Daniel, Jonah</div>
+                </div>
+            </div>
+            <div class="ls-smart-strip">
+                <span class="ls-smart-label">✨ SMART RECOMMENDATION</span>
+                <span class="ls-smart-body">Each week Kindred flags the Come Follow Me lesson as <em>narrative</em> · <em>doctrinal</em> · <em>mixed</em> and recommends the best game format. You stay in control of which one to play.</span>
+            </div>
+        </section>
+
+        <!-- Removed legacy long feature sections (Common Ground, Scripture Match, Lesson Library)
+             — consolidated into the three-card toolkit above. Original detail content available
+             in git history at commit 6802998 if we need to bring any of it back. -->
+        <section style="display:none;" aria-hidden="true">
             <div class="ls-feature">
                 <div>
                     <div class="ls-feature-kicker">GAME 1 · COMMON GROUND</div>
-                    <h3>Survey-style game, scripture-anchored.</h3>
+                    <h3>Survey-style game, scripture-centered.</h3>
                     <p>
                         Two teams. Four answers behind each card. Teens race to
                         reveal what their peers said — then you pull the verse
@@ -1091,7 +1227,7 @@
                     </p>
                     <ul>
                         <li>QR code on every match — students can open the verse on their phone</li>
-                        <li>Friendly sabotage shuffles unmatched cards to keep it competitive</li>
+                        <li>Light competitive mechanics shuffle unmatched cards to keep it engaging</li>
                         <li>Default Exodus pack ships immediately — no setup required</li>
                         <li>Any Come Follow Me URL becomes a custom pair set</li>
                     </ul>
@@ -1199,30 +1335,18 @@
             </div>
         </section>
 
-        <!-- Trust / compliance -->
+        <!-- Trust / compliance — renamed to "Teachers stay in control", simplified to a tight bullet list -->
         <section class="ls-section ls-trust">
-            <h2 class="ls-h2" style="text-align:center;">Built to <span class="accent">help you review faster</span> — not to replace your judgment.</h2>
+            <h2 class="ls-h2" style="text-align:center;">Teachers stay in control <span class="accent">of lesson content.</span></h2>
             <p class="ls-h2-sub" style="text-align:center; margin-left:auto; margin-right:auto;">
-                Every game runs through two automated layers before it reaches your library. You still review every lesson before classroom use.
+                Kindred drafts the questions — you review, edit, and lead the class. Every generated lesson passes an automated content review before it reaches your library.
             </p>
-            <div class="ls-trust-grid">
-                <div class="ls-trust-card">
-                    <h4>KEYWORD FILTER</h4>
-                    <p>An automated filter (substances, sexual content, self-harm, violence) runs on every generated string before the game can render.</p>
-                </div>
-                <div class="ls-trust-card">
-                    <h4>AI SAFETY PASS</h4>
-                    <p>A second AI pass tags each item pass / rewrite / block using internal age-appropriateness and content-safety rules.</p>
-                </div>
-                <div class="ls-trust-card">
-                    <h4>AUDITABLE REPORT</h4>
-                    <p>Every generated lesson ships with a structured report: how many items passed, how many were rewritten, how many were blocked. Not a black box.</p>
-                </div>
-                <div class="ls-trust-card">
-                    <h4>NO STUDENT PII</h4>
-                    <p>Players use anonymous auth. Only teachers sign in. Team names, not student names, appear on the classroom display.</p>
-                </div>
-            </div>
+            <ul class="ls-trust-bullets">
+                <li><strong>Teachers review and can edit every question</strong> before using it in class. Customise wording, swap out distractors, change the discussion prompt — your call.</li>
+                <li><strong>No student accounts.</strong> Only teachers sign in. Students never need a login, an email address, or a profile.</li>
+                <li><strong>No student names on the classroom display.</strong> Teams pick a team name; individual student names are never shown.</li>
+                <li><strong>Automated content review.</strong> Every generated question runs through a keyword filter and an AI safety pass before it can render in a game.</li>
+            </ul>
             <p class="ls-h2-sub" style="text-align:center; margin:24px auto 0; max-width:780px; font-size:0.85rem; opacity:0.75;">
                 The automated checks above are written and run by Kindred. They are not reviewed, audited, or endorsed by The Church of Jesus Christ of Latter-day Saints. Teachers are responsible for reviewing generated content before classroom use.
             </p>
@@ -1230,10 +1354,9 @@
 
         <!-- Final CTA -->
         <section class="ls-section ls-final">
-            <h2>Bring Kindred to your class.</h2>
+            <h2>Ready for Sunday's lesson <span class="accent">in about a minute.</span></h2>
             <p>
-                We're in an invite-only pilot while we validate AI costs and complete legal review.
-                Request access — it's free while we grow.
+                Join the limited free pilot and help shape Kindred for teachers and families.
             </p>
             <div class="ls-hero-ctas">
                 <button class="ls-cta-primary" onclick="window.signInGoogle()">
@@ -1250,9 +1373,9 @@
         </section>
 
         <footer class="ls-footer">
-            Kindred · Built for youth leaders and volunteer teachers · Questions? <a href="mailto:lewiswf@gmail.com">lewiswf@gmail.com</a>
+            Kindred · Built for teachers and families · Questions? <a href="mailto:lewiswf@gmail.com">lewiswf@gmail.com</a>
             <div class="ls-disclaimer">
-                Kindred is an independent tool created by a volunteer youth leader. Kindred is <strong>not affiliated with, endorsed by, or sponsored by</strong> The Church of Jesus Christ of Latter-day Saints or Intellectual Reserve, Inc.
+                Kindred is an independent tool created by a teacher. Kindred is <strong>not affiliated with, endorsed by, or sponsored by</strong> The Church of Jesus Christ of Latter-day Saints or Intellectual Reserve, Inc.
                 "Come Follow Me," "Seminary," "Institute," "For the Strength of Youth," "Teaching in the Savior's Way," and related Church program names are trademarks of Intellectual Reserve, Inc.
             </div>
         </footer>
@@ -1285,6 +1408,9 @@
                 <div class="request-title" style="text-align:center;">Welcome to Kindred</div>
                 <p class="request-sub" style="text-align:center;">How would you like to get started?</p>
                 <p style="color:var(--text-muted); font-size:0.78rem; margin:-10px 0 14px; text-align:center;" id="request-email-line"></p>
+                <div class="ls-hero-pilot" style="margin: 0 0 18px; text-align: center;">
+                    <span class="dot"></span>CURRENTLY IN A LIMITED FREE PILOT &middot; YOUR REQUEST WILL BE REVIEWED
+                </div>
                 <button class="picker-btn" style="margin-bottom:10px;" onclick="window.pickIntent('create_classroom')">
                     <span>🌱 Start a new classroom</span>
                     <span class="picker-btn-meta">I'm the first teacher for my class</span>
