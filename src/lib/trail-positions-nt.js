@@ -7,7 +7,7 @@
 
 export const THEME = {
   key: 'nt',
-  boardSrc: '/games/assets/scripture-trail-board-ot.png', // ← swap to -nt.png
+  boardSrc: '/games/assets/scripture-trail-board-nt.png',
   tokenStart: { x: 120, y: 820 },
 
   // TODO: replace with positions calibrated against NT board art

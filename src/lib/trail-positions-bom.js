@@ -3,7 +3,7 @@
 
 export const THEME = {
   key: 'bom',
-  boardSrc: '/games/assets/scripture-trail-board-ot.png', // ← swap to -bom.png
+  boardSrc: '/games/assets/scripture-trail-board-bom.png',
   tokenStart: { x: 120, y: 820 },
   positions: [
     { x:  230, y: 760 }, { x:  400, y: 790 }, { x:  570, y: 820 },
