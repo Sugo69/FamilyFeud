@@ -475,6 +475,67 @@
         .game-card.pink:hover .game-card-play { color: var(--neon-pink); }
         .game-card.gold:hover .game-card-play { color: #ffc857; }
 
+        /* ── Curriculum tabs (CFM / Seminary) ── */
+        .curriculum-tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 2px solid #1a1a35;
+            margin-bottom: 24px;
+        }
+        .curr-tab {
+            background: transparent;
+            border: none;
+            color: #6a6a80;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 1.5px;
+            padding: 14px 22px 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .curr-tab:hover { color: #c8c8d8; }
+        .curr-tab.active {
+            color: var(--neon-cyan);
+            border-bottom-color: var(--neon-cyan);
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        .stub-banner {
+            background: rgba(255,200,87,0.08);
+            border: 1px solid rgba(255,200,87,0.25);
+            color: #c8a85a;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+        .stub-banner strong { color: #ffc857; font-weight: 600; }
+
+        .this-week-subtitle {
+            color: #a0a0b5;
+            font-size: 0.95rem;
+            margin-top: -6px;
+            font-style: italic;
+        }
+
+        .dm-badge {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 2px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(179,136,255,0.12);
+            color: #b388ff;
+            border: 1px solid rgba(179,136,255,0.3);
+        }
+
         /* ── This Week's Lesson hero card ── */
         .this-week-card {
             background: linear-gradient(135deg, #0d0d1f 0%, #0d1828 100%);
@@ -1660,29 +1721,72 @@
             <p class="hero-tagline">Youth Learning Together</p>
         </div>
 
-        <!-- ── This Week's Lesson (hero) ── -->
+        <!-- ── Curriculum tabs ── -->
         <div class="section">
-            <div id="this-week-card" class="this-week-card">
-                <div class="this-week-meta">
-                    <span class="this-week-eyebrow">📅 THIS WEEK</span>
-                    <span class="this-week-dates" id="this-week-dates"></span>
+            <div class="curriculum-tabs" role="tablist">
+                <button class="curr-tab active" data-tab="cfm" role="tab" aria-selected="true">
+                    📅 <span>Come Follow Me</span>
+                </button>
+                <button class="curr-tab" data-tab="seminary" role="tab" aria-selected="false">
+                    🎓 <span>Seminary</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── CFM tab content ── -->
+        <div class="tab-panel active" id="tab-content-cfm" role="tabpanel">
+            <div class="section">
+                <div id="this-week-card" class="this-week-card">
+                    <div class="this-week-meta">
+                        <span class="this-week-eyebrow">📅 THIS WEEK</span>
+                        <span class="this-week-dates" id="this-week-dates"></span>
+                    </div>
+                    <h2 class="this-week-title" id="this-week-title">Loading this week's lesson…</h2>
+                    <div class="this-week-badges">
+                        <span class="lesson-type-badge" id="this-week-type-badge"></span>
+                        <span class="recommended-badge">✨ RECOMMENDED</span>
+                    </div>
+                    <div class="this-week-games" id="this-week-games">
+                        <!-- 3 game tiles rendered by JS, sorted best-fit first -->
+                    </div>
                 </div>
-                <h2 class="this-week-title" id="this-week-title">Loading this week's lesson…</h2>
-                <div class="this-week-badges">
-                    <span class="lesson-type-badge" id="this-week-type-badge"></span>
-                    <span class="recommended-badge">✨ RECOMMENDED</span>
-                </div>
-                <div class="this-week-games" id="this-week-games">
-                    <!-- 3 game tiles rendered by JS, sorted best-fit first -->
+            </div>
+            <div class="section">
+                <h2 class="section-title">Upcoming Lessons</h2>
+                <div class="upcoming-grid" id="upcoming-grid">
+                    <!-- rendered by JS -->
                 </div>
             </div>
         </div>
 
-        <!-- ── Upcoming Lessons ── -->
-        <div class="section">
-            <h2 class="section-title">Upcoming Lessons</h2>
-            <div class="upcoming-grid" id="upcoming-grid">
-                <!-- rendered by JS -->
+        <!-- ── Seminary tab content ── -->
+        <div class="tab-panel" id="tab-content-seminary" role="tabpanel" hidden>
+            <div class="section">
+                <div class="stub-banner" id="seminary-stub-banner" style="display:none;">
+                    ⚠️ <strong>Stub content</strong> — the full NT 2026–27 Seminary schedule arrives before the Aug 17 launch. Two weeks of placeholder lessons shown below.
+                </div>
+                <div class="this-week-card">
+                    <div class="this-week-meta">
+                        <span class="this-week-eyebrow">🎓 TODAY'S SEMINARY LESSON</span>
+                        <span class="this-week-dates" id="seminary-date"></span>
+                    </div>
+                    <h2 class="this-week-title" id="seminary-title">Loading today's Seminary lesson…</h2>
+                    <div class="this-week-subtitle" id="seminary-scriptures"></div>
+                    <div class="this-week-badges">
+                        <span class="lesson-type-badge" id="seminary-type-badge"></span>
+                        <span class="recommended-badge">✨ RECOMMENDED</span>
+                        <span class="dm-badge" id="seminary-dm-badge" style="display:none;">📖 DOCTRINAL MASTERY</span>
+                    </div>
+                    <div class="this-week-games" id="seminary-games">
+                        <!-- 3 game tiles rendered by JS -->
+                    </div>
+                </div>
+            </div>
+            <div class="section">
+                <h2 class="section-title">This Week (Mon–Fri)</h2>
+                <div class="upcoming-grid" id="seminary-upcoming-grid">
+                    <!-- rendered by JS -->
+                </div>
             </div>
         </div>
 
@@ -1823,15 +1927,27 @@
             getGameRecommendations,
             getRecommendedGame,
         } from "/src/lib/cfm-schedule.js";
+        import {
+            getCurrentSeminaryLesson,
+            getUpcomingSeminaryLessons,
+            formatSeminaryDate,
+            SEMINARY_IS_STUB,
+        } from "/src/lib/seminary-schedule.js";
 
         // Expose to the rest of the portal JS (which lives in a non-module inline script later)
         window.__kindredSchedule = {
+            // CFM
             getCurrentCfmLesson,
             getUpcomingCfmLessons,
             formatLessonDateRange,
             formatLessonTypeBadge,
             getGameRecommendations,
             getRecommendedGame,
+            // Seminary
+            getCurrentSeminaryLesson,
+            getUpcomingSeminaryLessons,
+            formatSeminaryDate,
+            SEMINARY_IS_STUB,
         };
 
         // ⚠ TEST MODE — flip to 'lewiswf@gmail.com' (or the constant exported
@@ -2241,7 +2357,7 @@
             }).join('');
             document.getElementById('this-week-games').innerHTML = tiles;
 
-            // ── Upcoming Lessons ──
+            // ── Upcoming CFM Lessons ──
             const upcomingHtml = upcoming.map(lesson => {
                 const rec = S.getRecommendedGame(lesson.type);
                 return `
@@ -2257,6 +2373,93 @@
             }).join('');
             const grid = document.getElementById('upcoming-grid');
             if (grid) grid.innerHTML = upcomingHtml || '<div style="color:#6a6a80; font-size:0.9rem;">No upcoming lessons in the current manual.</div>';
+
+            // ── Seminary tab ──
+            renderSeminaryTab(classroomId, lessonLink);
+
+            // ── Tab switching ──
+            document.querySelectorAll('.curr-tab').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.curr-tab').forEach(b => {
+                        b.classList.remove('active');
+                        b.setAttribute('aria-selected', 'false');
+                    });
+                    btn.classList.add('active');
+                    btn.setAttribute('aria-selected', 'true');
+                    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                    const target = document.getElementById('tab-content-' + btn.dataset.tab);
+                    if (target) target.classList.add('active');
+                });
+            });
+        }
+
+        // ── Seminary tab rendering (uses stub data until NT 2026-27 manual lands) ──
+        function renderSeminaryTab(classroomId, lessonLink) {
+            const S = window.__kindredSchedule;
+            if (!S?.getCurrentSeminaryLesson) return;
+
+            if (S.SEMINARY_IS_STUB) {
+                const banner = document.getElementById('seminary-stub-banner');
+                if (banner) banner.style.display = '';
+            }
+
+            const today = S.getCurrentSeminaryLesson();
+            const upcoming = S.getUpcomingSeminaryLessons(new Date(), 5);
+
+            document.getElementById('seminary-date').textContent = today.displayDate;
+            document.getElementById('seminary-title').textContent = today.title;
+            document.getElementById('seminary-scriptures').textContent = today.scriptures || '';
+            const typeBadge = document.getElementById('seminary-type-badge');
+            typeBadge.textContent = S.formatLessonTypeBadge(today.type);
+            typeBadge.className = `lesson-type-badge ${today.type || 'mixed'}`;
+
+            // Doctrinal Mastery callout if this lesson has a DM passage
+            const dmBadge = document.getElementById('seminary-dm-badge');
+            if (today.dmPassage) {
+                dmBadge.style.display = '';
+                dmBadge.textContent = `📖 DOCTRINAL MASTERY · ${today.dmPassage}`;
+            } else {
+                dmBadge.style.display = 'none';
+            }
+
+            // Game recommendations (same matrix as CFM)
+            const recs = S.getGameRecommendations(today.type);
+            const tiles = recs.map(g => {
+                const fitLabel = g.fit === 'best' ? 'BEST FIT'
+                              : g.fit === 'good' ? 'GOOD FIT'
+                              : 'LIMITED FIT';
+                const note = g.fit === 'limited'
+                    ? '<div class="twg-note">Better suited for narrative lessons</div>' : '';
+                return `
+                    <a class="this-week-game-tile ${g.color} fit-${g.fit}" href="${lessonLink(today, g.href)}">
+                        <div class="twg-row">
+                            <span class="twg-icon">${g.icon}</span>
+                            <span class="twg-name">${g.name}</span>
+                            <span class="twg-fit-label fit-${g.fit}">${fitLabel}</span>
+                        </div>
+                        ${note}
+                        <div class="twg-cta">Play with this lesson →</div>
+                    </a>`;
+            }).join('');
+            document.getElementById('seminary-games').innerHTML = tiles;
+
+            // This week (Mon–Fri) strip
+            const upcomingHtml = upcoming.map(lesson => {
+                const rec = S.getRecommendedGame(lesson.type);
+                const dmHint = lesson.dmPassage ? `<span style="color:#b388ff; font-weight:600;"> · 📖 DM</span>` : '';
+                return `
+                    <a class="upcoming-card" href="${lessonLink(lesson, rec.href)}">
+                        <div class="upcoming-date">${lesson.displayDate}${dmHint}</div>
+                        <div class="upcoming-title">${lesson.title}</div>
+                        <div class="upcoming-rec">
+                            <span class="twg-icon">${rec.icon}</span>
+                            <span>Recommended:</span>
+                            <span class="upcoming-rec-game ${rec.color}">${rec.name}</span>
+                        </div>
+                    </a>`;
+            }).join('');
+            const grid = document.getElementById('seminary-upcoming-grid');
+            if (grid) grid.innerHTML = upcomingHtml || '<div style="color:#6a6a80; font-size:0.9rem;">No upcoming Seminary lessons in the current stub data.</div>';
         }
 
         // ── Profile modal ──
