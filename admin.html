@@ -2581,6 +2581,17 @@
         };
 
         // ── End Lesson Library ─────────────────────────────────────
+
+        // Exposed for the calibration tab (non-module script can't import Firebase directly)
+        window.__calibSave = async (key, data) => {
+            await setDoc(doc(db, `${basePath}/trailThemes/${key}`), { ...data, savedAt: serverTimestamp() });
+        };
+        window.__calibLoad = async (key) => {
+            try {
+                const snap = await getDoc(doc(db, `${basePath}/trailThemes/${key}`));
+                return snap.exists() ? snap.data() : null;
+            } catch(e) { return null; }
+        };
     </script>
 
     <script>
@@ -2654,237 +2665,341 @@
     </style>
 
     <script>
+    /* ── Trail Board Calibration ────────────────────────────────────────── */
     (function() {
         const THEMES = ['ot','nt','bom','dc','moses','abraham'];
+        const STUB_LABELS = {
+            ot:      ['MOAB','BETHLEHEM','SHILOH','MIZPAH'],
+            nt:      ['GALILEE','CAPERNAUM','JUDEA','JERUSALEM'],
+            bom:     ['JERUSALEM','WILDERNESS','PROMISED LAND','ZION'],
+            dc:      ['PALMYRA','KIRTLAND','MISSOURI','NAUVOO'],
+            moses:   ['GARDEN','MOUNT','ENOCH','ARK'],
+            abraham: ['UR','CANAAN','EGYPT','COVENANT'],
+        };
         const MAX_STOPS = 10;
-        let currentTheme = 'nt';
-        let mode = 'stops'; // 'stops' | 'regions'
-        let stops = [];           // [{x,y}, ...]
-        let regions = [           // [{label,x,y}, ...]
-            {label:'', x:120,  y:1020},
-            {label:'', x:560,  y:1070},
-            {label:'', x:1180, y:1070},
-            {label:'', x:1780, y:1020},
-        ];
-        let waitingRegionIdx = -1; // which region is waiting for a click
 
+        // Per-theme state — survives theme switches within this session
+        const themeState = {};
+        THEMES.forEach(k => {
+            themeState[k] = {
+                stops: [],
+                regions: STUB_LABELS[k].map((label, i) => ({
+                    label,
+                    x: [120, 560, 1180, 1780][i],
+                    y: [1020, 1070, 1070, 1020][i],
+                })),
+                savedToFirestore: false,
+            };
+        });
+
+        let currentTheme = 'nt';
+        let mode = 'stops';
+        let dragging = null;   // { type:'stop'|'region', idx, lastX, lastY }
+        let dragMoved = false;
+        let waitingRegionIdx = -1;
+
+        // Shorthand accessors for current theme state
+        const S = () => themeState[currentTheme];
+
+        // ── SVG coordinate helper ──────────────────────────────────────
+        function svgCoords(e) {
+            const svg = document.getElementById('calib-svg');
+            const pt = svg.createSVGPoint();
+            pt.x = e.clientX; pt.y = e.clientY;
+            const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+            return { x: Math.round(p.x), y: Math.round(p.y) };
+        }
+
+        function distSq(ax, ay, bx, by) {
+            return (ax-bx)**2 + (ay-by)**2;
+        }
+
+        // ── Init (renders skeleton HTML once) ─────────────────────────
         function init() {
             const tab = document.getElementById('tab-calibrate');
             if (!tab) return;
-
             tab.innerHTML = `
 <div class="section-head"><div class="section-title">Trail Board Calibration</div></div>
 <p class="calib-hint">
-  Select a theme, then click on the board to place stop positions 1–10 in order.
-  Switch to <strong>Regions</strong> mode to place the 4 geographic label positions.
-  Copy the output and paste it into the matching <code>src/lib/trail-positions-{key}.js</code>.
+  Select a theme and click the board to place stops 1–10.
+  <strong>Drag</strong> any placed marker to move it.
+  Switch to <strong>Regions</strong> mode for geographic labels.
+  <strong>Clear all</strong> only clears the <em>current theme</em> — other themes are unaffected.
+  Hit <strong>💾 Save</strong> to persist to Firestore (game picks it up automatically).
 </p>
-
 <div class="calib-controls">
   <select id="calib-theme-select">
-    ${THEMES.map(t => `<option value="${t}"${t===currentTheme?' selected':''}>${t.toUpperCase()}</option>`).join('')}
+    ${THEMES.map(t=>`<option value="${t}"${t===currentTheme?' selected':''}>${t.toUpperCase()}</option>`).join('')}
   </select>
-  <button class="calib-btn active-mode" id="calib-mode-stops" onclick="calibSetMode('stops')">📍 Stops</button>
-  <button class="calib-btn" id="calib-mode-regions" onclick="calibSetMode('regions')">🏷 Regions</button>
-  <button class="calib-btn" onclick="calibUndo()">↩ Undo last</button>
-  <button class="calib-btn danger" onclick="calibReset()">✕ Clear all</button>
+  <button class="calib-btn active-mode" id="calib-mode-stops"   onclick="calibSetMode('stops')">📍 Stops</button>
+  <button class="calib-btn"             id="calib-mode-regions" onclick="calibSetMode('regions')">🏷 Regions</button>
+  <button class="calib-btn" onclick="calibUndo()">↩ Undo</button>
+  <button class="calib-btn danger" onclick="calibReset()">✕ Clear this theme</button>
+  <button class="calib-btn" id="calib-save-btn" onclick="calibSave()" style="background:rgba(56,210,255,.12);border-color:var(--neon-cyan);color:var(--neon-cyan);">💾 Save</button>
+  <span id="calib-save-status" style="font-size:12px;color:var(--text-muted);"></span>
 </div>
-
-<div id="calib-regions-editor" style="display:none; margin-bottom:14px;">
-  <p class="calib-hint" style="margin-bottom:8px">Enter label text, then click <em>Pick</em> and click on the board to set position.</p>
+<div id="calib-regions-editor" style="display:none;margin-bottom:14px;">
+  <p class="calib-hint" style="margin-bottom:8px;">
+    Enter label text, then click <strong>Pick</strong> and click the board — or drag the cyan dot.
+  </p>
   <div id="calib-regions-rows"></div>
 </div>
-
 <div class="calib-board-wrap" id="calib-board-wrap">
   <img id="calib-img" src="" alt="trail board"/>
   <svg id="calib-svg" viewBox="0 0 2000 1116" preserveAspectRatio="xMidYMid meet">
     <g id="calib-markers"></g>
   </svg>
 </div>
-
 <div id="calib-stop-count" style="font-size:13px;color:var(--text-muted);margin-bottom:8px;"></div>
-
 <div class="calib-output" id="calib-output"></div>
-<button class="calib-btn" onclick="calibCopy()" style="margin-bottom:20px">📋 Copy output</button>
-`;
+<button class="calib-btn" onclick="calibCopy()" style="margin-bottom:20px;">📋 Copy output</button>`;
+
             document.getElementById('calib-theme-select').addEventListener('change', e => {
                 currentTheme = e.target.value;
-                stops = [];
-                regions = [
-                    {label:'', x:120,  y:1020},
-                    {label:'', x:560,  y:1070},
-                    {label:'', x:1180, y:1070},
-                    {label:'', x:1780, y:1020},
-                ];
-                loadThemeDefaults();
+                waitingRegionIdx = -1;
+                loadBoardImage();
                 renderRegionRows();
                 renderAll();
+                loadFromFirestore();
             });
 
-            document.getElementById('calib-svg').addEventListener('click', onBoardClick);
+            const svg = document.getElementById('calib-svg');
+            svg.addEventListener('mousedown', onMouseDown);
+            svg.addEventListener('mousemove', onMouseMove);
+            svg.addEventListener('mouseup',   onMouseUp);
+            svg.addEventListener('mouseleave', onMouseUp);
 
-            loadThemeDefaults();
+            loadBoardImage();
             renderRegionRows();
             renderAll();
+            loadFromFirestore();
         }
 
-        // Pre-fill regions with the stub labels from the position files
-        const STUB_REGIONS = {
-            ot:      ['MOAB','BETHLEHEM','SHILOH','MIZPAH'],
-            nt:      ['GALILEE','CAPERNAUM','JUDEA','JERUSALEM'],
-            bom:     ['JERUSALEM','WILDERNESS','PROMISED','LAND'],
-            dc:      ['PALMYRA','KIRTLAND','MISSOURI','NAUVOO'],
-            moses:   ['GARDEN','MOUNT','ENOCH','ARK'],
-            abraham: ['UR','CANAAN','EGYPT','COVENANT'],
-        };
-
-        function loadThemeDefaults() {
-            document.getElementById('calib-img').src =
-                `/games/assets/scripture-trail-board-${currentTheme}.png`;
-            const labels = STUB_REGIONS[currentTheme] || ['','','',''];
-            regions.forEach((r, i) => { r.label = labels[i] || ''; });
+        function loadBoardImage() {
+            const img = document.getElementById('calib-img');
+            if (img) img.src = `/games/assets/scripture-trail-board-${currentTheme}.png`;
         }
 
+        // ── Mode switching ─────────────────────────────────────────────
         window.calibSetMode = function(m) {
             mode = m;
             waitingRegionIdx = -1;
             document.getElementById('calib-mode-stops').classList.toggle('active-mode', m==='stops');
             document.getElementById('calib-mode-regions').classList.toggle('active-mode', m==='regions');
             document.getElementById('calib-regions-editor').style.display = m==='regions' ? '' : 'none';
-            document.getElementById('calib-board-wrap').style.cursor = m==='stops' ? 'crosshair' : 'default';
+            document.getElementById('calib-board-wrap').style.cursor = 'crosshair';
             renderAll();
         };
 
-        window.calibUndo = function() {
-            if (mode === 'stops' && stops.length > 0) { stops.pop(); renderAll(); }
-        };
+        // ── Mouse drag logic ───────────────────────────────────────────
+        function hitTestStop(x, y) {
+            return S().stops.findIndex(p => distSq(x,y,p.x,p.y) < 34*34);
+        }
+        function hitTestRegion(x, y) {
+            return S().regions.findIndex(r => r.x && r.y && distSq(x,y,r.x,r.y) < 28*28);
+        }
 
+        function onMouseDown(e) {
+            const {x, y} = svgCoords(e);
+            dragMoved = false;
+
+            // Check if clicking on an existing marker (drag to move)
+            const si = hitTestStop(x, y);
+            if (si >= 0) { dragging = { type:'stop', idx:si }; e.preventDefault(); return; }
+
+            if (mode === 'regions' || waitingRegionIdx >= 0) {
+                const ri = hitTestRegion(x, y);
+                if (ri >= 0) { dragging = { type:'region', idx:ri }; e.preventDefault(); return; }
+            }
+        }
+
+        function onMouseMove(e) {
+            if (!dragging) return;
+            dragMoved = true;
+            const {x, y} = svgCoords(e);
+            if (dragging.type === 'stop')   S().stops[dragging.idx]   = {x, y};
+            if (dragging.type === 'region') { S().regions[dragging.idx].x = x; S().regions[dragging.idx].y = y; }
+            renderMarkers();
+            renderOutput();
+            updateCountLine();
+        }
+
+        function onMouseUp(e) {
+            if (dragging) { dragging = null; return; }
+            if (dragMoved) { dragMoved = false; return; }
+
+            // Not a drag — treat as a placement click
+            const {x, y} = svgCoords(e);
+
+            if (mode === 'stops' && waitingRegionIdx < 0) {
+                if (hitTestStop(x, y) >= 0) return; // clicked existing stop — drag handled it
+                if (S().stops.length < MAX_STOPS) {
+                    S().stops.push({x, y});
+                    renderAll();
+                }
+            } else if (waitingRegionIdx >= 0) {
+                S().regions[waitingRegionIdx].x = x;
+                S().regions[waitingRegionIdx].y = y;
+                waitingRegionIdx = -1;
+                document.getElementById('calib-board-wrap').style.cursor = 'crosshair';
+                document.querySelectorAll('.calib-pick-btn').forEach(b => {
+                    b.classList.remove('waiting'); b.textContent = 'Pick';
+                });
+                renderMarkers();
+                renderOutput();
+                updateRegionInputs();
+            }
+        }
+
+        // ── Undo / Reset ───────────────────────────────────────────────
+        window.calibUndo = function() {
+            if (mode === 'stops' && S().stops.length > 0) { S().stops.pop(); renderAll(); }
+        };
         window.calibReset = function() {
-            if (!confirm('Clear all placed positions?')) return;
-            stops = [];
-            regions.forEach(r => { r.x = 0; r.y = 0; });
+            if (!confirm(`Clear all positions for ${currentTheme.toUpperCase()}? Other themes are not affected.`)) return;
+            S().stops = [];
+            S().regions = STUB_LABELS[currentTheme].map((label, i) => ({
+                label, x: [120,560,1180,1780][i], y: [1020,1070,1070,1020][i],
+            }));
+            waitingRegionIdx = -1;
             renderRegionRows();
             renderAll();
+            document.getElementById('calib-save-status').textContent = '';
         };
 
+        // ── Region row UI ──────────────────────────────────────────────
         window.calibPickRegion = function(idx) {
             waitingRegionIdx = idx;
             document.getElementById('calib-board-wrap').style.cursor = 'crosshair';
             document.querySelectorAll('.calib-pick-btn').forEach((b, i) => {
                 b.classList.toggle('waiting', i === idx);
-                b.textContent = i === idx ? '🎯 Click board…' : 'Pick';
+                b.textContent = i === idx ? '🎯 Click…' : 'Pick';
             });
         };
 
-        function onBoardClick(e) {
-            const svg = document.getElementById('calib-svg');
-            const pt = svg.createSVGPoint();
-            pt.x = e.clientX;
-            pt.y = e.clientY;
-            const svgPt = pt.matrixTransform(svg.getScreenCTM().inverse());
-            const x = Math.round(svgPt.x);
-            const y = Math.round(svgPt.y);
-
-            if (mode === 'stops') {
-                if (stops.length < MAX_STOPS) {
-                    stops.push({ x, y });
-                    renderAll();
-                }
-            } else if (mode === 'regions' && waitingRegionIdx >= 0) {
-                regions[waitingRegionIdx].x = x;
-                regions[waitingRegionIdx].y = y;
-                waitingRegionIdx = -1;
-                document.getElementById('calib-board-wrap').style.cursor = 'default';
-                document.querySelectorAll('.calib-pick-btn').forEach(b => {
-                    b.classList.remove('waiting');
-                    b.textContent = 'Pick';
-                });
-                renderRegionRows();
-                renderAll();
-            }
-        }
+        // Called only when user manually edits the text inputs (not on every render)
+        window.calibRegionLabelChange = (i, v) => { S().regions[i].label = v; renderMarkers(); renderOutput(); };
+        window.calibRegionXChange     = (i, v) => { S().regions[i].x = parseInt(v)||0; renderMarkers(); renderOutput(); };
+        window.calibRegionYChange     = (i, v) => { S().regions[i].y = parseInt(v)||0; renderMarkers(); renderOutput(); };
 
         function renderRegionRows() {
-            const container = document.getElementById('calib-regions-rows');
-            if (!container) return;
-            container.innerHTML = regions.map((r, i) => `
+            const c = document.getElementById('calib-regions-rows');
+            if (!c) return;
+            c.innerHTML = S().regions.map((r, i) => `
 <div class="calib-regions-row">
-  <input type="text" value="${r.label}" placeholder="Region label ${i+1}"
-         oninput="calibUpdateRegionLabel(${i}, this.value)"/>
-  <input type="number" value="${r.x}" placeholder="x"
-         oninput="calibUpdateRegionX(${i}, this.value)"/>
-  <input type="number" value="${r.y}" placeholder="y"
-         oninput="calibUpdateRegionY(${i}, this.value)"/>
+  <input type="text"   id="cr-label-${i}" value="${r.label}" placeholder="Label ${i+1}"
+         onchange="calibRegionLabelChange(${i},this.value)"/>
+  <input type="number" id="cr-x-${i}"     value="${r.x||''}" placeholder="x"
+         onchange="calibRegionXChange(${i},this.value)"/>
+  <input type="number" id="cr-y-${i}"     value="${r.y||''}" placeholder="y"
+         onchange="calibRegionYChange(${i},this.value)"/>
   <button class="calib-pick-btn" onclick="calibPickRegion(${i})">Pick</button>
 </div>`).join('');
         }
 
-        window.calibUpdateRegionLabel = (i, v) => { regions[i].label = v; renderAll(); };
-        window.calibUpdateRegionX     = (i, v) => { regions[i].x = parseInt(v)||0; renderAll(); };
-        window.calibUpdateRegionY     = (i, v) => { regions[i].y = parseInt(v)||0; renderAll(); };
+        // Update just the numeric inputs without rebuilding rows (avoids focus loss)
+        function updateRegionInputs() {
+            S().regions.forEach((r, i) => {
+                const xi = document.getElementById(`cr-x-${i}`);
+                const yi = document.getElementById(`cr-y-${i}`);
+                if (xi) xi.value = r.x || '';
+                if (yi) yi.value = r.y || '';
+            });
+        }
 
+        // ── Render ─────────────────────────────────────────────────────
         function renderAll() {
             renderMarkers();
             renderOutput();
-            const countEl = document.getElementById('calib-stop-count');
-            if (countEl) countEl.textContent =
-                mode === 'stops'
-                    ? `${stops.length} / ${MAX_STOPS} stops placed${stops.length===MAX_STOPS ? ' ✓' : ' — click the board to add the next'}`
-                    : 'Regions mode — enter labels and click Pick, then click the board';
+            updateCountLine();
+        }
+
+        function updateCountLine() {
+            const el = document.getElementById('calib-stop-count');
+            if (!el) return;
+            const n = S().stops.length;
+            el.textContent = mode === 'stops'
+                ? `${n} / ${MAX_STOPS} stops placed${n===MAX_STOPS?' ✓':' — click board to add next'}`
+                : 'Regions mode — drag cyan dots or click Pick then click board';
         }
 
         function renderMarkers() {
             const g = document.getElementById('calib-markers');
             if (!g) return;
             let html = '';
-
-            // Stop markers
-            stops.forEach((p, i) => {
-                html += `
-<circle cx="${p.x}" cy="${p.y}" r="34" class="calib-stop-circle placed"/>
-<text x="${p.x}" y="${p.y+8}" text-anchor="middle" class="calib-stop-num">${i+1}</text>`;
+            S().stops.forEach((p, i) => {
+                html += `<circle cx="${p.x}" cy="${p.y}" r="34" class="calib-stop-circle placed" style="cursor:grab"/>
+<text x="${p.x}" y="${p.y+8}" text-anchor="middle" class="calib-stop-num" style="pointer-events:none">${i+1}</text>`;
             });
-
-            // Region markers
-            if (mode === 'regions') {
-                regions.forEach((r, i) => {
-                    if (!r.x && !r.y) return;
-                    html += `
-<circle cx="${r.x}" cy="${r.y}" r="8" class="calib-region-dot"/>
-<text x="${r.x}" y="${r.y - 14}" text-anchor="middle" class="calib-region-text">${r.label || `R${i+1}`}</text>`;
-                });
-            }
+            S().regions.forEach((r, i) => {
+                if (!r.x && !r.y) return;
+                html += `<circle cx="${r.x}" cy="${r.y}" r="12" class="calib-region-dot" style="cursor:grab"/>
+<text x="${r.x}" y="${r.y-18}" text-anchor="middle" class="calib-region-text" style="pointer-events:none">${r.label||`R${i+1}`}</text>`;
+            });
             g.innerHTML = html;
         }
 
         function renderOutput() {
             const el = document.getElementById('calib-output');
             if (!el) return;
-            const pad = (n) => String(n).padStart(4);
-            const posLines = stops.map((p, i) =>
-                `  { x: ${pad(p.x)}, y: ${pad(p.y)} },  // ${i}`
-            ).join('\n');
-            const regLines = regions.map(r =>
-                `  { label: '${r.label}', x: ${pad(r.x)}, y: ${pad(r.y)} },`
+            const pad = n => String(n).padStart(4);
+            const posLines = S().stops.length
+                ? S().stops.map((p,i)=>`  { x:${pad(p.x)}, y:${pad(p.y)} },  // ${i}`).join('\n')
+                : '  // click board to place stops';
+            const regLines = S().regions.map(r =>
+                `  { label:'${r.label}', x:${pad(r.x)}, y:${pad(r.y)} },`
             ).join('\n');
             el.textContent =
-`// src/lib/trail-positions-${currentTheme}.js — paste over the placeholder arrays
+`// src/lib/trail-positions-${currentTheme}.js
 
-  positions: [
-${posLines || '  // click the board to place stops'}
-  ],
+  positions: [\n${posLines}\n  ],\n\n  regions: [\n${regLines}\n  ],`;
+        }
 
-  regions: [
-${regLines}
-  ],`;
+        // ── Firestore save / load ──────────────────────────────────────
+        window.calibSave = async function() {
+            const btn = document.getElementById('calib-save-btn');
+            const status = document.getElementById('calib-save-status');
+            if (!window.__calibSave) { status.textContent = 'Firebase not ready yet — try again'; return; }
+            btn.disabled = true; status.textContent = 'Saving…';
+            try {
+                await window.__calibSave(currentTheme, {
+                    positions: S().stops,
+                    regions:   S().regions,
+                });
+                S().savedToFirestore = true;
+                status.textContent = `✓ Saved ${currentTheme.toUpperCase()} at ${new Date().toLocaleTimeString()}`;
+            } catch(err) {
+                status.textContent = `Error: ${err.message}`;
+            }
+            btn.disabled = false;
+        };
+
+        async function loadFromFirestore() {
+            const status = document.getElementById('calib-save-status');
+            if (!window.__calibLoad) return;
+            if (status) status.textContent = 'Loading…';
+            try {
+                const data = await window.__calibLoad(currentTheme);
+                if (data?.positions?.length) {
+                    S().stops = data.positions;
+                    if (data.regions?.length) S().regions = data.regions;
+                    renderRegionRows();
+                    renderAll();
+                    if (status) status.textContent = `✓ Loaded saved ${currentTheme.toUpperCase()}`;
+                } else {
+                    if (status) status.textContent = 'No saved data for this theme yet';
+                }
+            } catch(e) {
+                if (status) status.textContent = '';
+            }
         }
 
         window.calibCopy = function() {
-            const text = document.getElementById('calib-output').textContent;
-            navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'));
+            navigator.clipboard.writeText(document.getElementById('calib-output').textContent)
+                .then(() => showToast('Copied to clipboard'));
         };
 
-        // Init when the calibrate tab is first opened
+        // ── Hook into switchTab ────────────────────────────────────────
         const origSwitch = window.switchTab;
         window.switchTab = function(name) {
             origSwitch(name);

@@ -26,7 +26,27 @@
   window.__kindredGlobalBasePath = `artifacts/${APP_ID}/public/data`;
   window.__kindredLessonId     = lessonIdParam || getCurrentCfmLesson().lessonId;
   window.__kindredCurrentCfmLesson = getCurrentCfmLesson();
-  window.__kindredTrailTheme = TRAIL_THEMES[resolveTrailTheme(window.__kindredLessonId)];
+  // Set JS-file default immediately so renderBoard() always has something
+  const _trailThemeKey = resolveTrailTheme(window.__kindredLessonId);
+  window.__kindredTrailTheme = TRAIL_THEMES[_trailThemeKey];
+
+  // Override with Firestore-calibrated positions if the admin saved them
+  _authReady.then(async () => {
+    try {
+      const snap = await getDoc(doc(db, `${window.__kindredGlobalBasePath}/trailThemes/${_trailThemeKey}`));
+      if (snap.exists()) {
+        const saved = snap.data();
+        if (saved.positions?.length) {
+          window.__kindredTrailTheme = { ...window.__kindredTrailTheme, ...saved };
+          // Re-render board if game has already started
+          if (document.getElementById('board-scene')?.classList.contains('active')) {
+            if (typeof applyBoardTheme === 'function') applyBoardTheme();
+            if (typeof renderBoard === 'function') renderBoard();
+          }
+        }
+      }
+    } catch(e) { /* fall back to JS file positions silently */ }
+  });
 
   const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
