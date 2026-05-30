@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>By Heart — Kindred</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:       #0a0a1a;
+    --bg-2:     #0f0f22;
+    --bg-3:     #1a1a35;
+    --amber:    #fbbf24;
+    --amber-dim:#7a5c10;
+    --gold:     #f59e0b;
+    --ink:      #e8e8f0;
+    --ink-muted:#7a7a9a;
+    --cyan:     #38d2ff;
+    --green:    #4ade80;
+    --border:   #2a2a45;
+  }
+  body { background: var(--bg); color: var(--ink); font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ── Back nav ── */
+  .back-nav { display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+    background: rgba(10,10,26,0.9); border-bottom: 1px solid var(--border);
+    font-family: 'Orbitron', sans-serif; font-size: 0.65rem; letter-spacing: 2px; position: sticky; top: 0; z-index: 100; }
+  .back-nav a { color: var(--ink-muted); text-decoration: none; }
+  .back-nav a:hover { color: var(--amber); }
+  .back-nav .sep { color: var(--border); }
+  .back-nav .game-name { color: var(--amber); }
+
+  /* ── Scenes ── */
+  .scene { display: none; flex: 1; }
+  .scene.active { display: flex; flex-direction: column; }
+
+  /* ── SETUP SCENE ── */
+  #setup-scene { align-items: center; padding: 24px 16px 40px; }
+  .setup-header { text-align: center; margin-bottom: 28px; }
+  .setup-title { font-family: 'Orbitron', sans-serif; font-size: clamp(1.6rem,5vw,2.8rem);
+    font-weight: 900; color: var(--amber); letter-spacing: 2px; }
+  .setup-subtitle { color: var(--ink-muted); font-size: 1rem; margin-top: 4px; }
+
+  .setup-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px;
+    padding: 24px; width: 100%; max-width: 640px; }
+
+  /* Picker tabs */
+  .picker-tabs { display: flex; gap: 4px; margin-bottom: 20px;
+    background: var(--bg-3); border-radius: 10px; padding: 4px; }
+  .picker-tab { flex: 1; padding: 8px 4px; border: none; border-radius: 8px;
+    background: none; color: var(--ink-muted); font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .picker-tab.active { background: var(--amber); color: #0a0a1a; }
+  .picker-tab:hover:not(.active) { color: var(--ink); }
+
+  .picker-panel { display: none; }
+  .picker-panel.active { display: block; }
+
+  /* This-week panel */
+  .dm-this-week { display: flex; flex-direction: column; gap: 12px; }
+  .dm-week-label { font-size: 0.8rem; color: var(--ink-muted); letter-spacing: 1px; text-transform: uppercase; }
+  .dm-passage-preview { background: var(--bg-3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; cursor: pointer; transition: border-color 0.15s; }
+  .dm-passage-preview:hover, .dm-passage-preview.selected { border-color: var(--amber); }
+  .dm-passage-preview.selected { background: rgba(251,191,36,0.06); }
+  .dm-ref { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: var(--amber);
+    letter-spacing: 1.5px; margin-bottom: 6px; }
+  .dm-key-phrase { font-size: 1rem; font-weight: 600; color: var(--ink); line-height: 1.4; }
+  .dm-theme { font-size: 0.75rem; color: var(--ink-muted); margin-top: 4px; }
+  .dm-no-passage { color: var(--ink-muted); font-size: 0.9rem; padding: 16px 0; }
+
+  /* Browse panel */
+  .browse-theme-group { margin-bottom: 16px; }
+  .browse-theme-label { font-size: 0.72rem; letter-spacing: 2px; color: var(--amber);
+    text-transform: uppercase; font-weight: 700; margin-bottom: 8px; }
+  .browse-passage-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: 8px; cursor: pointer; margin-bottom: 4px;
+    transition: border-color 0.15s; }
+  .browse-passage-row:hover, .browse-passage-row.selected { border-color: var(--amber); background: rgba(251,191,36,0.05); }
+  .browse-ref { font-family: 'Orbitron', sans-serif; font-size: 0.7rem; color: var(--amber);
+    min-width: 140px; letter-spacing: 1px; }
+  .browse-phrase { font-size: 0.9rem; color: var(--ink); flex: 1; line-height: 1.3; }
+
+  /* Custom panel */
+  .custom-inputs { display: flex; flex-direction: column; gap: 12px; }
+  .custom-label { font-size: 0.8rem; color: var(--ink-muted); letter-spacing: 1px; margin-bottom: 4px; }
+  .custom-ref-input, .custom-text-input {
+    background: var(--bg-3); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; color: var(--ink); font-family: 'Rajdhani', sans-serif; font-size: 1rem;
+    width: 100%; outline: none; transition: border-color 0.15s; }
+  .custom-ref-input:focus, .custom-text-input:focus { border-color: var(--amber); }
+  .custom-text-input { min-height: 110px; resize: vertical; line-height: 1.5; }
+
+  /* Start button */
+  .start-btn { margin-top: 20px; width: 100%; padding: 16px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, var(--amber), var(--gold));
+    color: #0a0a1a; font-family: 'Orbitron', sans-serif; font-size: 0.9rem;
+    font-weight: 800; letter-spacing: 2px; cursor: pointer; transition: opacity 0.15s; }
+  .start-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .start-btn:not(:disabled):hover { opacity: 0.88; }
+
+  /* ── PRACTICE SCENE ── */
+  #practice-scene { padding: 0; }
+  .practice-inner { flex: 1; display: flex; flex-direction: column; padding: 20px 16px 40px;
+    align-items: center; max-width: 760px; margin: 0 auto; width: 100%; }
+
+  /* Level progress bar */
+  .level-bar { display: flex; gap: 6px; margin-bottom: 24px; width: 100%; }
+  .level-pip { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .level-pip-dot { height: 6px; border-radius: 3px; width: 100%;
+    background: var(--bg-3); transition: background 0.3s; }
+  .level-pip.done .level-pip-dot  { background: var(--amber-dim); }
+  .level-pip.active .level-pip-dot { background: var(--amber); }
+  .level-pip-name { font-size: 0.6rem; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--ink-muted); font-family: 'Orbitron', sans-serif; }
+  .level-pip.active .level-pip-name { color: var(--amber); }
+
+  /* Passage reference */
+  .practice-ref { font-family: 'Orbitron', sans-serif; font-size: 0.75rem; color: var(--amber);
+    letter-spacing: 2px; margin-bottom: 6px; text-align: center; }
+  .practice-theme { font-size: 0.8rem; color: var(--ink-muted); margin-bottom: 20px; text-align: center; }
+
+  /* Level instruction */
+  .level-instruction { background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.25);
+    border-radius: 10px; padding: 10px 16px; margin-bottom: 20px; width: 100%;
+    font-size: 0.9rem; color: var(--amber); text-align: center; line-height: 1.4; }
+
+  /* Text display */
+  .verse-text { font-size: clamp(1.15rem, 3vw, 1.45rem); line-height: 2.0; font-weight: 500;
+    color: var(--ink); text-align: center; width: 100%; margin-bottom: 28px; }
+  .word { display: inline; }
+  .blank { display: inline-block; border-bottom: 2px solid var(--amber-dim);
+    color: transparent; user-select: none; cursor: pointer; border-radius: 2px;
+    transition: background 0.15s; min-width: 2ch; padding: 0 2px; }
+  .blank:hover { background: rgba(251,191,36,0.12); }
+  .blank.revealed { color: var(--amber); border-color: var(--amber); cursor: default; }
+
+  /* Action row */
+  .action-row { display: flex; gap: 10px; width: 100%; flex-wrap: wrap; justify-content: center; }
+  .action-btn { padding: 12px 24px; border-radius: 10px; font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem; letter-spacing: 1.5px; font-weight: 700; cursor: pointer;
+    border: 1px solid; transition: all 0.15s; }
+  .action-btn.primary { background: var(--amber); color: #0a0a1a; border-color: var(--amber); }
+  .action-btn.primary:hover { opacity: 0.88; }
+  .action-btn.secondary { background: none; color: var(--ink-muted); border-color: var(--border); }
+  .action-btn.secondary:hover { border-color: var(--ink-muted); color: var(--ink); }
+  .action-btn.reveal { background: none; color: var(--amber-dim); border-color: var(--border); font-size: 0.7rem; }
+  .action-btn.reveal:hover { color: var(--amber); border-color: var(--amber-dim); }
+
+  /* Complete screen */
+  .complete-card { background: var(--bg-2); border: 1px solid var(--amber);
+    border-radius: 16px; padding: 32px 24px; text-align: center; width: 100%; max-width: 520px;
+    margin: auto; }
+  .complete-icon { font-size: 3rem; margin-bottom: 12px; }
+  .complete-title { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; color: var(--amber);
+    margin-bottom: 8px; }
+  .complete-sub { color: var(--ink-muted); font-size: 1rem; margin-bottom: 8px; line-height: 1.5; }
+  .complete-key { font-size: 1.05rem; font-weight: 600; color: var(--ink);
+    background: var(--bg-3); border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+</style>
+</head>
+<body>
+
+<div class="back-nav">
+  <a href="../index.html">← Kindred Hub</a>
+  <span class="sep">|</span>
+  <span class="game-name">By Heart</span>
+</div>
+
+<!-- ── SETUP SCENE ── -->
+<div class="scene active" id="setup-scene">
+  <div class="setup-header">
+    <div class="setup-title">BY HEART</div>
+    <div class="setup-subtitle">Doctrinal Mastery · Progressive memorisation</div>
+  </div>
+
+  <div class="setup-card">
+    <div class="picker-tabs">
+      <button class="picker-tab active" onclick="switchPickerTab('week')">📖 This Week</button>
+      <button class="picker-tab" onclick="switchPickerTab('browse')">📚 All 25</button>
+      <button class="picker-tab" onclick="switchPickerTab('custom')">✏️ Any Verse</button>
+    </div>
+
+    <!-- This Week panel -->
+    <div class="picker-panel active" id="panel-week">
+      <div class="dm-this-week" id="week-passages"></div>
+    </div>
+
+    <!-- Browse All 25 panel -->
+    <div class="picker-panel" id="panel-browse">
+      <div id="browse-list" style="max-height:340px;overflow-y:auto;"></div>
+    </div>
+
+    <!-- Custom verse panel -->
+    <div class="picker-panel" id="panel-custom">
+      <div class="custom-inputs">
+        <div>
+          <div class="custom-label">SCRIPTURE REFERENCE</div>
+          <input class="custom-ref-input" id="custom-ref" placeholder="e.g. John 3:16" oninput="onCustomInput()"/>
+        </div>
+        <div>
+          <div class="custom-label">VERSE TEXT (KJV or your translation)</div>
+          <textarea class="custom-text-input" id="custom-text"
+            placeholder="For God so loved the world, that he gave his only begotten Son…"
+            oninput="onCustomInput()"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <button class="start-btn" id="start-btn" disabled onclick="startPractice()">
+      Choose a passage above to begin
+    </button>
+  </div>
+</div>
+
+<!-- ── PRACTICE SCENE ── -->
+<div class="scene" id="practice-scene">
+  <div class="practice-inner">
+    <!-- Level progress -->
+    <div class="level-bar" id="level-bar"></div>
+
+    <div class="practice-ref" id="practice-ref"></div>
+    <div class="practice-theme" id="practice-theme"></div>
+    <div class="level-instruction" id="level-instruction"></div>
+
+    <div class="verse-text" id="verse-text"></div>
+
+    <div class="action-row" id="action-row"></div>
+  </div>
+</div>
+
+<script type="module">
+import { NT_DM_PASSAGES, getDmPassagesForLesson } from '../src/lib/doctrinal-mastery-nt.js';
+import { getCurrentSeminaryLesson } from '../src/lib/seminary-schedule.js';
+
+window.__dmPassages = NT_DM_PASSAGES;
+window.__getDmForLesson = getDmPassagesForLesson;
+
+// Find this week's DM passages
+const today = getCurrentSeminaryLesson();
+const weekPassages = today?.dmPassage
+  ? NT_DM_PASSAGES.filter(p => today.dmPassage.split(';').some(r => r.trim() === p.ref))
+  : [];
+// Fallback: look up by lesson slug
+const byLesson = today?.slug ? getDmPassagesForLesson(today.slug) : [];
+window.__weekDmPassages = weekPassages.length ? weekPassages : byLesson;
+window.__todaySeminaryLesson = today;
+</script>
+
+<script>
+/* ──────────────────────────────────────────────────────────────────────
+   By Heart — game logic
+   ────────────────────────────────────────────────────────────────────── */
+
+const LEVELS = [
+  { n: 1, name: 'Read',      ratio: 0,    instruction: 'Full text — read it aloud together as a class.' },
+  { n: 2, name: 'Echo',      ratio: 0.25, instruction: 'Some words are hidden. Tap a blank to reveal it, then recite the verse together.' },
+  { n: 3, name: 'Recall',    ratio: 0.50, instruction: 'Half the words are hidden. How much can you recall without peeking?' },
+  { n: 4, name: 'Speak',     ratio: 0.80, instruction: 'Almost there — only anchors remain. Speak the full verse from memory.' },
+  { n: 5, name: 'Heart-Set', ratio: 1.0,  instruction: 'Every word is hidden. Recite it entirely from your heart.' },
+];
+
+let selectedPassage = null; // { ref, text, keyPhrase, theme, dmId? }
+let activeTab = 'week';
+let currentLevel = 1;
+let blankIndices = new Set();   // which token indices are blanked at this level
+let revealedIndices = new Set(); // which blanks the class has tapped open
+
+// ── Picker tab switching ────────────────────────────────────────────
+window.switchPickerTab = function(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.picker-tab').forEach((b, i) => {
+    b.classList.toggle('active', ['week','browse','custom'][i] === tab);
+  });
+  document.querySelectorAll('.picker-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${tab}`).classList.add('active');
+  if (tab === 'week') renderWeekPanel();
+  if (tab === 'browse') renderBrowsePanel();
+  updateStartBtn();
+};
+
+// ── Render panels ───────────────────────────────────────────────────
+function renderWeekPanel() {
+  const container = document.getElementById('week-passages');
+  const passages = window.__weekDmPassages || [];
+  const today = window.__todaySeminaryLesson;
+  if (!passages.length) {
+    container.innerHTML = `<div class="dm-no-passage">
+      No Doctrinal Mastery passage scheduled this week.<br>
+      <span style="font-size:0.85rem;color:#555">Browse All 25 or paste a custom verse.</span>
+    </div>`;
+    return;
+  }
+  const lesson = today ? `<div class="dm-week-label" style="margin-bottom:12px;">
+    ${today.displayDate || ''} · ${today.title || ''}</div>` : '';
+  container.innerHTML = lesson + passages.map((p, i) => `
+    <div class="dm-passage-preview${selectedPassage?.ref === p.ref ? ' selected' : ''}"
+         onclick="selectPassage(${JSON.stringify(p).split('"').join('&quot;')})">
+      <div class="dm-ref">${p.ref}</div>
+      <div class="dm-key-phrase">"${p.keyPhrase}"</div>
+      <div class="dm-theme">${p.theme}</div>
+    </div>`).join('');
+}
+
+function renderBrowsePanel() {
+  const passages = window.__dmPassages || [];
+  const themes = [...new Set(passages.map(p => p.theme))];
+  const container = document.getElementById('browse-list');
+  container.innerHTML = themes.map(theme => {
+    const rows = passages.filter(p => p.theme === theme).map(p => `
+      <div class="browse-passage-row${selectedPassage?.ref === p.ref ? ' selected' : ''}"
+           onclick="selectPassage(${JSON.stringify(p).split('"').join('&quot;')})">
+        <div class="browse-ref">${p.ref}</div>
+        <div class="browse-phrase">"${p.keyPhrase}"</div>
+      </div>`).join('');
+    return `<div class="browse-theme-group">
+      <div class="browse-theme-label">${theme}</div>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+
+window.selectPassage = function(p) {
+  selectedPassage = typeof p === 'string' ? JSON.parse(p) : p;
+  // Re-render active panel to show selection highlight
+  if (activeTab === 'week') renderWeekPanel();
+  if (activeTab === 'browse') renderBrowsePanel();
+  updateStartBtn();
+};
+
+window.onCustomInput = function() {
+  const ref  = document.getElementById('custom-ref').value.trim();
+  const text = document.getElementById('custom-text').value.trim();
+  if (ref && text) {
+    selectedPassage = { ref, text, keyPhrase: text.slice(0, 60), theme: 'Custom', dmId: null };
+  } else {
+    if (activeTab === 'custom') selectedPassage = null;
+  }
+  updateStartBtn();
+};
+
+function updateStartBtn() {
+  const btn = document.getElementById('start-btn');
+  const has = !!selectedPassage && !!selectedPassage.text;
+  btn.disabled = !has;
+  btn.textContent = has
+    ? `Start Practice — ${selectedPassage.ref} →`
+    : 'Choose a passage above to begin';
+}
+
+// ── Practice ────────────────────────────────────────────────────────
+window.startPractice = function() {
+  if (!selectedPassage) return;
+  currentLevel = 1;
+  revealedIndices = new Set();
+  blankIndices = computeBlanks(selectedPassage.text, 1);
+  showScene('practice-scene');
+  renderPractice();
+};
+
+function showScene(id) {
+  document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── Tokenisation ────────────────────────────────────────────────────
+// Split text into alternating word/space tokens for rendering.
+function tokenise(text) {
+  return text.split(/(\s+)/).filter(t => t.length > 0);
+}
+
+function isContentWord(token) {
+  const stopWords = new Set([
+    'a','an','the','and','or','but','in','on','at','to','of','for','is','are',
+    'was','were','be','been','by','it','its','he','she','they','we','ye','thee',
+    'thou','thy','him','his','her','them','their','that','which','who','not','no',
+    'all','with','from','have','has','had','do','did','will','shall','as','so',
+    'unto','into','upon','out','up','if','then','when','may','my','our','your',
+  ]);
+  const clean = token.toLowerCase().replace(/[^a-z]/g, '');
+  return clean.length > 1 && !stopWords.has(clean);
+}
+
+// Deterministic seeded blank selection — same blanks every time for same level.
+function computeBlanks(text, level) {
+  const ratio = LEVELS[level - 1].ratio;
+  if (ratio === 0) return new Set();
+
+  const tokens = tokenise(text);
+  const wordIndices = tokens.map((t, i) => ({ t, i }))
+    .filter(({ t }) => /\S/.test(t)); // only non-whitespace tokens
+
+  if (ratio >= 1.0) return new Set(wordIndices.map(w => w.i));
+
+  // Sort by content-word priority first, then by seeded pseudo-random order
+  const sorted = wordIndices.slice().sort((a, b) => {
+    const ac = isContentWord(a.t) ? 0 : 1;
+    const bc = isContentWord(b.t) ? 0 : 1;
+    if (ac !== bc) return ac - bc;
+    // Deterministic shuffle using index as seed
+    return ((a.i * 2654435761) >>> 0) - ((b.i * 2654435761) >>> 0);
+  });
+
+  const count = Math.round(wordIndices.length * ratio);
+  return new Set(sorted.slice(0, count).map(w => w.i));
+}
+
+// ── Render practice ─────────────────────────────────────────────────
+function renderPractice() {
+  const p = selectedPassage;
+  const lvl = LEVELS[currentLevel - 1];
+
+  // Level bar
+  const bar = document.getElementById('level-bar');
+  bar.innerHTML = LEVELS.map(l => `
+    <div class="level-pip ${l.n < currentLevel ? 'done' : l.n === currentLevel ? 'active' : ''}">
+      <div class="level-pip-dot"></div>
+      <div class="level-pip-name">${l.name}</div>
+    </div>`).join('');
+
+  document.getElementById('practice-ref').textContent = p.ref;
+  document.getElementById('practice-theme').textContent = p.theme || '';
+  document.getElementById('level-instruction').textContent = lvl.instruction;
+
+  renderVerseText();
+
+  // Action buttons
+  const row = document.getElementById('action-row');
+  if (currentLevel < LEVELS.length) {
+    row.innerHTML = `
+      <button class="action-btn reveal" onclick="revealAll()">👁 Reveal All</button>
+      <button class="action-btn secondary" onclick="resetLevel()">↺ Reset blanks</button>
+      <button class="action-btn primary" onclick="nextLevel()">Next Level — ${LEVELS[currentLevel].name} →</button>`;
+  } else {
+    // Final level — completion path
+    row.innerHTML = `
+      <button class="action-btn reveal" onclick="revealAll()">👁 Reveal All</button>
+      <button class="action-btn secondary" onclick="resetLevel()">↺ Reset blanks</button>
+      <button class="action-btn primary" onclick="showComplete()">✓ We've Got It!</button>`;
+  }
+}
+
+function renderVerseText() {
+  const tokens = tokenise(selectedPassage.text);
+  const html = tokens.map((token, idx) => {
+    if (/^\s+$/.test(token)) return token; // preserve whitespace
+    if (!blankIndices.has(idx)) return `<span class="word">${escHtml(token)}</span>`;
+    const revealed = revealedIndices.has(idx);
+    const len = Math.max(4, token.replace(/[^a-z]/gi, '').length);
+    return `<span class="blank${revealed ? ' revealed' : ''}"
+      data-idx="${idx}" data-word="${escHtml(token)}"
+      style="min-width:${len * 0.7}ch"
+      onclick="revealWord(${idx})">${revealed ? escHtml(token) : '&nbsp;'.repeat(len)}</span>`;
+  }).join('');
+  document.getElementById('verse-text').innerHTML = html;
+}
+
+window.revealWord = function(idx) {
+  revealedIndices.add(idx);
+  const span = document.querySelector(`.blank[data-idx="${idx}"]`);
+  if (span) { span.classList.add('revealed'); span.textContent = span.dataset.word; }
+};
+
+window.revealAll = function() {
+  blankIndices.forEach(i => revealedIndices.add(i));
+  renderVerseText();
+};
+
+window.resetLevel = function() {
+  revealedIndices = new Set();
+  renderVerseText();
+};
+
+window.nextLevel = function() {
+  currentLevel = Math.min(currentLevel + 1, LEVELS.length);
+  revealedIndices = new Set();
+  blankIndices = computeBlanks(selectedPassage.text, currentLevel);
+  renderPractice();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.showComplete = function() {
+  const p = selectedPassage;
+  document.getElementById('verse-text').style.display = 'none';
+  document.getElementById('action-row').innerHTML = '';
+  document.getElementById('level-instruction').style.display = 'none';
+  const inner = document.querySelector('.practice-inner');
+  const card = document.createElement('div');
+  card.className = 'complete-card';
+  card.innerHTML = `
+    <div class="complete-icon">🏆</div>
+    <div class="complete-title">By Heart!</div>
+    <div class="complete-sub">${p.ref}</div>
+    <div class="complete-key">"${p.keyPhrase}"</div>
+    <div class="complete-sub" style="margin-top:8px; font-size:0.9rem; color:#555">${p.theme || ''}</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:24px;flex-wrap:wrap;">
+      <button class="action-btn secondary" onclick="practiceAgain()">↺ Practice Again</button>
+      <button class="action-btn primary" onclick="backToSetup()">Pick Another →</button>
+    </div>`;
+  inner.appendChild(card);
+};
+
+window.practiceAgain = function() {
+  currentLevel = 1;
+  revealedIndices = new Set();
+  blankIndices = computeBlanks(selectedPassage.text, 1);
+  document.getElementById('verse-text').style.display = '';
+  document.getElementById('level-instruction').style.display = '';
+  document.querySelector('.complete-card')?.remove();
+  renderPractice();
+};
+
+window.backToSetup = function() {
+  document.getElementById('verse-text').style.display = '';
+  document.getElementById('level-instruction').style.display = '';
+  document.querySelector('.complete-card')?.remove();
+  showScene('setup-scene');
+  if (activeTab === 'week') renderWeekPanel();
+  if (activeTab === 'browse') renderBrowsePanel();
+};
+
+// ── Utilities ────────────────────────────────────────────────────────
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Init ─────────────────────────────────────────────────────────────
+// Wait for module script to set window.__dmPassages
+window.addEventListener('load', () => {
+  // Give module script a tick to resolve
+  setTimeout(() => {
+    renderWeekPanel();
+    renderBrowsePanel();
+  }, 50);
+});
+</script>
+</body>
+</html>

@@ -90,6 +90,7 @@ A ready-to-paste prompt the developer can drop into Claude Code to implement thi
                     commonGround: resolve(__dirname, 'games/common-ground.html'),
                     memory: resolve(__dirname, 'games/memory.html'),
                     scriptureTrail: resolve(__dirname, 'games/scripture-trail.html'),
+                    byHeart: resolve(__dirname, 'games/by-heart.html'),
                 }
             }
         },
