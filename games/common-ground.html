@@ -58,13 +58,20 @@
             padding: 20px;
             box-sizing: border-box;
         }
-        #audio-unlock h1 { font-size: 4rem; color: var(--neon-cyan); margin-bottom: 2rem; font-family: 'Orbitron', sans-serif; }
-        #audio-unlock button {
-            font-size: 2rem; padding: 20px 50px; background: var(--neon-cyan);
-            color: black; border: none; font-family: 'Orbitron', sans-serif; cursor: pointer;
-            border-radius: 12px; box-shadow: 0 0 30px var(--neon-cyan);
-            text-transform: uppercase; font-weight: bold;
-        }
+        #audio-unlock h1 { font-size: clamp(2.8rem, 9vw, 5rem); color: var(--neon-cyan); margin-bottom: 2.5rem; font-family: 'Orbitron', sans-serif; text-shadow: 0 0 50px rgba(0,242,255,0.4); letter-spacing: 0.04em; }
+        /* Splash loading sequence */
+        #au-seq { width: 320px; max-width: 85vw; margin: 0 auto 2.5rem; text-align: left; }
+        .au-line { display: flex; align-items: center; gap: 10px; font-family: 'Orbitron', sans-serif; font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 6px 0; color: #2a2a3a; opacity: 0; transition: opacity 0.5s, color 0.4s; }
+        .au-line.au-active { color: #444; opacity: 1; }
+        .au-line.au-done { color: var(--neon-cyan); opacity: 1; }
+        .au-line.au-warn { color: #555; opacity: 1; }
+        .au-icon { min-width: 16px; text-align: center; font-size: 0.9rem; }
+        @keyframes au-spin { to { transform: rotate(360deg); } }
+        .au-spinning { display: inline-block; animation: au-spin 1.2s linear infinite; }
+        /* Splash action buttons */
+        #au-start-btn { font-size: 2rem; padding: 20px 50px; background: var(--neon-cyan); color: black; border: none; font-family: 'Orbitron', sans-serif; cursor: pointer; border-radius: 12px; box-shadow: 0 0 30px var(--neon-cyan); text-transform: uppercase; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
+        #au-setup-btn { font-size: 1.4rem; padding: 16px 40px; background: transparent; color: var(--neon-cyan); border: 2px solid var(--neon-cyan); font-family: 'Orbitron', sans-serif; cursor: pointer; border-radius: 12px; text-transform: uppercase; font-weight: bold; opacity: 0; pointer-events: none; transition: opacity 0.6s; display: none; }
+        #au-review-link { color: #444; font-size: 0.68rem; margin-top: 20px; cursor: pointer; font-family: 'Orbitron', sans-serif; text-transform: uppercase; letter-spacing: 0.1em; text-decoration: underline; opacity: 0; pointer-events: none; transition: opacity 0.5s 0.3s; }
 
         .view-switcher {
             position: fixed; top: 10px; right: 10px; z-index: 6000;
@@ -279,22 +286,24 @@
     </style>
 </head>
 <body class="mode-contestant">
-<script>
-// If the teacher arrived via ?lesson=, go straight to Teacher Portal
-// before any module scripts run so the Monitor splash never flashes.
-if (new URLSearchParams(location.search).get('lesson')) {
-    document.body.className = 'mode-teacher';
-}
-</script>
-
     <div class="back-to-portal"><a href="../index.html">← Kindred Hub</a></div>
 
     <div id="audio-unlock">
         <h1>Common Ground</h1>
-        <div id="au-lesson-badge" style="display:none; background:#1a2a1a; border:1px solid #4ade80; color:#4ade80; padding:6px 18px; border-radius:20px; font-family:sans-serif; font-size:0.9rem; margin-bottom:24px;"></div>
-        <button onclick="startApp()">START GAME</button>
-        <div id="au-review-link" onclick="window.reviewQuestionsFromSplash()" style="display:none; color:#aaa; font-size:0.9rem; margin-top:20px; cursor:pointer; font-family:sans-serif; text-decoration:underline; letter-spacing:0.03em;">✏️ Review or edit questions first</div>
-        <p id="sync-msg" style="color: #666; margin-top: 30px; font-size: 1.2rem;">Syncing session…</p>
+        <div id="au-seq">
+            <div id="au-ln-1" class="au-line au-active">
+                <span class="au-icon au-spinning">◌</span>
+                <span class="au-text">Connecting to Kindred</span>
+            </div>
+            <div id="au-ln-2" class="au-line">
+                <span class="au-icon" id="au-ln-2-icon">◌</span>
+                <span class="au-text" id="au-ln-2-text">Loading lesson</span>
+            </div>
+        </div>
+        <button id="au-start-btn" onclick="startApp()">Start Game</button>
+        <button id="au-setup-btn" onclick="window.setUpLesson()">Set Up Lesson ›</button>
+        <div id="au-review-link" onclick="window.reviewQuestionsFromSplash()">✏ Review or edit questions first</div>
+        <p id="sync-msg" style="display:none;"></p>
     </div>
 
     <div id="menu-trigger" onclick="toggleSwitcher()">⚙️</div>
@@ -671,8 +680,9 @@ if (new URLSearchParams(location.search).get('lesson')) {
         function markSessionReady() {
             if (_sessionReady) return;
             _sessionReady = true;
-            const el = document.getElementById('sync-msg');
-            if (el) el.style.display = 'none';
+            auLine('au-ln-1', '✓', 'Connected to Kindred', 'done');
+            // No ?lesson= param → Monitor view, show START GAME immediately
+            if (!new URLSearchParams(location.search).get('lesson')) auShowAction('play', false);
         }
         let currentGameRounds = null, currentActiveGameId = null, currentGameTopic = null, currentGameSourceUrl = null, currentGameGeneratedBy = null;
         function getGameRounds() { return currentGameRounds || gameData; }
@@ -863,18 +873,38 @@ if (new URLSearchParams(location.search).get('lesson')) {
         };
         window.closeBookend = () => { window.cloudUpdate({ bookend: null }); };
 
+        // Splash screen helpers
+        function auLine(id, icon, text, state) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const iconEl = el.querySelector('.au-icon');
+            const textEl = el.querySelector('.au-text') || el.querySelector(`#${id}-text`) || el.lastElementChild;
+            if (iconEl) { iconEl.className = 'au-icon' + (state === 'loading' ? ' au-spinning' : ''); iconEl.textContent = icon; }
+            if (textEl) textEl.textContent = text;
+            el.className = 'au-line au-' + (state === 'done' ? 'done' : state === 'warn' ? 'warn' : 'active');
+        }
+        function auShowAction(type, showReview) {
+            const btn = document.getElementById(type === 'play' ? 'au-start-btn' : 'au-setup-btn');
+            const rev = document.getElementById('au-review-link');
+            if (btn) { btn.style.display = ''; btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
+            if (rev && showReview) { rev.style.opacity = '1'; rev.style.pointerEvents = 'auto'; }
+        }
         window.startApp = () => {
             initAudio();
             document.getElementById('audio-unlock').style.display = 'none';
-            // Route 1: teacher arrived via lesson chip — go straight to Admin controller
-            const p = new URLSearchParams(location.search);
-            if (p.get('lesson') && p.get('room')) window.setView?.('admin');
+            // START GAME always shows Monitor/Contestant view — teacher uses ⚙ to switch
         };
         window.reviewQuestionsFromSplash = function() {
             initAudio();
             document.getElementById('audio-unlock').style.display = 'none';
             window.setView('teacher');
             if (window._splashLoadedGame) window.openEditorForReview(window._splashLoadedGame, window._splashLoadedMeta);
+        };
+        window.setUpLesson = function() {
+            initAudio();
+            document.getElementById('audio-unlock').style.display = 'none';
+            window.setView('teacher');
+            if (window._pendingLessonMeta) showLessonLaunchView(window._pendingLessonMeta);
         };
 
         window.revealIdx = (idx) => {
@@ -2038,6 +2068,8 @@ if (new URLSearchParams(location.search).get('lesson')) {
         async function autoLoadFromLesson() {
             const lessonId = new URLSearchParams(location.search).get('lesson');
             if (!lessonId) return;
+            // Show lesson loading state in sequence
+            auLine('au-ln-2', '◌', 'Loading lesson content', 'loading');
             try {
                 // Admin saves entries with a 'cfm-' prefix; try both ID forms
                 let snap = await getDoc(doc(db, `${globalBasePath}/lessonLibrary/${lessonId}`));
@@ -2053,89 +2085,44 @@ if (new URLSearchParams(location.search).get('lesson')) {
                                 .map(d => ({ _docId: d.id, ...d.data() }))
                                 .find(g => g.rounds?.length && (g.lessonId === lessonId || g.sourceUrl === getCfmLessonByLessonId(lessonId)?.url));
                             if (match) {
-                                // Previously generated by this classroom — auto-activate it
-                                const activeRef = doc(db, `${basePath}/activeGame/current`);
-                                const stateRef = doc(db, `${basePath}/feudSession/state`);
-                                await setDoc(activeRef, { gameId: match._docId, name: match.name, rounds: match.rounds, sourceUrl: match.sourceUrl || null, generatedBy: match.generatedBy || 'classroom' });
-                                await setDoc(stateRef, { currentRound: 0, revealed: [], strikes: 0, activeTeam: 0, originalTeamId: 0, winTime: 0, strikeTime: 0, gameOverTime: 0, switchPlayTime: 0, winningTeamId: 0, lastWinnerId: 0, consecutiveWins: 0, lastWinWasFaceOff: false, activeGameId: match._docId }, { merge: true });
-                                const banner = document.createElement('div');
-                                banner.textContent = `📚 Loaded: ${match.name}`;
-                                Object.assign(banner.style, { position:'fixed', bottom:'16px', left:'50%', transform:'translateX(-50%)', background:'#1a2a1a', border:'1px solid #4ade80', color:'#4ade80', padding:'8px 20px', borderRadius:'8px', fontSize:'13px', fontFamily:'sans-serif', zIndex:'9999', pointerEvents:'none' });
-                                document.body.appendChild(banner);
-                                setTimeout(() => banner.remove(), 4000);
-                                // Update splash with lesson info
+                                await setDoc(doc(db, `${basePath}/activeGame/current`), { gameId: match._docId, name: match.name, rounds: match.rounds, sourceUrl: match.sourceUrl || null, generatedBy: match.generatedBy || 'classroom' });
+                                await setDoc(doc(db, `${basePath}/feudSession/state`), { currentRound: 0, revealed: [], strikes: 0, activeTeam: 0, originalTeamId: 0, winTime: 0, strikeTime: 0, gameOverTime: 0, switchPlayTime: 0, winningTeamId: 0, lastWinnerId: 0, consecutiveWins: 0, lastWinWasFaceOff: false, activeGameId: match._docId }, { merge: true });
                                 window._splashLoadedGame = { rounds: match.rounds, name: match.name, sourceUrl: match.sourceUrl || null, lessonId, generatedBy: 'classroom' };
                                 window._splashLoadedMeta = getCfmLessonByLessonId(lessonId);
-                                const badge2 = document.getElementById('au-lesson-badge');
-                                const reviewLink2 = document.getElementById('au-review-link');
-                                const syncMsg2 = document.getElementById('sync-msg');
-                                if (badge2) { badge2.textContent = `✓ ${match.name}`; badge2.style.display = 'inline-block'; }
-                                if (reviewLink2) reviewLink2.style.display = 'block';
-                                if (syncMsg2) syncMsg2.style.display = 'none';
+                                const ml = window._splashLoadedMeta;
+                                auLine('au-ln-2', '✓', ml ? `${ml.title} · ${ml.dateRange}` : match.name, 'done');
+                                auShowAction('play', true);
                                 return;
                             }
                         } catch(e) { console.warn('[CG classroom-game lookup]', e.message); }
                     }
-                    // Not found anywhere — clear stale game and show Route 1 launch view
-                    await setDoc(doc(db, `${basePath}/activeGame/current`), {
-                        gameId: null, name: null, rounds: null, generatedBy: 'cleared-by-lesson-param'
-                    }).catch(() => {});
+                    // Not found anywhere — offer lesson setup via splash
+                    await setDoc(doc(db, `${basePath}/activeGame/current`), { gameId: null, name: null, rounds: null, generatedBy: 'cleared-by-lesson-param' }).catch(() => {});
                     const lessonMeta = getCfmLessonByLessonId(lessonId);
-                    if (lessonMeta?.url) {
-                        window._pendingLessonMeta = lessonMeta;
-                        window._openEditorForPendingLesson = () => {
-                            window.setView?.('teacher');
-                            showLessonLaunchView(lessonMeta);
-                        };
-                        setTimeout(() => {
-                            window.setView?.('teacher');
-                            const pl = document.getElementById('tp-pending-lesson');
-                            const pll = document.getElementById('tp-pending-lesson-label');
-                            if (pl && pll) {
-                                pll.textContent = `📅 ${lessonMeta.dateRange} · ${lessonMeta.title} — not yet generated`;
-                                pl.style.display = 'flex';
-                            }
-                            showLessonLaunchView(lessonMeta);
-                        }, 150);
+                    window._pendingLessonMeta = lessonMeta;
+                    if (lessonMeta) {
+                        auLine('au-ln-2', '—', `${lessonMeta.title} · ${lessonMeta.dateRange}`, 'warn');
+                        const sub = document.getElementById('au-ln-2');
+                        if (sub) { const small = document.createElement('span'); small.style.cssText = 'font-size:0.6rem;opacity:0.5;margin-left:4px;'; small.textContent = '(not yet generated)'; sub.appendChild(small); }
                     }
+                    auShowAction('setup', false);
                     return;
                 }
 
-                const activeRef = doc(db, `${basePath}/activeGame/current`);
-                const stateRef = doc(db, `${basePath}/feudSession/state`);
-                await setDoc(activeRef, {
-                    gameId: null,
-                    name: cg.topic || data.name || lessonId,
-                    rounds: cg.rounds,
-                    sourceUrl: cg.sourceUrl || data.url || null,
-                    generatedBy: 'library-auto'
+                await setDoc(doc(db, `${basePath}/activeGame/current`), {
+                    gameId: null, name: cg.topic || data.name || lessonId, rounds: cg.rounds,
+                    sourceUrl: cg.sourceUrl || data.url || null, generatedBy: 'library-auto'
                 });
-                await setDoc(stateRef, {
+                await setDoc(doc(db, `${basePath}/feudSession/state`), {
                     currentRound: 0, revealed: [], strikes: 0, activeTeam: 0, originalTeamId: 0,
                     winTime: 0, strikeTime: 0, gameOverTime: 0, switchPlayTime: 0,
-                    winningTeamId: 0, lastWinnerId: 0, consecutiveWins: 0, lastWinWasFaceOff: false,
-                    activeGameId: null
+                    winningTeamId: 0, lastWinnerId: 0, consecutiveWins: 0, lastWinWasFaceOff: false, activeGameId: null
                 }, { merge: true });
-                // Show brief status bar
-                const banner = document.createElement('div');
-                banner.textContent = `📚 Loaded: ${cg.topic || data.name}`;
-                Object.assign(banner.style, {
-                    position: 'fixed', bottom: '16px', left: '50%', transform: 'translateX(-50%)',
-                    background: '#1a2a1a', border: '1px solid #4ade80', color: '#4ade80',
-                    padding: '8px 20px', borderRadius: '8px', fontSize: '13px',
-                    fontFamily: 'sans-serif', zIndex: '9999', pointerEvents: 'none'
-                });
-                document.body.appendChild(banner);
-                setTimeout(() => banner.remove(), 4000);
-                // Store for review mode; update splash to show lesson name + review link
                 window._splashLoadedGame = { rounds: cg.rounds, name: cg.topic || data.name, sourceUrl: cg.sourceUrl || data.url || null, lessonId, generatedBy: 'library-auto' };
                 window._splashLoadedMeta = getCfmLessonByLessonId(lessonId);
-                const badge = document.getElementById('au-lesson-badge');
-                const reviewLink = document.getElementById('au-review-link');
-                const syncMsg = document.getElementById('sync-msg');
-                if (badge) { badge.textContent = `✓ ${cg.topic || data.name}`; badge.style.display = 'inline-block'; }
-                if (reviewLink) reviewLink.style.display = 'block';
-                if (syncMsg) syncMsg.style.display = 'none';
+                const lm = window._splashLoadedMeta;
+                auLine('au-ln-2', '✓', lm ? `${lm.title} · ${lm.dateRange}` : (cg.topic || data.name), 'done');
+                auShowAction('play', true);
             } catch(e) {
                 console.warn('[CG auto-load]', e.message);
             }
