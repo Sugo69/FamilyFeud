@@ -431,11 +431,13 @@
             transition: opacity 0.2s;
         }
         .game-card.cyan::before { background: radial-gradient(ellipse at top left, rgba(0,242,255,0.06) 0%, transparent 70%); }
-        .game-card.pink::before { background: radial-gradient(ellipse at top left, rgba(255,0,127,0.06) 0%, transparent 70%); }
-        .game-card.gold::before { background: radial-gradient(ellipse at top left, rgba(255,200,87,0.06) 0%, transparent 70%); }
+        .game-card.pink::before  { background: radial-gradient(ellipse at top left, rgba(255,0,127,0.06) 0%, transparent 70%); }
+        .game-card.green::before { background: radial-gradient(ellipse at top left, rgba(74,222,128,0.06) 0%, transparent 70%); }
+        .game-card.gold::before  { background: radial-gradient(ellipse at top left, rgba(255,200,87,0.06) 0%, transparent 70%); }
         .game-card:hover { transform: translateY(-3px); }
-        .game-card.cyan:hover { border-color: var(--neon-cyan); box-shadow: 0 0 40px rgba(0,242,255,0.15); }
-        .game-card.pink:hover { border-color: var(--neon-pink); box-shadow: 0 0 40px rgba(255,0,127,0.15); }
+        .game-card.cyan:hover  { border-color: var(--neon-cyan); box-shadow: 0 0 40px rgba(0,242,255,0.15); }
+        .game-card.pink:hover  { border-color: var(--neon-pink); box-shadow: 0 0 40px rgba(255,0,127,0.15); }
+        .game-card.green:hover { border-color: #4ade80;          box-shadow: 0 0 40px rgba(74,222,128,0.15); }
         .game-card.gold:hover { border-color: #ffc857; box-shadow: 0 0 40px rgba(255,200,87,0.18); }
         .game-card:hover::before { opacity: 1; }
         .game-card-icon { font-size: 2.2rem; line-height: 1; }
@@ -445,9 +447,10 @@
             font-weight: 700;
             margin: 0;
         }
-        .game-card.cyan .game-card-name { color: var(--neon-cyan); }
-        .game-card.pink .game-card-name { color: var(--neon-pink); }
-        .game-card.gold .game-card-name { color: #ffc857; }
+        .game-card.cyan .game-card-name  { color: var(--neon-cyan); }
+        .game-card.pink .game-card-name  { color: var(--neon-pink); }
+        .game-card.green .game-card-name { color: #4ade80; }
+        .game-card.gold .game-card-name  { color: #ffc857; }
         .game-card-desc { font-size: 0.9rem; color: #888; line-height: 1.5; flex: 1; }
         .game-card-tag {
             display: inline-block;
@@ -459,9 +462,10 @@
             border-radius: 20px;
             align-self: flex-start;
         }
-        .game-card.cyan .game-card-tag { background: rgba(0,242,255,0.1); color: var(--neon-cyan); border: 1px solid rgba(0,242,255,0.3); }
-        .game-card.pink .game-card-tag { background: rgba(255,0,127,0.1); color: var(--neon-pink); border: 1px solid rgba(255,0,127,0.3); }
-        .game-card.gold .game-card-tag { background: rgba(255,200,87,0.1); color: #ffc857; border: 1px solid rgba(255,200,87,0.3); }
+        .game-card.cyan .game-card-tag  { background: rgba(0,242,255,0.1);  color: var(--neon-cyan); border: 1px solid rgba(0,242,255,0.3);  }
+        .game-card.pink .game-card-tag  { background: rgba(255,0,127,0.1);  color: var(--neon-pink); border: 1px solid rgba(255,0,127,0.3);  }
+        .game-card.green .game-card-tag { background: rgba(74,222,128,0.1); color: #4ade80;          border: 1px solid rgba(74,222,128,0.3); }
+        .game-card.gold .game-card-tag  { background: rgba(255,200,87,0.1); color: #ffc857;          border: 1px solid rgba(255,200,87,0.3); }
         .game-card-play {
             margin-top: 6px;
             font-family: 'Orbitron', sans-serif;
@@ -471,9 +475,10 @@
             color: #444;
             transition: color 0.2s;
         }
-        .game-card.cyan:hover .game-card-play { color: var(--neon-cyan); }
-        .game-card.pink:hover .game-card-play { color: var(--neon-pink); }
-        .game-card.gold:hover .game-card-play { color: #ffc857; }
+        .game-card.cyan:hover .game-card-play  { color: var(--neon-cyan); }
+        .game-card.pink:hover .game-card-play  { color: var(--neon-pink); }
+        .game-card.green:hover .game-card-play { color: #4ade80; }
+        .game-card.gold:hover .game-card-play  { color: #ffc857; }
 
         /* ── Curriculum tabs (CFM / Seminary) ── */
         .curriculum-tabs {
@@ -608,9 +613,10 @@
             transition: border-color 0.15s, transform 0.15s;
         }
         .this-week-game-tile:hover { transform: translateY(-2px); }
-        .this-week-game-tile.cyan:hover { border-color: var(--neon-cyan); }
-        .this-week-game-tile.pink:hover { border-color: var(--neon-pink); }
-        .this-week-game-tile.gold:hover { border-color: #ffc857; }
+        .this-week-game-tile.cyan:hover  { border-color: var(--neon-cyan); }
+        .this-week-game-tile.pink:hover  { border-color: var(--neon-pink); }
+        .this-week-game-tile.green:hover { border-color: #4ade80; }
+        .this-week-game-tile.gold:hover  { border-color: #ffc857; }
         .this-week-game-tile.fit-best {
             border-color: #ffc857;
             background: linear-gradient(135deg, rgba(255,200,87,0.06), rgba(0,0,0,0));
@@ -695,11 +701,14 @@
             font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em;
             padding: 3px 8px; border-radius: 20px;
             border: 1px solid currentColor; opacity: 0.55;
-            white-space: nowrap;
+            white-space: nowrap; text-decoration: none; cursor: pointer;
+            transition: opacity 0.15s;
         }
+        .upcoming-game-chip:hover { opacity: 1; }
         .upcoming-game-chip.best { opacity: 1; }
         .upcoming-game-chip.cyan  { color: var(--neon-cyan); }
         .upcoming-game-chip.pink  { color: var(--neon-pink); }
+        .upcoming-game-chip.green { color: #4ade80; }
         .upcoming-game-chip.gold  { color: #ffc857; }
 
         /* ── Footer ── */
@@ -1822,7 +1831,7 @@
                     <div class="game-card-play">Play →</div>
                 </a>
 
-                <a id="link-memory" href="games/memory.html" class="game-card pink">
+                <a id="link-memory" href="games/memory.html" class="game-card green">
                     <div class="game-card-icon">🧩</div>
                     <h3 class="game-card-name">Scripture Match</h3>
                     <p class="game-card-desc">Memory pairs · best for scripture-heavy lessons.</p>
@@ -2380,17 +2389,16 @@
             // ── Upcoming CFM Lessons ──
             const upcomingHtml = upcoming.map(lesson => {
                 const recs = S.getGameRecommendations(lesson.type);
-                const best = recs[0];
                 const chips = recs
                     .filter(r => r.fit !== 'limited')
-                    .map(r => `<span class="upcoming-game-chip ${r.color} ${r.fit==='best'?'best':''}">${r.icon} ${r.name}</span>`)
+                    .map(r => `<a class="upcoming-game-chip ${r.color} ${r.fit==='best'?'best':''}" href="${lessonLink(lesson, r.href)}">${r.icon} ${r.name}</a>`)
                     .join('');
                 return `
-                    <a class="upcoming-card" href="${lessonLink(lesson, best.href)}">
+                    <div class="upcoming-card">
                         <div class="upcoming-date">${S.formatLessonDateRange(lesson)}</div>
                         <div class="upcoming-title">${lesson.title}</div>
                         <div class="upcoming-games">${chips}</div>
-                    </a>`;
+                    </div>`;
             }).join('');
             const grid = document.getElementById('upcoming-grid');
             if (grid) grid.innerHTML = upcomingHtml || '<div style="color:#6a6a80; font-size:0.9rem;">No upcoming lessons in the current manual.</div>';
@@ -2467,18 +2475,17 @@
             // This week (Mon–Fri) strip
             const upcomingHtml = upcoming.map(lesson => {
                 const recs = S.getGameRecommendations(lesson.type);
-                const best = recs[0];
                 const dmHint = lesson.dmPassage ? `<span style="color:#b388ff; font-weight:600;"> · 📖 DM</span>` : '';
                 const chips = recs
                     .filter(r => r.fit !== 'limited')
-                    .map(r => `<span class="upcoming-game-chip ${r.color} ${r.fit==='best'?'best':''}">${r.icon} ${r.name}</span>`)
+                    .map(r => `<a class="upcoming-game-chip ${r.color} ${r.fit==='best'?'best':''}" href="${lessonLink(lesson, r.href)}">${r.icon} ${r.name}</a>`)
                     .join('');
                 return `
-                    <a class="upcoming-card" href="${lessonLink(lesson, best.href)}">
+                    <div class="upcoming-card">
                         <div class="upcoming-date">${lesson.displayDate}${dmHint}</div>
                         <div class="upcoming-title">${lesson.title}</div>
                         <div class="upcoming-games">${chips}</div>
-                    </a>`;
+                    </div>`;
             }).join('');
             const grid = document.getElementById('seminary-upcoming-grid');
             if (grid) grid.innerHTML = upcomingHtml || '<div style="color:#6a6a80; font-size:0.9rem;">No upcoming Seminary lessons in the current stub data.</div>';

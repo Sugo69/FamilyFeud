@@ -199,7 +199,7 @@ const GAME_FIT_MATRIX = {
 
 const GAME_META = {
   'common-ground':   { id: 'common-ground',   icon: '🎯', name: 'Common Ground',   color: 'cyan',    href: 'games/common-ground.html'  },
-  'memory':          { id: 'memory',          icon: '🧩', name: 'Scripture Match', color: 'pink',    href: 'games/memory.html'         },
+  'memory':          { id: 'memory',          icon: '🧩', name: 'Scripture Match', color: 'green',   href: 'games/memory.html'         },
   'scripture-trail': { id: 'scripture-trail', icon: '🚶', name: 'Scripture Trail', color: 'gold',    href: 'games/scripture-trail.html' },
 };
 
