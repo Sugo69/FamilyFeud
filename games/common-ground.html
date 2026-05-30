@@ -352,6 +352,11 @@
                         <p style="color:#555; font-family:'Rajdhani',sans-serif; font-size:0.9rem; margin:10px 0 0 0;">Paste a churchofjesuschrist.org lesson URL to generate questions via the full lesson pipeline, paste any URL for quick generation, or build manually.</p>
                     </div>
 
+                    <!-- Shown when teacher arrived via ?lesson= but content isn't generated yet -->
+                    <div id="tp-pending-lesson" style="display:none; margin-bottom:8px; padding:12px 16px; background:rgba(251,191,36,0.08); border:1px solid rgba(251,191,36,0.35); border-radius:8px; display:none; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <span id="tp-pending-lesson-label" style="flex:1; color:#fbbf24; font-family:'Rajdhani',sans-serif; font-size:0.95rem; font-weight:600;"></span>
+                        <button class="admin-btn" style="white-space:nowrap; min-width:auto; padding:8px 14px; font-size:0.75rem;" onclick="window._openEditorForPendingLesson()">🔗 Generate this lesson →</button>
+                    </div>
                     <div id="tp-game-list"></div>
                 </div>
 
@@ -380,6 +385,11 @@
                             <input type="text" class="tp-game-name-input" id="tp-game-name" placeholder="Game name / lesson topic" oninput="if(window.editorGame) window.editorGame.name = this.value">
                             <button class="bl-add-btn" style="padding:10px 18px; font-size:0.8rem; white-space:nowrap;" onclick="window.saveCurrentGame()">💾 Save</button>
                             <button class="admin-btn" id="tp-set-active-btn" style="min-width:auto; padding:10px 16px; font-size:0.75rem; border-color:var(--neon-cyan); color:var(--neon-cyan); white-space:nowrap;" onclick="window.setGameAsActive()">▶ Set Active</button>
+                        </div>
+                        <!-- Shown when editor was opened from a specific ?lesson= URL param -->
+                        <div id="tp-lesson-context-banner" style="display:none; margin-bottom:12px; padding:10px 14px; background:rgba(251,191,36,0.08); border-left:3px solid #fbbf24; border-radius:4px;">
+                            <div id="tp-lesson-context-label" style="color:#fbbf24; font-family:'Rajdhani',sans-serif; font-size:0.9rem; font-weight:600;"></div>
+                            <div style="color:#888; font-family:'Rajdhani',sans-serif; font-size:0.8rem; margin-top:2px;">Click Generate to create game content for this lesson</div>
                         </div>
                         <!-- Lesson Pipeline section (churchofjesuschrist.org) -->
                         <div id="tp-lesson-section" style="display:none;">
@@ -1268,6 +1278,9 @@
             const ui = document.getElementById('tp-url-input'); if (ui) ui.value = '';
             const li = document.getElementById('tp-lesson-url-input'); if (li) li.value = '';
             const cfm = document.getElementById('tp-lesson-cfm'); if (cfm) cfm.value = '';
+            // Clear lesson context banner — only shown when triggered via ?lesson= auto-route
+            const banner = document.getElementById('tp-lesson-context-banner');
+            if (banner) banner.style.display = 'none';
             hideTpStatus();
             renderEditorRounds();
         };
@@ -1699,12 +1712,33 @@
                     }).catch(() => {});
                     const lessonMeta = getCfmLessonByLessonId(lessonId);
                     if (lessonMeta?.url) {
-                        setTimeout(() => {
-                            window.setView?.('teacher');
+                        // Stash URL + label so the library ← Back route can also show the callout
+                        window._pendingLessonMeta = lessonMeta;
+                        window._openEditorForPendingLesson = () => {
                             window.openEditor?.('lesson');
                             const li = document.getElementById('tp-lesson-url-input');
                             if (li) li.value = lessonMeta.url;
-                            showTpStatus('📚 Lesson not pre-generated yet — click Generate to create it', 'info');
+                            const gn = document.getElementById('tp-game-name');
+                            if (gn) { gn.value = lessonMeta.title; if (window.editorGame) window.editorGame.name = lessonMeta.title; }
+                            const banner = document.getElementById('tp-lesson-context-banner');
+                            const bannerLabel = document.getElementById('tp-lesson-context-label');
+                            if (banner && bannerLabel) {
+                                bannerLabel.textContent = `📅 ${lessonMeta.dateRange} · ${lessonMeta.title}`;
+                                banner.style.display = 'block';
+                            }
+                            showTpStatus('Click Generate to create game content for this lesson', 'info');
+                        };
+                        setTimeout(() => {
+                            window.setView?.('teacher');
+                            // Show the pending callout on the library view first
+                            const pl = document.getElementById('tp-pending-lesson');
+                            const pll = document.getElementById('tp-pending-lesson-label');
+                            if (pl && pll) {
+                                pll.textContent = `📅 ${lessonMeta.dateRange} · ${lessonMeta.title} — not yet generated`;
+                                pl.style.display = 'flex';
+                            }
+                            // Auto-open the editor for immediate generation
+                            window._openEditorForPendingLesson?.();
                         }, 150);
                     }
                     return;
