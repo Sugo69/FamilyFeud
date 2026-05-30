@@ -285,7 +285,7 @@
     <div id="audio-unlock">
         <h1>Common Ground</h1>
         <button onclick="startApp()">START GAME</button>
-        <p style="color: #666; margin-top: 30px; font-size: 1.2rem;">Syncing session...</p>
+        <p id="sync-msg" style="color: #666; margin-top: 30px; font-size: 1.2rem;">Syncing session…</p>
     </div>
 
     <div id="menu-trigger" onclick="toggleSwitcher()">⚙️</div>
@@ -613,6 +613,13 @@
 
         let sharedState = { currentRound: 0, t1Score: 0, t2Score: 0, strikes: 0, revealed: [], strikeTime: 0, winTime: 0, winningTeamId: 0, activeTeam: 0, originalTeamId: 0, t1Name: "LIGHT SQUAD", t2Name: "STAR SQUAD", gameOverTime: 0, consecutiveWins: 0, lastWinnerId: 0, switchPlayTime: 0, lastWinWasFaceOff: false, monitorScale: 1.0, showScripture: true, bookend: null, prevState: null };
         let lastStrike = 0, lastWin = 0, lastRevCount = 0, lastGameOver = 0, lastSwitch = 0, autoAdvanceTimeout = null, user = null, resetConfirming = false;
+        let _sessionReady = false;
+        function markSessionReady() {
+            if (_sessionReady) return;
+            _sessionReady = true;
+            const el = document.getElementById('sync-msg');
+            if (el) el.style.display = 'none';
+        }
         let currentGameRounds = null, currentActiveGameId = null, currentGameTopic = null, currentGameSourceUrl = null, currentGameGeneratedBy = null;
         function getGameRounds() { return currentGameRounds || gameData; }
 
@@ -627,11 +634,13 @@
                 onSnapshot(docRef, (snap) => {
                     if (snap.exists()) { sharedState = snap.data(); syncUI(); }
                     else { setDoc(docRef, sharedState); }
+                    markSessionReady();
                 }, (error) => console.error("Firestore sync error:", error));
                 const activeGameRef = doc(db, `${basePath}/activeGame/current`);
                 onSnapshot(activeGameRef, (snap) => {
                     if (snap.exists()) { const d = snap.data(); currentGameRounds = d.rounds?.length ? d.rounds : null; currentActiveGameId = d.gameId || null; currentGameTopic = d.topic || d.name || null; currentGameSourceUrl = d.sourceUrl || null; currentGameGeneratedBy = d.generatedBy || null; }
                     else { currentGameRounds = null; currentActiveGameId = null; currentGameTopic = null; currentGameSourceUrl = null; currentGameGeneratedBy = null; }
+                    markSessionReady();
                     syncUI();
                 });
             });
