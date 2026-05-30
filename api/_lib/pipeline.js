@@ -42,19 +42,6 @@ export async function runLessonPipeline({ url, gameType = 'common-ground', quest
     if (!url) return { status: 400, body: { error: 'Missing URL' } }
     if (!apiKey) return { status: 500, body: { error: 'ANTHROPIC_API_KEY not configured' } }
 
-    // P0 stub: Scripture Trail generation lands in P1. The game's loader catches this and
-    // keeps the inline lesson-23 default content visible so classroom play is never blocked.
-    if (gameType === 'scripture-trail') {
-        return {
-            status: 501,
-            body: {
-                error: 'Scripture Trail generation is not yet implemented (P1 work). The game will use its inline default content.',
-                notImplemented: true,
-                pipeline: 'lesson-pipeline-v3',
-            }
-        }
-    }
-
     const activeModels = { ...DEFAULT_MODELS, ...models }
 
     const runId = Math.random().toString(36).slice(2, 8)
@@ -132,9 +119,9 @@ export async function runLessonPipeline({ url, gameType = 'common-ground', quest
 
     // Retry once on parse failure — intermittent Claude truncations happen and
     // the same prompt often succeeds on a second call.
-    if (!parsed?.rounds?.length && !parsed?.pairs?.length) {
+    if (!parsed?.rounds?.length && !parsed?.pairs?.length && !parsed?.stops?.length) {
         const firstExcerpt = (generateResp.text || '').slice(0, 800)
-        console.warn(`${tag} Generation missing rounds/pairs — retrying once. First-attempt excerpt:\n${firstExcerpt}`)
+        console.warn(`${tag} Generation missing rounds/pairs/stops — retrying once. First-attempt excerpt:\n${firstExcerpt}`)
         stage('↻ generation retry (parse failed, first attempt truncated or malformed)…')
         generateResp = await callClaude(claudeHeaders, generationBody)
         if (generateResp.error) {
@@ -145,12 +132,12 @@ export async function runLessonPipeline({ url, gameType = 'common-ground', quest
         parsed = parseJsonLoose(generateResp.text)
     }
 
-    if (!parsed?.rounds?.length && !parsed?.pairs?.length) {
+    if (!parsed?.rounds?.length && !parsed?.pairs?.length && !parsed?.stops?.length) {
         const excerpt = (generateResp.text || '').slice(0, 800)
-        console.error(`${tag} Generation missing rounds/pairs after retry for ${url}\n--- Raw Claude response (first 800 chars) ---\n${excerpt}\n--- end ---`)
-        return { status: 502, body: { error: 'Generation step missing rounds/pairs (after retry)', step: 'generation', debugExcerpt: excerpt } }
+        console.error(`${tag} Generation missing rounds/pairs/stops after retry for ${url}\n--- Raw Claude response (first 800 chars) ---\n${excerpt}\n--- end ---`)
+        return { status: 502, body: { error: 'Generation step missing rounds/pairs/stops (after retry)', step: 'generation', debugExcerpt: excerpt } }
     }
-    stage(`generation parsed: ${(parsed.rounds || parsed.pairs || []).length} items`)
+    stage(`generation parsed: ${(parsed.rounds || parsed.pairs || parsed.stops || []).length} items`)
 
     // Step 3: structural compliance (server-side, cannot be prompted away)
     const structural = runStructuralCompliance(parsed, lessonStructure, gameType)
@@ -171,8 +158,9 @@ export async function runLessonPipeline({ url, gameType = 'common-ground', quest
         }
     }
 
-    // Step 5: verse text backfill for memory pairs
+    // Step 5: verse text backfill for memory pairs and trail stops
     if (parsed.pairs?.length) backfillPairs(parsed, lessonStructure)
+    if (parsed.stops?.length) backfillStops(parsed, lessonStructure)
     stage(`DONE in ${((Date.now() - t0) / 1000).toFixed(1)}s`)
 
     // Step 6: assemble response
@@ -265,7 +253,7 @@ function stripHtml(html) {
 
 // ── Structural compliance ────────────────────────────────────────────────────
 function runStructuralCompliance(parsed, lessonStructure, gameType) {
-    const items = parsed.rounds || parsed.pairs || []
+    const items = parsed.rounds || parsed.pairs || parsed.stops || []
     const report = {
         itemCount: items.length,
         passCount: 0,
@@ -299,14 +287,20 @@ function runStructuralCompliance(parsed, lessonStructure, gameType) {
             if (!item.verse?.trim()) findings.push('Missing verse text')
             if (!item.scene?.trim()) findings.push('Missing scene')
             if (!item.question?.trim()) findings.push('Missing discussion question')
+        } else if (gameType === 'scripture-trail') {
+            if (!item.verse?.trim()) findings.push('Missing verse text')
+            if (!item.objective?.trim() && !item.question?.trim()) findings.push('Missing objective/question')
+            if (!Array.isArray(item.choices) || item.choices.length !== 3) findings.push('choices must be array of exactly 3')
+            else if (item.choices.filter(c => c.correct).length !== 1) findings.push('Must have exactly 1 correct choice')
+            if (!item.christ?.trim() && !item.christConnection?.trim()) findings.push('Missing Christ connection')
         } else {
             if (!item.question?.trim()) findings.push('Missing question')
             if (!Array.isArray(item.answers) || item.answers.length < 4) findings.push('Fewer than 4 answers')
             if (item.type && item.type !== 'family_feud' && !item.verseText?.trim()) findings.push('Scripture question missing verseText')
         }
 
-        // Christ-connection requirement (Teaching in the Savior's Way)
-        if (!item.christConnection?.trim()) findings.push('Missing Christ connection')
+        // Christ-connection requirement for non-trail types (trail checks above)
+        if (gameType !== 'scripture-trail' && !item.christConnection?.trim()) findings.push('Missing Christ connection')
 
         if (findings.length > 0) {
             report.reviewCount++
@@ -323,17 +317,19 @@ function runStructuralCompliance(parsed, lessonStructure, gameType) {
 
 // ── AI safety review ─────────────────────────────────────────────────────────
 async function runSafetyReview(headers, parsed, gameType, model = DEFAULT_MODELS.safety) {
-    const items = parsed.rounds || parsed.pairs || []
+    const items = parsed.rounds || parsed.pairs || parsed.stops || []
     if (items.length === 0) return { enabled: true, items: [], blockedCount: 0, rewrittenCount: 0 }
 
     const contentForReview = items.map((it, i) => ({
         idx: i,
-        question: it.question || null,
-        answers: it.answers || null,
+        question: it.question || it.objective || null,
+        answers: it.answers || it.choices || null,
         verseText: it.verseText || it.verse || null,
         cardA: it.cardA || null,
         cardB: it.cardB || null,
-        christConnection: it.christConnection || null,
+        summary: it.summary || null,
+        discussion: it.discussion || null,
+        christConnection: it.christConnection || it.christ || null,
     }))
 
     const prompt = `You are a child-safety reviewer for an LDS youth Sunday School game (ages 13–16). You apply General Handbook §13 and §37.8 plus For the Strength of Youth standards.
@@ -388,7 +384,7 @@ ${JSON.stringify(contentForReview, null, 2)}`
 }
 
 function applySafetyRewrites(parsed, safetyReport) {
-    const items = parsed.rounds || parsed.pairs
+    const items = parsed.rounds || parsed.pairs || parsed.stops
     if (!items) return
 
     const blockedIdx = safetyReport.items.filter(i => i.action === 'block').map(i => i.idx).sort((a, b) => b - a)
@@ -423,6 +419,29 @@ function backfillPairs(parsed, lessonStructure) {
         if (!p.url?.trim() && urlLookup[refKey]) p.url = urlLookup[refKey]
     }
     parsed.pairs = parsed.pairs.filter(p => p.verse?.trim())
+}
+
+function backfillStops(parsed, lessonStructure) {
+    const verseLookup = {}
+    const urlLookup = {}
+    for (const s of (lessonStructure.scriptureRefs || [])) {
+        const key = s.ref?.toLowerCase().replace(/\s+/g, '')
+        if (!key) continue
+        if (s.verseText?.trim()) verseLookup[key] = s.verseText.trim()
+        if (s.url?.trim() && isOutputUrlAllowed(s.url)) urlLookup[key] = s.url.trim()
+    }
+    for (const stop of parsed.stops) {
+        const key = (stop.ref || '').toLowerCase().replace(/\s+/g, '')
+        if (!stop.verse?.trim() && verseLookup[key]) stop.verse = verseLookup[key]
+        if (!stop.url && urlLookup[key]) stop.url = urlLookup[key]
+        // Normalise field aliases
+        if (!stop.christConnection && stop.christ) stop.christConnection = stop.christ
+        if (!stop.question && stop.objective) stop.question = stop.objective
+        // Ensure n is set
+        if (!stop.n) stop.n = parsed.stops.indexOf(stop) + 1
+    }
+    // Drop stops that have neither verse nor ref
+    parsed.stops = parsed.stops.filter(s => s.verse?.trim() || s.ref?.trim())
 }
 
 function decideOverall(structural, safety) {
@@ -544,6 +563,7 @@ Return ONLY valid JSON:
 }
 
 function buildGenerationPrompt(lessonStructure, sourceUrl, gameType, questionType) {
+    if (gameType === 'scripture-trail') return buildTrailGenerationPrompt(lessonStructure, sourceUrl)
     const isMemory = gameType === 'memory'
     const scriptureList = (lessonStructure.scriptureRefs || [])
         .map(s => `- ${s.ref}: "${s.verseText?.trim() || '[supply verbatim from your KJV knowledge]'}" [${s.url || ''}]`).join('\n')
@@ -651,6 +671,96 @@ Return ONLY valid JSON:
       "christConnection": "one sentence",
       "url": "https://... or null",
       "answers": [{ "text": "...", "points": 40 }]
+    }
+  ]
+}`
+}
+
+// ── Scripture Trail generation prompt ─────────────────────────────────────────
+function buildTrailGenerationPrompt(lessonStructure, sourceUrl) {
+    const scriptureList = (lessonStructure.scriptureRefs || [])
+        .map(s => `- ${s.ref}: "${s.verseText?.trim() || '[supply verbatim KJV]'}" [${s.url || ''}]`).join('\n')
+    const videoList = (lessonStructure.videoLinks || []).map((v, i) => `  Video ${i+1}: ${v}`).join('\n')
+    const talkList = (lessonStructure.talkLinks || [])
+        .map(t => `- ${t.title}${t.speaker ? ` (${t.speaker})` : ''}: ${t.url}`).join('\n')
+
+    return `You are the Kindred Gamemaster designing a Scripture Trail game for LDS youth (ages 13–16).
+Scripture Trail is a story-walkthrough board game: students advance along a trail by answering
+multiple-choice questions at each stop. Each stop anchors to one key verse from the lesson.
+
+Lesson: ${lessonStructure.title} (${lessonStructure.weekLabel || ''})
+Source: ${sourceUrl}
+
+Key themes: ${(lessonStructure.keyThemes || []).join(', ')}
+
+Scripture references with verse texts:
+${scriptureList || 'None — use your KJV knowledge for the lesson scriptures.'}
+
+Available videos (Church media only — assign to arcs where thematically appropriate):
+${videoList || '  None found'}
+
+Conference talks:
+${talkList || 'None found'}
+
+## Church policy rubric (MUST follow — your output will be audited)
+- Handbook §13: uplifting, faith-promoting, appropriate for mixed-gender classes. No public shaming.
+- Handbook §37.8: never request or imply collection of personal info about youth.
+- Teaching in the Savior's Way: every stop must connect to Jesus Christ. No graphic violence.
+- URL safety: every URL must be on churchofjesuschrist.org. Do NOT invent or guess URLs.
+- Content safety: no explicit violence, sexual content, substances, self-harm, or family-exposure.
+- Distractors: plausible but clearly wrong on reflection — not trick questions or obscure trivia.
+- Distractor safety: wrong-answer options must themselves be doctrinally safe and non-offensive.
+
+## Your task
+Generate exactly 7 stops grouped into 2–3 story arcs.
+
+### Arc rules
+- Identify 2–3 distinct story segments (by character, event cluster, or theme shift).
+- The FIRST stop of each arc carries the arc object. All other stops in that arc omit the arc field (set to null).
+- Each arc should have a Church video assigned from the Available videos list above, or null if none fits.
+- Arc video URL must be on churchofjesuschrist.org — if unsure, use null.
+
+### Stop rules
+- Exactly 3 choices: 1 correct + 2 plausible distractors. Shuffle order (correct is not always first).
+- "objective" is the question students must answer to advance.
+- "discussion" is an open question the teacher asks the class after the answer is revealed.
+- "christ" is one sentence connecting this stop to Jesus Christ as the central figure.
+- "points" is 15, 20, or 25 (vary across stops; arc-opener stops earn 20 or 25).
+- "verse" must be verbatim KJV text from the scripture references above — never paraphrase.
+- "url" must be the exact Gospel Library URL from the scripture references above, or null.
+
+Return ONLY valid JSON (no markdown, no explanation):
+{
+  "topic": "...",
+  "stops": [
+    {
+      "n": 1,
+      "title": "Short Title (3–5 words)",
+      "ref": "Book Chapter:Verse",
+      "verse": "Verbatim KJV verse text",
+      "verseRef": "Book Chapter:Verse (KJV)",
+      "url": "https://www.churchofjesuschrist.org/... or null",
+      "arc": {
+        "id": "unique-arc-id",
+        "region": "PLACE NAME(S)",
+        "title": "Arc Story Title",
+        "subtitle": "One-line arc theme",
+        "context": "2–3 sentence teacher setup read before this arc's first stop is opened.",
+        "icon": "single emoji",
+        "stopRange": "Stops 1–3",
+        "video": { "title": "Video title", "duration": "1:30", "url": "https://www.churchofjesuschrist.org/..." }
+      },
+      "summary": "2–3 sentence narrative summary of what happened in this story moment.",
+      "objective": "The question students answer to open this stop.",
+      "choices": [
+        { "text": "Answer text", "correct": true },
+        { "text": "Plausible distractor", "correct": false },
+        { "text": "Another plausible distractor", "correct": false }
+      ],
+      "answer": "1–2 sentences explaining the correct answer and its scriptural basis.",
+      "discussion": "Open discussion question the teacher asks the class after revealing the answer.",
+      "christ": "One sentence: how this moment points to Jesus Christ.",
+      "points": 20
     }
   ]
 }`
