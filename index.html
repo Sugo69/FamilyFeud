@@ -968,11 +968,54 @@
             flex-direction: column;
             gap: 12px;
             transition: border-color 0.2s, transform 0.2s;
+            cursor: pointer;
         }
-        .ls-toolkit-card:hover { transform: translateY(-3px); }
+        .ls-toolkit-card:hover:not(.expanded) { transform: translateY(-3px); }
         .ls-toolkit-card.cyan:hover { border-color: var(--neon-cyan); }
         .ls-toolkit-card.pink:hover { border-color: var(--neon-pink); }
         .ls-toolkit-card.gold:hover { border-color: #ffc857; }
+        .ls-toolkit-card.cyan.expanded { border-color: var(--neon-cyan); }
+        .ls-toolkit-card.pink.expanded { border-color: var(--neon-pink); }
+        .ls-toolkit-card.gold.expanded { border-color: #ffc857; }
+        .ls-preview-hint {
+            font-size: 0.75rem;
+            color: #666688;
+            letter-spacing: 1px;
+            text-align: center;
+            padding-top: 4px;
+            transition: color 0.2s;
+        }
+        .ls-toolkit-card:hover .ls-preview-hint { color: #a0a0c8; }
+        .ls-toolkit-card.expanded .ls-preview-hint { color: #a0a0c8; }
+        .ls-toolkit-preview {
+            display: none;
+            margin-top: 4px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #1a1a35;
+        }
+        .ls-toolkit-card.expanded .ls-toolkit-preview { display: block; }
+        .ls-mockup { background: #080812; border-radius: 10px; overflow: hidden; }
+
+        /* Scripture Trail mockup */
+        .st-progress { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .st-prog-label { font-family: 'Orbitron', sans-serif; font-size: 0.62rem; letter-spacing: 2px; color: #ffc857; white-space: nowrap; }
+        .st-prog-bar { flex: 1; height: 4px; background: #1a1a35; border-radius: 2px; }
+        .st-prog-fill { height: 100%; background: #ffc857; border-radius: 2px; }
+        .st-stop-card { background: #0e0e20; border: 1px solid rgba(255,200,87,0.25); border-radius: 10px; padding: 14px; }
+        .st-stop-title { font-family: 'Orbitron', sans-serif; font-size: 0.82rem; color: #ffc857; margin-bottom: 4px; }
+        .st-stop-ref { font-size: 0.72rem; color: #a0a0b5; margin-bottom: 10px; letter-spacing: 1px; }
+        .st-stop-q { font-size: 0.88rem; color: #e0e0f0; margin-bottom: 10px; line-height: 1.4; }
+        .st-choices { display: flex; flex-direction: column; gap: 6px; }
+        .st-choice {
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            border: 1px solid #2a2a45;
+            color: #8888a8;
+            background: #12122a;
+        }
+        .st-choice.correct { border-color: rgba(255,200,87,0.5); color: #ffc857; background: rgba(255,200,87,0.08); }
         .ls-toolkit-icon { font-size: 2.4rem; line-height: 1; }
         .ls-toolkit-card h3 {
             font-family: 'Orbitron', sans-serif;
@@ -1403,26 +1446,99 @@
                 Pick the format that fits this week's lesson. Kindred reads each Come Follow Me lesson and recommends the game that fits best — <em>narrative</em>, <em>doctrinal</em>, or somewhere in between.
             </p>
             <div class="ls-toolkit-grid">
-                <div class="ls-toolkit-card cyan">
+                <div class="ls-toolkit-card cyan" onclick="toggleCardMockup(this)">
                     <div class="ls-toolkit-icon">🎯</div>
                     <h3>Common Ground</h3>
                     <p class="ls-toolkit-tag">Survey-style team game · best for topic-rich lessons</p>
                     <p class="ls-toolkit-body">Teams race to uncover the top answers to a scripture-centered question, then discuss how the verse applies. High energy, fast turns, ~25 min.</p>
                     <div class="ls-toolkit-fit"><strong>Great for:</strong> Deuteronomy, Proverbs, fruits-of-the-Spirit, Conference talks</div>
+                    <div class="ls-toolkit-preview">
+                        <div class="ls-mockup">
+                            <div class="ls-mockup-bar">
+                                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                                <span class="label">Monitor View</span>
+                            </div>
+                            <div class="ls-mockup-body">
+                                <div class="cg-round">ROUND 2 OF 4</div>
+                                <div class="cg-scripture">"Thou shalt love the Lord thy God with all thine heart, and with all thy soul." — Deut. 6:5</div>
+                                <div class="cg-question">Name something you do to show love for God.</div>
+                                <div class="cg-answers">
+                                    <div class="cg-ans revealed"><span>Pray daily</span><span class="pts">38</span></div>
+                                    <div class="cg-ans revealed"><span>Read scriptures</span><span class="pts">22</span></div>
+                                    <div class="cg-ans hidden"><span>???</span><span class="pts">14</span></div>
+                                    <div class="cg-ans hidden"><span>???</span><span class="pts">10</span></div>
+                                </div>
+                                <div class="cg-scoreboard">
+                                    <div class="cg-team t1"><div class="name">TEAM 1</div><div class="score">120</div></div>
+                                    <div class="cg-team t2"><div class="name">TEAM 2</div><div class="score">60</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ls-preview-hint">▼ SEE PREVIEW</div>
                 </div>
-                <div class="ls-toolkit-card pink">
+                <div class="ls-toolkit-card pink" onclick="toggleCardMockup(this)">
                     <div class="ls-toolkit-icon">🧩</div>
                     <h3>Scripture Match</h3>
                     <p class="ls-toolkit-tag">Memory pairs · best for scripture-heavy lessons</p>
                     <p class="ls-toolkit-body">Match a scripture reference to its key phrase. Each match opens the full verse, a Christ connection, and a class discussion question — readable from the back row.</p>
                     <div class="ls-toolkit-fit"><strong>Great for:</strong> Beatitudes, Psalms, key verses, named events</div>
+                    <div class="ls-toolkit-preview">
+                        <div class="ls-mockup">
+                            <div class="ls-mockup-bar">
+                                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                                <span class="label">Monitor View</span>
+                            </div>
+                            <div class="ls-mockup-body">
+                                <div class="ss-grid">
+                                    <div class="ss-card face-a"><div class="icon">✝</div><div class="ref">Matt. 5:8</div></div>
+                                    <div class="ss-card back">K</div>
+                                    <div class="ss-card face-b">Pure in heart shall see God</div>
+                                    <div class="ss-card back">K</div>
+                                    <div class="ss-card face-a"><div class="icon">🕊</div><div class="ref">John 3:16</div></div>
+                                    <div class="ss-card back">K</div>
+                                    <div class="ss-card back">K</div>
+                                    <div class="ss-card face-b">Believeth in him… everlasting life</div>
+                                </div>
+                                <div class="ss-banner">
+                                    <strong>MATCH · Matt. 5:8</strong> — "Blessed are the pure in heart: for they shall see God."
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ls-preview-hint">▼ SEE PREVIEW</div>
                 </div>
-                <div class="ls-toolkit-card gold">
+                <div class="ls-toolkit-card gold" onclick="toggleCardMockup(this)">
                     <div class="ls-toolkit-icon">🚶</div>
                     <h3>Scripture Trail</h3>
                     <p class="ls-toolkit-tag">Sequential story walkthrough · best for narrative lessons</p>
                     <p class="ls-toolkit-body">Two teams journey through the lesson's stories in order — three short Church videos set the scene, then captain-led teams answer multiple-choice questions and discuss as a class.</p>
                     <div class="ls-toolkit-fit"><strong>Great for:</strong> Ruth, Joseph, David, Esther, Daniel, Jonah</div>
+                    <div class="ls-toolkit-preview">
+                        <div class="ls-mockup">
+                            <div class="ls-mockup-bar">
+                                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                                <span class="label">Classroom View</span>
+                            </div>
+                            <div class="ls-mockup-body">
+                                <div class="st-progress">
+                                    <span class="st-prog-label">STOP 3 OF 7</span>
+                                    <div class="st-prog-bar"><div class="st-prog-fill" style="width:42%"></div></div>
+                                </div>
+                                <div class="st-stop-card">
+                                    <div class="st-stop-title">The Still Small Voice</div>
+                                    <div class="st-stop-ref">1 Kings 19:11–12</div>
+                                    <div class="st-stop-q">How did God speak to Elijah after the wind and earthquake?</div>
+                                    <div class="st-choices">
+                                        <div class="st-choice correct">In a still small voice ✓</div>
+                                        <div class="st-choice">In a mighty wind</div>
+                                        <div class="st-choice">Through an angel</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ls-preview-hint">▼ SEE PREVIEW</div>
                 </div>
             </div>
             <div class="ls-smart-strip">
@@ -2007,6 +2123,22 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleCardMockup(card) {
+            const wasExpanded = card.classList.contains('expanded');
+            document.querySelectorAll('.ls-toolkit-card.expanded').forEach(c => {
+                c.classList.remove('expanded');
+                const hint = c.querySelector('.ls-preview-hint');
+                if (hint) hint.textContent = '▼ SEE PREVIEW';
+            });
+            if (!wasExpanded) {
+                card.classList.add('expanded');
+                const hint = card.querySelector('.ls-preview-hint');
+                if (hint) hint.textContent = '▲ CLOSE PREVIEW';
+            }
+        }
+    </script>
 
     <script type="module">
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
