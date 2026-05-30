@@ -1190,6 +1190,7 @@ body {
         </div>
         <div class="objective-question" id="modal-objective"></div>
         <div class="choices-grid" id="choices-grid"></div>
+        <button id="reveal-answer-btn" onclick="window._revealCurrentStop()" style="display:none; margin:8px auto 10px; padding:8px 20px; background:transparent; border:1px solid var(--gold); color:var(--gold); border-radius:8px; font-family:'Orbitron',sans-serif; font-size:0.68rem; cursor:pointer; letter-spacing:1px; text-transform:uppercase;">👁 Reveal Answer</button>
         <div class="answer-explain" id="answer-explain" style="display:none">
           <div class="answer-explain-label">📖 WHY</div>
           <div class="answer-explain-body" id="modal-answer"></div>
@@ -1781,6 +1782,10 @@ function openStop(stop) {
     grid.appendChild(btn);
   });
   document.getElementById('answer-explain').style.display = 'none';
+  // Show reveal-answer button (hidden when already revealed or in review mode)
+  window._currentRevealStop = stop;
+  const rab = document.getElementById('reveal-answer-btn');
+  if (rab) rab.style.display = inReview ? 'none' : 'block';
 
   // Award buttons + review banner state
   const award1 = document.getElementById('award-1');
@@ -1811,6 +1816,9 @@ function openStop(stop) {
   document.getElementById('stop-modal-bd').classList.add('open');
 }
 
+window._revealCurrentStop = function() {
+  if (window._currentRevealStop) revealChoice(window._currentRevealStop, -1);
+};
 function revealChoice(stop, pickedIndex) {
   const grid = document.getElementById('choices-grid');
   if (grid.querySelector('.choice-btn.revealed')) return; // already revealed
@@ -1821,6 +1829,8 @@ function revealChoice(stop, pickedIndex) {
     btn.querySelector('.choice-check').textContent = isCorrect ? '✓' : (i === pickedIndex ? '✗' : '');
   });
   document.getElementById('answer-explain').style.display = '';
+  const rab = document.getElementById('reveal-answer-btn');
+  if (rab) rab.style.display = 'none'; // hide once revealed
 }
 
 function closeStop() {
@@ -2362,8 +2372,26 @@ window.saveTrailEditor = async function() {
   }
 
   const btn = document.getElementById('editor-save-btn');
-  btn.disabled = true; btn.textContent = 'Saving…';
+  btn.disabled = true; btn.textContent = 'Checking content…';
   try {
+    // Content safety: flat text scan then AI moderation (same pattern as Common Ground)
+    const CLIENT_BLOCK_TERMS = [/\bsh[i!1]t\b/i,/\bf+u+c+k+(?:ing|er|ed|s)?\b/i,/\bcunt\b/i,/\basshole\b/i,/\bbullsh[i!1]t\b/i,/\bm[o0]th[e3]rfuck/i,/\bbitch(?:es)?\b/i,/\bc[o0]ck\b(?!atrice|roach)/i,/\bpussy\b(?!\s*willow)/i,/\bmeth(?:amphetamine)?\b/i,/\bcrack\s+cocaine\b/i];
+    const allText = editorStops.flatMap(s => [s.title||'', s.question||'', ...(s.choices||[]).map(c=>c.text||''), s.answer||'', s.discussion||'']).join(' ');
+    const hit = CLIENT_BLOCK_TERMS.find(r => r.test(allText));
+    if (hit) { toast(`Content blocked — flagged word found. Please revise before saving.`, true); btn.disabled = false; btn.textContent = '💾 Save Edits'; return; }
+
+    btn.textContent = 'Moderating…';
+    try {
+      const roundsForModerate = editorStops.map((s, i) => ({ n: i + 1, question: s.question || s.title || '', answers: (s.choices || []).map(c => c.text || '') }));
+      const modRes = await fetch((window.__kindredApiBase || '') + '/api/moderate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rounds: roundsForModerate }) });
+      if (modRes.ok) {
+        const modData = await modRes.json();
+        const flagged = (modData.results || []).filter(r => r.verdict === 'FLAG');
+        if (flagged.length) { toast(`Stop ${flagged[0].i + 1} flagged: ${flagged[0].reason || 'inappropriate content'}. Please revise.`, true); btn.disabled = false; btn.textContent = '💾 Save Edits'; return; }
+      }
+    } catch(me) { /* moderation failed open — proceed */ }
+
+    btn.textContent = 'Saving…';
     const lessonId = window.__kindredLessonId;
     const payload = {
       stops: editorStops,
@@ -2380,7 +2408,7 @@ window.saveTrailEditor = async function() {
   } catch (err) {
     toast(`Save failed: ${err.message}`, true);
   } finally {
-    btn.disabled = false; btn.textContent = '💾 Save';
+    btn.disabled = false; btn.textContent = '💾 Save Edits';
   }
 };
 

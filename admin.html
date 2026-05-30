@@ -765,6 +765,7 @@
             <button class="tab-btn" onclick="switchTab('library')">Library</button>
             <button class="tab-btn" onclick="switchTab('backlog')">Backlog</button>
             <button class="tab-btn" onclick="switchTab('calibrate')">🗺 Calibrate</button>
+            <button class="tab-btn" onclick="switchTab('announce')">📢 Announce</button>
         </nav>
 
         <!-- ── Overview tab ── -->
@@ -1095,6 +1096,7 @@
         } from "/src/auth.js";
 
         const { auth, db, provider } = createFirebaseStack();
+        window.__kindredFirebase = { db };
 
         const API_BASE = (location.hostname === 'kindred-youth.org' || location.hostname === 'www.kindred-youth.org')
             ? 'https://api.kindred-youth.org'
@@ -3005,6 +3007,98 @@
     <div id="tab-calibrate" class="tab-pane">
         <!-- content injected by calibration JS on first open -->
     </div>
+
+    <!-- ── Announce tab ── -->
+    <div id="tab-announce" class="tab-pane">
+        <div class="section-title">System Notifications</div>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:20px; line-height:1.5;">Send messages to all teachers. <strong>Persistent</strong> notifications must be manually read and dismissed by each teacher. <strong>Passive</strong> notifications self-dismiss and won't show again after 30 days.</p>
+
+        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:24px;">
+            <div style="font-family:'Orbitron',sans-serif; color:var(--neon-cyan); font-size:0.8rem; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:14px;">New Notification</div>
+            <input id="ann-title" class="bl-input" placeholder="Title (e.g. Platform Update)" style="margin-bottom:10px;">
+            <textarea id="ann-msg" class="bl-input" placeholder="Message body…" style="height:80px; resize:vertical; margin-bottom:10px;"></textarea>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <select id="ann-type" class="bl-input" style="width:auto; margin:0;">
+                    <option value="passive">Passive — self-dismiss after 30 days</option>
+                    <option value="persistent">Persistent — must mark as read</option>
+                </select>
+                <button class="bl-add-btn" onclick="window.createAnnouncement()">📢 Send</button>
+            </div>
+            <div id="ann-status" style="color:var(--text-muted); font-size:0.8rem; margin-top:10px; min-height:1.2em;"></div>
+        </div>
+
+        <div style="font-family:'Orbitron',sans-serif; color:var(--text-muted); font-size:0.75rem; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:12px;">Active Notifications</div>
+        <div id="ann-list" style="color:var(--text-muted); font-size:0.85rem;">Loading…</div>
+    </div>
+
+    <script>
+    (() => {
+        const APP_ID = 'exodus-feud-final-v10';
+        const getDb = () => window.__kindredFirebase?.db;
+
+        async function loadAnnouncements() {
+            const db = getDb();
+            if (!db) { document.getElementById('ann-list').textContent = 'Firebase not ready.'; return; }
+            const { collection, getDocs, orderBy, query } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+            const basePath = `artifacts/${APP_ID}/public/data`;
+            try {
+                const snap = await getDocs(query(collection(db, `${basePath}/systemNotifications`), orderBy('createdAt', 'desc')));
+                const list = document.getElementById('ann-list');
+                if (snap.empty) { list.innerHTML = '<span style="color:#444;">No notifications yet.</span>'; return; }
+                list.innerHTML = snap.docs.map(d => {
+                    const n = d.data();
+                    const date = n.createdAt ? new Date(n.createdAt).toLocaleDateString() : '—';
+                    const activeLabel = n.active ? '<span style="color:#4ade80; font-size:0.7rem; margin-left:6px;">● Active</span>' : '<span style="color:#555; font-size:0.7rem; margin-left:6px;">● Inactive</span>';
+                    return `<div style="padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:rgba(255,255,255,0.02); margin-bottom:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <strong style="color:var(--neon-cyan); font-family:'Orbitron',sans-serif; font-size:0.72rem;">${n.title || '—'}</strong>${activeLabel}
+                                <span style="font-size:0.65rem; color:#555; margin-left:8px; font-family:'Orbitron',sans-serif;">${n.type?.toUpperCase()} · ${date}</span>
+                                <div style="color:var(--text-muted); font-size:0.82rem; margin-top:4px;">${n.message || ''}</div>
+                            </div>
+                            <button onclick="window.deleteAnnouncement('${d.id}')" style="background:transparent; border:1px solid #555; color:#888; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:0.7rem; white-space:nowrap; margin-left:10px;">Delete</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e) { document.getElementById('ann-list').textContent = 'Load failed: ' + e.message; }
+        }
+
+        window.createAnnouncement = async function() {
+            const db = getDb();
+            const title = document.getElementById('ann-title').value.trim();
+            const msg = document.getElementById('ann-msg').value.trim();
+            const type = document.getElementById('ann-type').value;
+            const status = document.getElementById('ann-status');
+            if (!title || !msg) { status.textContent = 'Title and message are required.'; return; }
+            const { collection, addDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+            const basePath = `artifacts/${APP_ID}/public/data`;
+            status.textContent = 'Sending…';
+            try {
+                const expiresAt = type === 'passive' ? Date.now() + 30 * 24 * 60 * 60 * 1000 : null;
+                await addDoc(collection(db, `${basePath}/systemNotifications`), {
+                    title, message: msg, type, active: true, createdAt: Date.now(), expiresAt
+                });
+                document.getElementById('ann-title').value = '';
+                document.getElementById('ann-msg').value = '';
+                status.textContent = '✓ Notification sent.';
+                loadAnnouncements();
+            } catch(e) { status.textContent = 'Failed: ' + e.message; }
+        };
+
+        window.deleteAnnouncement = async function(id) {
+            if (!confirm('Delete this notification?')) return;
+            const db = getDb();
+            const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+            const basePath = `artifacts/${APP_ID}/public/data`;
+            await deleteDoc(doc(db, `${basePath}/systemNotifications/${id}`));
+            loadAnnouncements();
+        };
+
+        // Hook into switchTab
+        const orig = window.switchTab;
+        window.switchTab = function(name) { orig(name); if (name === 'announce') loadAnnouncements(); };
+    })();
+    </script>
 
 </body>
 </html>
