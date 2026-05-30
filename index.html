@@ -686,6 +686,21 @@
         .upcoming-rec-game.cyan { color: var(--neon-cyan); }
         .upcoming-rec-game.pink { color: var(--neon-pink); }
         .upcoming-rec-game.gold { color: #ffc857; }
+        .upcoming-games {
+            display: flex; gap: 6px; flex-wrap: wrap;
+            margin-top: 6px; padding-top: 8px;
+            border-top: 1px solid #1a1a35;
+        }
+        .upcoming-game-chip {
+            font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em;
+            padding: 3px 8px; border-radius: 20px;
+            border: 1px solid currentColor; opacity: 0.55;
+            white-space: nowrap;
+        }
+        .upcoming-game-chip.best { opacity: 1; }
+        .upcoming-game-chip.cyan  { color: var(--neon-cyan); }
+        .upcoming-game-chip.pink  { color: var(--neon-pink); }
+        .upcoming-game-chip.gold  { color: #ffc857; }
 
         /* ── Footer ── */
         .portal-footer {
@@ -2363,17 +2378,18 @@
             document.getElementById('this-week-games').innerHTML = tiles;
 
             // ── Upcoming CFM Lessons ──
-            // Quiet preview — lesson type badge only, no game-recommendation chip.
-            // The full recommendation engine lives on the This Week hero card.
             const upcomingHtml = upcoming.map(lesson => {
-                const rec = S.getRecommendedGame(lesson.type);
+                const recs = S.getGameRecommendations(lesson.type);
+                const best = recs[0];
+                const chips = recs
+                    .filter(r => r.fit !== 'limited')
+                    .map(r => `<span class="upcoming-game-chip ${r.color} ${r.fit==='best'?'best':''}">${r.icon} ${r.name}</span>`)
+                    .join('');
                 return `
-                    <a class="upcoming-card" href="${lessonLink(lesson, rec.href)}">
+                    <a class="upcoming-card" href="${lessonLink(lesson, best.href)}">
                         <div class="upcoming-date">${S.formatLessonDateRange(lesson)}</div>
                         <div class="upcoming-title">${lesson.title}</div>
-                        <div class="upcoming-type-row">
-                            <span class="lesson-type-badge ${lesson.type || 'mixed'}">${S.formatLessonTypeBadge(lesson.type)}</span>
-                        </div>
+                        <div class="upcoming-games">${chips}</div>
                     </a>`;
             }).join('');
             const grid = document.getElementById('upcoming-grid');
@@ -2448,17 +2464,20 @@
             }).join('');
             document.getElementById('seminary-games').innerHTML = tiles;
 
-            // This week (Mon–Fri) strip — quiet preview, type badge only.
+            // This week (Mon–Fri) strip
             const upcomingHtml = upcoming.map(lesson => {
-                const rec = S.getRecommendedGame(lesson.type);
+                const recs = S.getGameRecommendations(lesson.type);
+                const best = recs[0];
                 const dmHint = lesson.dmPassage ? `<span style="color:#b388ff; font-weight:600;"> · 📖 DM</span>` : '';
+                const chips = recs
+                    .filter(r => r.fit !== 'limited')
+                    .map(r => `<span class="upcoming-game-chip ${r.color} ${r.fit==='best'?'best':''}">${r.icon} ${r.name}</span>`)
+                    .join('');
                 return `
-                    <a class="upcoming-card" href="${lessonLink(lesson, rec.href)}">
+                    <a class="upcoming-card" href="${lessonLink(lesson, best.href)}">
                         <div class="upcoming-date">${lesson.displayDate}${dmHint}</div>
                         <div class="upcoming-title">${lesson.title}</div>
-                        <div class="upcoming-type-row">
-                            <span class="lesson-type-badge ${lesson.type || 'mixed'}">${S.formatLessonTypeBadge(lesson.type)}</span>
-                        </div>
+                        <div class="upcoming-games">${chips}</div>
                     </a>`;
             }).join('');
             const grid = document.getElementById('seminary-upcoming-grid');
