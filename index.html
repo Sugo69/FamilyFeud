@@ -2390,7 +2390,7 @@
             const upcomingHtml = upcoming.map(lesson => {
                 const recs = S.getGameRecommendations(lesson.type);
                 const chips = recs
-                    .filter(r => r.fit !== 'limited')
+                    .filter(r => r.fit !== 'limited' && lesson.type !== 'intro')
                     .map(r => `<a class="upcoming-game-chip ${r.color} ${r.fit==='best'?'best':''}" href="${lessonLink(lesson, r.href)}">${r.icon} ${r.name}</a>`)
                     .join('');
                 return `
@@ -2451,8 +2451,12 @@
                 dmBadge.style.display = 'none';
             }
 
-            // Game recommendations (same matrix as CFM)
-            const recs = S.getGameRecommendations(today.type);
+            // Game recommendations — suppressed for intro/methodology lessons
+            const recs = today.type === 'intro' ? [] : S.getGameRecommendations(today.type);
+            if (today.type === 'intro') {
+                document.getElementById('seminary-games').innerHTML =
+                    '<div style="color:#6a6a80;font-size:0.85rem;padding:4px 0;">Introductory lesson — no game required</div>';
+            }
             const tiles = recs.map(g => {
                 const fitLabel = g.fit === 'best' ? 'BEST FIT'
                               : g.fit === 'good' ? 'GOOD FIT'
@@ -2477,7 +2481,7 @@
                 const recs = S.getGameRecommendations(lesson.type);
                 const dmHint = lesson.dmPassage ? `<span style="color:#b388ff; font-weight:600;"> · 📖 DM</span>` : '';
                 const chips = recs
-                    .filter(r => r.fit !== 'limited')
+                    .filter(r => r.fit !== 'limited' && lesson.type !== 'intro')
                     .map(r => `<a class="upcoming-game-chip ${r.color} ${r.fit==='best'?'best':''}" href="${lessonLink(lesson, r.href)}">${r.icon} ${r.name}</a>`)
                     .join('');
                 return `

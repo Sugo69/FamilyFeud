@@ -609,6 +609,7 @@
         async function init() {
             await auth.authStateReady();
             if (!auth.currentUser) await signInAnonymously(auth);
+            autoLoadFromLesson();
 
             onAuthStateChanged(auth, (u) => {
                 user = u; if (!user) return;
@@ -1679,6 +1680,50 @@
             }
         };
         // ==================== END LESSON LIBRARY ====================
+
+        // Auto-load lesson content from library when ?lesson= is in the URL.
+        // Runs silently on page load — no teacher action needed if the admin
+        // has pre-generated content for this lesson.
+        async function autoLoadFromLesson() {
+            const lessonId = new URLSearchParams(location.search).get('lesson');
+            if (!lessonId) return;
+            try {
+                const snap = await getDoc(doc(db, `${globalBasePath}/lessonLibrary/${lessonId}`));
+                if (!snap.exists()) return;
+                const data = snap.data();
+                const cg = data.commonGround;
+                if (!cg?.rounds?.length) return;
+
+                const activeRef = doc(db, `${basePath}/activeGame/current`);
+                const stateRef = doc(db, `${basePath}/feudSession/state`);
+                await setDoc(activeRef, {
+                    gameId: null,
+                    name: cg.topic || data.name || lessonId,
+                    rounds: cg.rounds,
+                    sourceUrl: cg.sourceUrl || data.url || null,
+                    generatedBy: 'library-auto'
+                });
+                await setDoc(stateRef, {
+                    currentRound: 0, revealed: [], strikes: 0, activeTeam: 0, originalTeamId: 0,
+                    winTime: 0, strikeTime: 0, gameOverTime: 0, switchPlayTime: 0,
+                    winningTeamId: 0, lastWinnerId: 0, consecutiveWins: 0, lastWinWasFaceOff: false,
+                    activeGameId: null
+                }, { merge: true });
+                // Show brief status bar
+                const banner = document.createElement('div');
+                banner.textContent = `📚 Loaded: ${cg.topic || data.name}`;
+                Object.assign(banner.style, {
+                    position: 'fixed', bottom: '16px', left: '50%', transform: 'translateX(-50%)',
+                    background: '#1a2a1a', border: '1px solid #4ade80', color: '#4ade80',
+                    padding: '8px 20px', borderRadius: '8px', fontSize: '13px',
+                    fontFamily: 'sans-serif', zIndex: '9999', pointerEvents: 'none'
+                });
+                document.body.appendChild(banner);
+                setTimeout(() => banner.remove(), 4000);
+            } catch(e) {
+                console.warn('[CG auto-load]', e.message);
+            }
+        }
 
         // ==================== END TEACHER PORTAL ====================
 

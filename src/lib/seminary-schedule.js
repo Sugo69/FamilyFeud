@@ -22,11 +22,11 @@
 
 const SEMINARY_2026_NT = [
   // ── Lessons 1–5: Introduction week ──
-  { slug:'001', date:'2026-08-17', title:'Introduction to the New Testament',         scriptures:'Overview',                type:'doctrinal', dmPassage:null },
+  { slug:'001', date:'2026-08-17', title:'Introduction to the New Testament',         scriptures:'Overview',                type:'intro', dmPassage:null },
   { slug:'002', date:'2026-08-18', title:'The Plan of Salvation',                     scriptures:'Plan of Salvation',       type:'doctrinal', dmPassage:null },
-  { slug:'003', date:'2026-08-19', title:'The Role of the Learner',                   scriptures:'Study Skills',            type:'doctrinal', dmPassage:null },
-  { slug:'004', date:'2026-08-20', title:'Studying the Scriptures',                   scriptures:'Study Skills',            type:'doctrinal', dmPassage:null },
-  { slug:'005', date:'2026-08-21', title:'Context and Overview of the New Testament', scriptures:'Overview',                type:'doctrinal', dmPassage:null },
+  { slug:'003', date:'2026-08-19', title:'The Role of the Learner',                   scriptures:'Study Skills',            type:'intro', dmPassage:null },
+  { slug:'004', date:'2026-08-20', title:'Studying the Scriptures',                   scriptures:'Study Skills',            type:'intro', dmPassage:null },
+  { slug:'005', date:'2026-08-21', title:'Context and Overview of the New Testament', scriptures:'Overview',                type:'intro', dmPassage:null },
 
   // ── Lessons 6–15: Matthew 1–13 ──
   { slug:'006', date:'2026-08-24', title:'Matthew 1–2',                               scriptures:'Matthew 1–2',             type:'narrative', dmPassage:null },
