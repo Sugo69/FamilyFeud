@@ -1502,12 +1502,20 @@
 
         // Route 1: generate for the lesson that was passed via ?lesson= and immediately activate.
         let _tllProgressTimer = null;
+        // Messages timed to match actual server-side pipeline phases.
+        // Steps: (1) fetch lesson page  (2) extraction Claude call
+        //        (3) generation Claude call  (4) structural compliance
+        //        (5) safety-review Claude call  (6) rewrites + finalise
         const TLL_STAGE_MSGS = [
-            { at: 0,  msg: 'Fetching lesson from the Church website…' },
-            { at: 8,  msg: 'Extracting scriptures and discussion themes…' },
-            { at: 18, msg: 'Generating game questions with AI…' },
-            { at: 32, msg: 'Applying Youth Leader principles and safety review…' },
-            { at: 48, msg: 'Almost there — complex lessons take up to 60 seconds…' },
+            { at: 0,   msg: 'Fetching lesson from the Church website…' },
+            { at: 8,   msg: 'Extracting scriptures and key themes…' },
+            { at: 20,  msg: 'Generating game questions with AI…' },
+            { at: 40,  msg: 'Building answer sets and point values…' },
+            { at: 58,  msg: 'Running automated content safety review…' },
+            { at: 80,  msg: 'Checking each question against Church guidelines…' },
+            { at: 105, msg: 'Rewriting any flagged content…' },
+            { at: 130, msg: 'Finalizing questions and Christ connections…' },
+            { at: 160, msg: 'Almost done — wrapping up…' },
         ];
         let _tllElapsed = 0;
         function _tllFmtTime(s) {
@@ -1531,9 +1539,15 @@
             _tllSetProgress(0, TLL_STAGE_MSGS[0].msg);
             _tllProgressTimer = setInterval(() => {
                 _tllElapsed += 0.5;
-                pct += (90 - pct) * 0.035;
+                // Phase 1 (0–60s): ease toward 72% — leaves headroom for phase 2
+                // Phase 2 (60s+): slow linear creep toward 95% so bar keeps moving
+                if (_tllElapsed <= 60) {
+                    pct += (72 - pct) * 0.04;
+                } else {
+                    pct = Math.min(95, 72 + (_tllElapsed - 60) / 150 * 23);
+                }
                 const stage = [...TLL_STAGE_MSGS].reverse().find(s => _tllElapsed >= s.at);
-                _tllSetProgress(Math.min(pct, 89), stage?.msg);
+                _tllSetProgress(pct, stage?.msg);
             }, 500);
         }
         function _tllStopProgress(success) {
