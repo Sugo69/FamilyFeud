@@ -2,14 +2,31 @@
 
 **Reviewer:** Claude Opus 4.7
 **Date:** 2026-04-21
-**Source inputs:** CLAUDE.md, MEMORY.md, screenshots (portal / Scripture Scout portal + library + mission briefing + gameplay, admin Overview/Teachers/Classrooms/Library), skill files (extract-lesson, youth-leader, gamemaster), code (admin.html, games/memory.html, api/lesson-pipeline.js).
+**Source inputs:** CLAUDE.md, MEMORY.md, screenshots (portal / Scripture Match portal + library + mission briefing + gameplay, admin Overview/Teachers/Classrooms/Library), skill files (extract-lesson, youth-leader, gamemaster), code (admin.html, games/memory.html, api/lesson-pipeline.js).
+
+---
+
+## ⚠️ STATUS NOTE — last refreshed 2026-05-29 PM
+
+This backlog was written when Kindred had **2 games** (Common Ground + Scripture Match). Since then:
+
+- **Scripture Trail** shipped (3rd game) — narrative lessons, 6 painted curriculum boards, classroom-scoped teacher editor, admin board-position calibration tab. Pipeline supports `gameType:'scripture-trail'`.
+- **By Heart** shipped (4th game) — Doctrinal Mastery cloze memorisation, 5 progressive levels, FHE custom-verse mode. Doesn't use the lesson pipeline.
+- **NT Seminary curriculum** added — full 160-lesson schedule, on-demand generation with 60-day cache, Seminary tab on portal alongside CFM.
+- **NT DM library** added — 25 hand-coded passages with full KJV text.
+
+When reading items below, mentally substitute "all games" wherever the original text says "both games" or "the two games." The Gemini-parity, compliance, and teacher-self-service items remain accurate priorities — they're now spread across 4 games rather than 2.
+
+**Authoritative current state:** [CHECKPOINT-2026-05-29-pm.md](./CHECKPOINT-2026-05-29-pm.md) and the **Next actions (queued 2026-05-29 PM)** section near the bottom of `CLAUDE.md`.
+
+---
 
 ## Framing
 Kindred works for **one ward with one admin**. To reach **hundreds of teachers worldwide** across wards, stakes, and countries, three structural gaps must close:
 
 1. **Teacher self-service** — today every teacher must be hand-added by `lewiswf@gmail.com`; this is the hard ceiling on scale.
 2. **Church-guideline surface** — the three skills (`extract-lesson`, `youth-leader`, `gamemaster`) encode real policy (Handbook §13, §37.8, Teaching in the Savior's Way, FSY, two-adult rule, copyright). None of that policy metadata reaches the teacher UI. Compliance is invisible.
-3. **Game polish & media** — the Gemini Canvas version of Scripture Scout played real sounds, showed scripture + art + video, and played video sequences in narrative order. The Claude port uses oscillator beeps and link lists. Engagement regression is real and visible.
+3. **Game polish & media** — the Gemini Canvas version of Scripture Match played real sounds, showed scripture + art + video, and played video sequences in narrative order. The Claude port uses oscillator beeps and link lists. Engagement regression is real and visible.
 
 Everything below flows from those three.
 
@@ -43,7 +60,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 
 ### OPUS-003 · Pre-generated rolling 52-week library
 **Problem:** Each teacher clicking "From Lesson URL" calls `/api/lesson-pipeline` — at ~$0.30–$1.00/run × 100s of teachers × weekly = $500–$2,000/month and duplicative work. Library today holds only what the admin happened to enter.
-**Solution:** Weekly scheduled job (Vercel Cron or GitHub Action) that pre-generates both Common Ground and Scripture Scout content for the current week's Come Follow Me lesson, writes to `lessonLibrary/{yyyy-ww}`. Teachers see "This Sunday's Lesson — ready to play" on the portal. Admin can still manually add/override.
+**Solution:** Weekly scheduled job (Vercel Cron or GitHub Action) that pre-generates both Common Ground and Scripture Match content for the current week's Come Follow Me lesson, writes to `lessonLibrary/{yyyy-ww}`. Teachers see "This Sunday's Lesson — ready to play" on the portal. Admin can still manually add/override.
 **Acceptance:**
 - Scheduled job populates next Sunday's lesson by Thursday each week
 - Portal home shows "This Sunday: <Lesson Title>" with Play buttons for both games
@@ -113,7 +130,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 **Effort:** L
 
 ### OPUS-010 · One-click printable question & sabotage cards
-**Problem:** `gamemaster.md` specifies exact card layouts (question cards, Friendly Sabotage deck, Scripture Scout match cards); none are generated. Teachers can't print anything.
+**Problem:** `gamemaster.md` specifies exact card layouts (question cards, Friendly Sabotage deck, Scripture Match match cards); none are generated. Teachers can't print anything.
 **Solution:** `/print/{lessonId}?type=questions|sabotage|scout` route that renders card sheets at 3×3 per page with proper page breaks, QR codes embedded, Letter + A4 sizes.
 **Acceptance:**
 - Print preview matches the card templates in `gamemaster.md`
@@ -122,7 +139,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 **Effort:** M
 
 ### OPUS-011 · Per-classroom lesson override without affecting the library
-**Problem:** `?room={classroomId}` scopes game state but not lesson content — there is no way for a teacher to tweak a library lesson for their class without editing the shared library doc. Today Scripture Scout's "Edit Pairs" edits pairsData in memory; nothing persists it per classroom.
+**Problem:** `?room={classroomId}` scopes game state but not lesson content — there is no way for a teacher to tweak a library lesson for their class without editing the shared library doc. Today Scripture Match's "Edit Pairs" edits pairsData in memory; nothing persists it per classroom.
 **Solution:** On edit, save a fork to `classrooms/{classroomId}/lessonOverrides/{lessonId}` with the teacher's customizations. The game reads override-first, then falls back to the library lesson. Expose "Reset to library version" button.
 **Acceptance:**
 - Teacher A editing Ward A's Exodus 14 pairs does not affect Ward B
@@ -148,7 +165,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 **Effort:** M
 
 ### OPUS-014 · Clean up Teacher Portal clunk (screenshot evidence)
-**Problem:** Scripture Scout portal has four peer buttons: **📚 Library · 🔗 From Lesson URL · ✏️ Edit Pairs · ↺ Default**. "Default" and "Edit Pairs" are not peers of the content sources — they are actions on the currently loaded set. The crowded row is visible in the screenshot.
+**Problem:** Scripture Match portal has four peer buttons: **📚 Library · 🔗 From Lesson URL · ✏️ Edit Pairs · ↺ Default**. "Default" and "Edit Pairs" are not peers of the content sources — they are actions on the currently loaded set. The crowded row is visible in the screenshot.
 **Solution:**
 - Primary row: **📚 Library** · **🔗 From Lesson URL** · **✏️ Manual**
 - "Edit Pairs" becomes a pencil icon on the **Active Lesson** card (only shown when a lesson is loaded)
@@ -177,7 +194,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 ### OPUS-033 · Marketing-grade teacher signup landing page
 **Problem:** The Request Access screen (shipped alongside OPUS-001) is utilitarian — a form card on a black background. It tells a new teacher *what* to enter, not *why* Kindred is worth signing up for, and gives them nothing to share with other teachers, youth leaders, or ward councils. The funnel works but doesn't sell.
 **Solution:** Build a dedicated public landing page (`/signup` or the unauthenticated `index.html` hero) that sells Kindred before asking for a Google sign-in. Must include:
-- Hero reel: short auto-playing loop of Common Ground rounds + Scripture Scout matches on a classroom TV (muted, captions on)
+- Hero reel: short auto-playing loop of Common Ground rounds + Scripture Match matches on a classroom TV (muted, captions on)
 - "What is Kindred?" in one sentence + three-benefit grid (Come Follow Me ready · Classroom-safe AI · No prep for busy teachers)
 - Social proof placeholder: ward / stake adoption counter, testimonials slot, Church-policy compliance badge (links to OPUS-007 compliance surface)
 - Clear primary CTA ("Sign up with Google → Request access") and secondary CTA ("Share with another teacher" → prefilled mailto / Messenger / copy-link)
@@ -206,7 +223,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 
 ---
 
-## P2 — Scripture Scout Gemini parity & game polish
+## P2 — Scripture Match Gemini parity & game polish
 
 ### OPUS-017 · Real audio library, not oscillator tones
 **Problem:** [games/memory.html:121-133](games/memory.html#L121-L133) generates all game sounds via `AudioContext` oscillators — flip/match/mismatch/win/sabotage are beeps. Gemini's version used actual audio (MP3 references exist in `Exodus Matching Game/*.mp3`). Engagement drop is real.
@@ -217,7 +234,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 - Works offline after first load
 **Effort:** S
 
-### OPUS-018 · Image support per Scripture Scout pair
+### OPUS-018 · Image support per Scripture Match pair
 **Problem:** Current match card shows only an emoji icon + text (see screenshot). Gemini's version embedded scripture art that gave the scene visual anchor and massively boosted recall for 14–16 year olds. `gamemaster.md` anticipates this (icon bank + QR code) but image field is absent.
 **Solution:** Extend the pair schema: `{ cardA, cardB, icon, image?: { url, alt, credit } }`. When present, show the image above the verse in the match modal. Source: Church Media Library (`media.churchofjesuschrist.org`) URLs only — enforced by OPUS-008.
 **Acceptance:**
@@ -228,7 +245,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 
 ### OPUS-019 · Sequential video playback for connected narratives
 **Problem:** User's explicit callout: *"Gemini would even make sure that the videos found in the memory game were played in order if there was a sequence."* Current portal shows a flat `videoLinks[]` list with no order metadata.
-**Solution:** `extract-lesson` already returns videos per section in page order. Preserve `sequenceIndex` through the pipeline. Add a "Play lesson videos in order" button on the portal that opens a Vimeo-style playlist modal auto-advancing through each video. Expose at the end of a Scripture Scout round as a reward.
+**Solution:** `extract-lesson` already returns videos per section in page order. Preserve `sequenceIndex` through the pipeline. Add a "Play lesson videos in order" button on the portal that opens a Vimeo-style playlist modal auto-advancing through each video. Expose at the end of a Scripture Match round as a reward.
 **Acceptance:**
 - Videos in a lesson play in narrative order when "Play All" is clicked
 - Order matches the order they appear on the lesson page
@@ -262,7 +279,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 **Effort:** M
 
 ### OPUS-023 · Friendly Sabotage card deck integration
-**Problem:** Scripture Scout has a single Sabotage button that shuffles cards. `gamemaster.md` defines a richer 6-card deck (Scripture Swap, Swap a Player, Double or Nothing, Wild Card, Grace Card, Teacher's Choice), each tied to a scripture. Common Ground has no sabotage at all.
+**Problem:** Scripture Match has a single Sabotage button that shuffles cards. `gamemaster.md` defines a richer 6-card deck (Scripture Swap, Swap a Player, Double or Nothing, Wild Card, Grace Card, Teacher's Choice), each tied to a scripture. Common Ground has no sabotage at all.
 **Solution:** Build a `SabotageDeck` component driven by the lesson's `sabotageCards[]` (already in the gamemaster pipeline). Teacher draws a card; it displays the mechanic + scripture; applies to current round. Works in both games.
 **Acceptance:**
 - Six-card deck renders in both games
@@ -280,7 +297,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 **Effort:** S
 
 ### OPUS-025 · Kill the "Default" button or relabel
-**Problem:** "Default" on the Scripture Scout portal (visible in screenshot) loads Exodus pairs over the currently loaded lesson. Teachers confused it with "Reset".
+**Problem:** "Default" on the Scripture Match portal (visible in screenshot) loads Exodus pairs over the currently loaded lesson. Teachers confused it with "Reset".
 **Solution:** Remove from the primary button row. Move to a small "↺ Load Exodus demo pairs" link inside the Edit Pairs panel.
 **Acceptance:**
 - Not visible in the main portal row
@@ -364,7 +381,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 
 ### OPUS-036 · Extend pre-generation horizon to 60 days, admin-configurable
 **Problem:** OPUS-003 assumes "next Sunday's lesson" as the pre-generation target. Real teacher prep starts earlier — users want to glance 6–8 weeks ahead and know content is already waiting. A single-week window also leaves no buffer if a weekly scheduled job misfires.
-**Solution:** Weekly scheduled job (builds on OPUS-003) pre-generates any CFM lesson whose `weekEnd` falls within the next 60 days and is missing either Common Ground or Scripture Scout. Admin has a horizon slider (`30 / 60 / 90 days`) stored in a global settings doc, so the user can tune cost vs. lead time without redeploy. Idempotent — skips entries already generated.
+**Solution:** Weekly scheduled job (builds on OPUS-003) pre-generates any CFM lesson whose `weekEnd` falls within the next 60 days and is missing either Common Ground or Scripture Match. Admin has a horizon slider (`30 / 60 / 90 days`) stored in a global settings doc, so the user can tune cost vs. lead time without redeploy. Idempotent — skips entries already generated.
 **Acceptance:**
 - At any time, the library holds pre-generated content for every CFM Sunday ≤ horizon days away
 - Admin can change the horizon and see the next run respect it
@@ -394,7 +411,7 @@ Effort: **S** ≤ 1 day · **M** 2–4 days · **L** 1+ week.
 
 ### OPUS-039 · Policy Rechecker — re-validate teacher edits through safety + policy pipeline
 **Problem:** Teachers can hand-edit questions, answers, pairs, and discussion prompts in both games' Teacher Portals after AI generation. Today those edits skip the compliance + safety passes entirely — they land straight in the game. A well-meaning teacher can paste in a verse-lookup from a non-allowlisted site, add a question that slides toward personal exposure, or paraphrase a Christ connection in a way that breaks the Handbook §13 / §37.8 rubric, and nothing catches it. We need runtime enforcement on the edit path, not just the generate path.
-**Solution:** On save of any teacher edit (Common Ground round/answer, Scripture Scout pair field, discussion question, Christ connection, URL), run the edited item through the shared v3 compliance stack — structural check + keyword block list + AI safety review — same as `lesson-pipeline.js`. Persist a `policyViolationLog` sub-collection per classroom recording every non-PASS verdict: `{ editedAt, editedBy, field, before, after, verdict: 'rewrite'|'block', reasons: [...], policyRefs: [...], restoredToAiVersion: bool }`. Surface in admin as a "Policy Rechecker" tab showing violation rate per teacher + most-flagged categories, so we can tell whether the checker is *working* and whether it's being *too restrictive* (a teacher whose benign edits are constantly rewritten is signal for rubric tuning, not a teacher problem).
+**Solution:** On save of any teacher edit (Common Ground round/answer, Scripture Match pair field, discussion question, Christ connection, URL), run the edited item through the shared v3 compliance stack — structural check + keyword block list + AI safety review — same as `lesson-pipeline.js`. Persist a `policyViolationLog` sub-collection per classroom recording every non-PASS verdict: `{ editedAt, editedBy, field, before, after, verdict: 'rewrite'|'block', reasons: [...], policyRefs: [...], restoredToAiVersion: bool }`. Surface in admin as a "Policy Rechecker" tab showing violation rate per teacher + most-flagged categories, so we can tell whether the checker is *working* and whether it's being *too restrictive* (a teacher whose benign edits are constantly rewritten is signal for rubric tuning, not a teacher problem).
 
 Include a test trigger string: any edit containing the literal token **`SnugHarbor`** must always be flagged as a policy violation (category: `test-trigger`). This gives us a zero-ambiguity canary — paste SnugHarbor into any field on prod and confirm the log captures it. Remove the token only after we have real violations flowing.
 **Acceptance:**
@@ -441,11 +458,11 @@ Also note any informal awareness/support at stake/area level (Q6) — improves t
 **Owner:** human only.
 
 ### OPUS-043 · USPTO + EUIPO clearance starter search on the three names
-**Problem:** We're using "Kindred," "Common Ground," and "Scripture Scout" without trademark clearance. An attorney will run a thorough search; doing the starter search ourselves shortens their meter. Source: legal-review §1.1 / §1.2 / §1.3 + item 9.
+**Problem:** We're using "Kindred," "Common Ground," and "Scripture Match" without trademark clearance. An attorney will run a thorough search; doing the starter search ourselves shortens their meter. Source: legal-review §1.1 / §1.2 / §1.3 + item 9.
 **Action:** Run free searches at https://tmsearch.uspto.gov and https://www.tmdn.org/tmview/ for each mark. Record top 10 live conflicts per mark per jurisdiction (US + EU at minimum) in a `tm-search-2026-04.md` file. Specifically check:
 - "Kindred" — Class 9 (software) and Class 41 (education services). Common name — likely many conflicts.
 - "Common Ground" — Class 9 / Class 41 + game-product context. Note any LDS-themed or game-show-adjacent live marks.
-- "Scripture Scout" — Class 9 / Class 41 + check Boy Scouts of America "Scout" assertions.
+- "Scripture Match" — Class 9 / Class 41 + check Boy Scouts of America "Scout" assertions.
 **Done when:** `tm-search-2026-04.md` exists with 30 entries (10 × 3 marks × ≥1 jurisdiction); ready to hand to attorney in OPUS-044.
 **Owner:** human (or Claude if you copy-paste TESS results back into the chat).
 
@@ -520,11 +537,11 @@ Whichever is chosen, OPUS-039 (Policy Rechecker) provides the audit trail.
 
 ---
 
-## Sprint D — Scripture Scout polish (2026-04-22 teacher walkthrough)
+## Sprint D — Scripture Match polish (2026-04-22 teacher walkthrough)
 
 10 items raised during a live walkthrough. Owner decision locked: library uses a **copy-on-write scoping model** (global content pool, per-classroom visibility list, per-classroom edit overlays). OPUS-051 implements that model; the rest are discrete UI / UX fixes.
 
-### OPUS-051 · Scripture Scout library scoping + copy-on-write edits
+### OPUS-051 · Scripture Match library scoping + copy-on-write edits
 **Problem:** `lessonLibrary` is global — every teacher sees every entry regardless of who generated it. Custom URL generations bleed across wards (a conference talk Teacher A built shows up for Teacher Z). Today edits hit the shared entry, so one teacher's tweak mutates content for everyone. We also pay Claude twice if two teachers independently request the same source URL.
 **Solution:**
 - Global content pool unchanged: `lessonLibrary/{lessonId}` keyed by deterministic id (`cfm-{manual}-{slug}` for CFM, hash for custom URLs).
@@ -623,7 +640,7 @@ Whichever is chosen, OPUS-039 (Policy Rechecker) provides the audit trail.
 | Cleanup | OPUS-014, 015, 016, 025 | UI clunk + dead code removed |
 | Long-term | OPUS-026–032 | Analytics, telemetry, i18n, CI |
 | **Sprint C — Legal & Owner Actions** | **OPUS-040–050** | **Entity, insurance, attorneys, Church IP letter, privacy policy, intake mailbox — gate for self-serve launch** |
-| **Sprint D — Scripture Scout polish** | **OPUS-051–060** | **Library scoping (copy-on-write) + 9 UI/UX fixes from teacher walkthrough** |
+| **Sprint D — Scripture Match polish** | **OPUS-051–060** | **Library scoping (copy-on-write) + 9 UI/UX fixes from teacher walkthrough** |
 
 ## Comparison hooks for the existing BL-001 – BL-006 backlog
 When comparing against the existing 6-item backlog in `admin.html` / Firestore, note:
