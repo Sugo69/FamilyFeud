@@ -675,14 +675,8 @@ body {
 }
 .answer-explain-label { font-size: 10px; color: var(--christ-amber); font-weight: 800; letter-spacing: 0.12em; margin-bottom: 4px; }
 .answer-explain-body { font-size: 13px; color: var(--ink-2); line-height: 1.5; }
-
-.christ-callout {
-  background: linear-gradient(135deg, rgba(255,209,102,0.15), rgba(255,159,67,0.08));
-  border-left: 4px solid var(--christ-amber);
-  padding: 14px 20px; border-radius: 8px; margin-bottom: 14px;
-}
-.christ-callout-label { font-size: 11px; color: var(--christ-amber); font-weight: 800; letter-spacing: 0.12em; margin-bottom: 4px; }
-.christ-callout-body { font-size: 15px; color: var(--ink-2); line-height: 1.5; }
+.answer-explain-christ { font-size: 13px; color: var(--christ-amber); line-height: 1.5;
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,209,102,0.25); }
 
 .discussion-callout {
   background: linear-gradient(135deg, rgba(56,210,255,0.12), rgba(56,210,255,0.04));
@@ -958,12 +952,8 @@ body {
         <div class="answer-explain" id="answer-explain" style="display:none">
           <div class="answer-explain-label">📖 WHY</div>
           <div class="answer-explain-body" id="modal-answer"></div>
+          <div class="answer-explain-christ" id="modal-christ"></div>
         </div>
-      </div>
-
-      <div class="christ-callout">
-        <div class="christ-callout-label">✝ CHRIST CONNECTION</div>
-        <div class="christ-callout-body" id="modal-christ"></div>
       </div>
 
       <div class="discussion-callout">
