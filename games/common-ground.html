@@ -413,16 +413,23 @@
                 <!-- Editor sub-view -->
                 <div id="tp-editor-view" style="display:none">
                     <div class="admin-box">
-                        <div class="tp-topbar" style="margin-bottom:12px;">
+                        <!-- Route 2 topbar: shown when teacher opens editor manually -->
+                        <div id="tp-topbar-edit" class="tp-topbar" style="margin-bottom:12px;">
                             <button class="admin-btn" style="min-width:auto; padding:10px 16px; font-size:0.75rem;" onclick="window.closeEditor()">← Back</button>
                             <input type="text" class="tp-game-name-input" id="tp-game-name" placeholder="Game name / lesson topic" oninput="if(window.editorGame) window.editorGame.name = this.value">
-                            <button class="bl-add-btn" style="padding:10px 18px; font-size:0.8rem; white-space:nowrap;" onclick="window.saveCurrentGame()">💾 Save</button>
+                            <button id="tp-save-btn" class="bl-add-btn" style="padding:10px 18px; font-size:0.8rem; white-space:nowrap;" onclick="window.saveCurrentGame()">💾 Save</button>
                             <button class="admin-btn" id="tp-set-active-btn" style="min-width:auto; padding:10px 16px; font-size:0.75rem; border-color:var(--neon-cyan); color:var(--neon-cyan); white-space:nowrap;" onclick="window.setGameAsActive()">▶ Set Active</button>
+                        </div>
+                        <!-- Route 1 topbar: shown after generation in review mode -->
+                        <div id="tp-topbar-review" style="display:none; margin-bottom:12px; display:none; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <button class="admin-btn" style="min-width:auto; padding:10px 16px; font-size:0.75rem;" onclick="window.closeEditor()">← Back</button>
+                            <span id="tp-review-title" style="flex:1; color:white; font-family:'Rajdhani',sans-serif; font-size:1rem; font-weight:700; padding:0 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+                            <button class="bl-add-btn" style="padding:10px 20px; font-size:0.85rem; white-space:nowrap; background:linear-gradient(90deg,#7c3aed,#00d4ff); border:none; color:#000; font-weight:700;" onclick="window.reviewActivateAndPlay()">▶ Activate &amp; Play</button>
                         </div>
                         <!-- Shown after Route 1 generation when teacher chose to review first -->
                         <div id="tp-review-banner" style="display:none; margin-bottom:12px; padding:10px 14px; background:rgba(0,242,255,0.06); border-left:3px solid var(--neon-cyan); border-radius:4px;">
                             <div id="tp-review-banner-msg" style="color:var(--neon-cyan); font-family:'Rajdhani',sans-serif; font-size:0.9rem; font-weight:600;"></div>
-                            <div style="color:#888; font-family:'Rajdhani',sans-serif; font-size:0.8rem; margin-top:2px;">Edit any question or answer below, then click ▶ Start Game when ready.</div>
+                            <div style="color:#888; font-family:'Rajdhani',sans-serif; font-size:0.8rem; margin-top:2px;">Edit any question or answer below, then click ▶ Activate &amp; Play when ready.</div>
                         </div>
                         <!-- Shown when editor was opened from a specific ?lesson= URL param -->
                         <div id="tp-lesson-context-banner" style="display:none; margin-bottom:12px; padding:10px 14px; background:rgba(251,191,36,0.08); border-left:3px solid #fbbf24; border-radius:4px;">
@@ -1319,6 +1326,9 @@
                 sourceUrl: null, generatedBy: null, _docId: null
             };
             showEditorView();
+            // Restore Route 2 topbar
+            document.getElementById('tp-topbar-edit').style.display = 'flex';
+            document.getElementById('tp-topbar-review').style.display = 'none';
             document.getElementById('tp-game-name').value = '';
             document.getElementById('tp-lesson-section').style.display = mode === 'lesson' ? 'block' : 'none';
             document.getElementById('tp-url-section').style.display = mode === 'url' ? 'block' : 'none';
@@ -1333,19 +1343,25 @@
             renderEditorRounds();
         };
 
-        // Review mode: called after Route 1 generation when teacher wants to check questions
-        // before activating. Preserves the generated editorGame — does NOT reset it.
+        // Review mode: called after Route 1 generation. Preserves generated editorGame.
         window.openEditorForReview = function(game, lessonMeta) {
             window.editorGame = game;
             editorMode = 'lesson';
             showEditorView();
+            // Swap to the clean review topbar — hides name input, Save, Set Active
+            document.getElementById('tp-topbar-edit').style.display = 'none';
+            const reviewBar = document.getElementById('tp-topbar-review');
+            const reviewTitle = document.getElementById('tp-review-title');
+            if (reviewBar) reviewBar.style.display = 'flex';
+            if (reviewTitle) reviewTitle.textContent = game.name || lessonMeta?.title || '';
+            // Set hidden name input so saveCurrentGame still reads it
             const gn = document.getElementById('tp-game-name');
             if (gn) gn.value = game.name || '';
-            // Hide generation controls — content is already generated
+            // Hide generation controls
             document.getElementById('tp-lesson-section').style.display = 'none';
             document.getElementById('tp-url-section').style.display = 'none';
             document.getElementById('tp-lesson-context-banner').style.display = 'none';
-            // Show review banner
+            // Show review banner below topbar
             const rb = document.getElementById('tp-review-banner');
             const rbMsg = document.getElementById('tp-review-banner-msg');
             if (rb && rbMsg) {
@@ -1353,11 +1369,17 @@
                 rbMsg.textContent = `✓ ${game.rounds.length} questions generated${title}`;
                 rb.style.display = 'block';
             }
-            // Rename "Set Active" → "▶ Start Game" so intent is clear
-            const sab = document.getElementById('tp-set-active-btn');
-            if (sab) sab.textContent = '▶ Start Game';
             hideTpStatus();
             renderEditorRounds();
+        };
+
+        // Activate the reviewed game and go straight to the Admin (controller) view.
+        window.reviewActivateAndPlay = async function() {
+            const saved = await window.saveCurrentGame();
+            if (!saved || !window.editorGame?._docId) return;
+            const g = teacherGames.find(x => x._docId === window.editorGame._docId) || window.editorGame;
+            await activateGame(g);
+            window.setView('admin');
         };
 
         window.loadGameToEditor = function(docId) {
